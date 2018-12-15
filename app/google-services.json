@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "717546403719",
+    "firebase_url": "https://omega-sorter-225600.firebaseio.com",
+    "project_id": "omega-sorter-225600",
+    "storage_bucket": "omega-sorter-225600.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717546403719:android:5f7492bfc71a78a0",
+        "android_client_info": {
+          "package_name": "com.example.liammc.yarn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "717546403719-v3iai7rjcmok452bkoo7slaeq05iggu5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.liammc.yarn",
+            "certificate_hash": "73704502cac95865de40a3d8016ce66452e3fb29"
+          }
+        },
+        {
+          "client_id": "717546403719-bj6i1orvml3hltjhbm37hf0qs1am8adc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5I_Wu5uZdx8FgPW_eDGaCVPobX_MNVPA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "717546403719-bj6i1orvml3hltjhbm37hf0qs1am8adc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
