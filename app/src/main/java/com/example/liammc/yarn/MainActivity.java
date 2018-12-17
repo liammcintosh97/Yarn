@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void OnClick(View view)
     {
-        Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
+        Intent myIntent = new Intent(getBaseContext(),   IntroActivity.class);
         startActivity(myIntent);
     }
 }
