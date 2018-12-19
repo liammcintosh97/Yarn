@@ -1,12 +1,47 @@
 <resources>
+    //Global
     <string name="app_name">Yarn</string>
     <string name="title_activity_maps">Map</string>
 
+    //Facebook
+    <string name="facebook_app_id">212630036311409</string>
+    <string name="fb_login_protocol_scheme">fb212630036311409</string>
+
+    //Main Activity
+    <string name="main_loginButton">Login</string>
+    <string name="main_signUpEmialButton">Sign Up with Email</string>
+    <string name="main_signUpPhoneButton">Sign Up with Phone</string>
+    <string name="main_signUpFacebookButton">Sign Up with Facebook</string>
+    <string name="main_signUpGoogleButton">Sign Up with Google</string>
+    <string name="main_signUpTwitterButton">Sign Up with Twitter</string>
+
+    //Sign up email activity
+    <string name="signUpEmail_title">Sign Up Email</string>
+    <string name="signUpEmail_emailHint">Email</string>
+    <string name="signUpEmail_passwordHint">Password</string>
+    <string name="signUp_button">Sign Up</string>
+
+    //Sign up phone activity
+    <string name="signUpPhone_title">Sign Up Phone</string>
+    <string name="signUpPhone_phoneNumberHint">Phone Number</string>
+    <string name="signUpPhone_codeHint">Code</string>
+    <string name="signUpPhone_sendCode">Send Code</string>
+    <string name="signUpPhone_verify">Verify</string>
+
+    //Sign up facebook activity
+    <string name="signUpFacebook_title">Sign Up Facebook</string>
+
+    //Sign up google activity
+    <string name="signUpGoogle_title">Sign Up Google</string>
+
+    //Sign up twitter activity
+    <string name="signUpTwitter_title">Sign Up Twitter</string>
+
     //Intro Fragments
-    <string name="skip_button">Skip</string>
+    <string name="intro_skipButton">Skip</string>
 
     //Terms Fragment
-    <string name="accept_button">Accept</string>
+    <string name="terms_acceptButton">Accept</string>
 
 
     //Misc
@@ -14,5 +49,6 @@
     Consequat donec velit habitant, malesuada nec vestibulum lorem, convallis nunc enim arcu sed aliquet, arcu nec. Per nibh, felis rutrum nulla pellentesque aliquet dolor, id nec posuere quis convallis magna. Ultricies arcu fermentum et justo in, convallis quam ut aenean fermentum. Felis erat nullam scelerisque, elit eleifend, id fusce nec vulputate, ipsum sit ipsum. Ut wisi, tellus ut porttitor a, sed nam. Eu nisl vel, lacus commodo, turpis eu orci donec elit amet eget, in conubia neque nec maecenas sollicitudin. Id rutrum in arcu odio, suspendisse lobortis, nunc viverra ipsum tortor tempor, justo quisque vel nunc scelerisque, sodales maecenas justo est nec.
     Habitasse auctor suspendisse amet at eget eu, leo a tristique nascetur eget neque eget, vehicula volutpat sodales at luctus lectus, est pellentesque velit bibendum sed. Erat nascetur, ultricies sollicitudin nisl venenatis nec hendrerit vestibulum. Viverra egestas duis, volutpat erat molestiae sit bibendum neque penatibus. Dictum id pulvinar eros convallis nulla, parturient habitant feugiat ipsum condimentum faucibus purus. Nunc dolor turpis, molestie porta imperdiet sollicitudin in, vitae ridiculus quam ultricies amet, aptent orci accumsan posuere venenatis praesent. Erat amet erat duis nulla sociosqu, justo eget eget aperiam mattis, elit rutrum vel quis luctus pellentesque felis, integer mi ac ac sit amet nulla, pede erat dis phasellus semper dis amet. Imperdiet a. Enim etiam risus at vitae, elit lectus vestibulum mus donec feugiat, in ornare leo nulla elementum, in justo a vestibulum mollis pulvinar dis, mi ligula.
         Placerat bibendum et diam, curabitur iaculis ipsum, sed est ut sed quia, nunc aliquam, libero tortor. Nunc aliquam eros risus et nec, justo deserunt natoque, at eros tempor, eu sollicitudin. Ornare dictum tincidunt ullamcorper sed felis orci, nibh vitae, ipsum vestibulum et est in velit. Varius risus adipiscing sit mauris integer, risus in eros suscipit in, dui nulla donec ante. Cras donec mi accusantium blandit bibendum, cras amet quam risus. Id iaculis dictumst libero, id aptent ultrices, nisl accumsan, arcu gravida corporis suscipit. Nonummy auctor nisl, vehicula tempor, hymenaeos fermentum commodi, porta ac scelerisque dui morbi. Proin erat justo faucibus nec eget elit, sed nulla urna faucibus, accumsan lobortis vivamus dolor, dolor imperdiet metus praesent. Nunc tempus illo curabitur dui, quis porttitor enim dolor tempor, massa consequat potenti curabitur.</string>
+    <string name="title_activity_sign_up_facebook">SignUpFacebookActivity</string>
 
 </resources>
