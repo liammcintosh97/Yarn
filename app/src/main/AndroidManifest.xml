@@ -40,9 +40,7 @@
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
         <activity android:name=".IntroActivity" />
-        <activity android:name=".SignUpEmailActivity" />
-        <activity android:name=".SignUpPhoneActivity" />
-        <activity android:name=".SignUpGoogleActivity" />
+        <activity android:name=".SignUpPhoneActivity" android:theme="@style/AppTheme.PhoneSignUp"/>
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
@@ -64,8 +62,7 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-        <activity android:name=".SignUpFacebookActivity" />
-        <activity android:name=".SignUpTwitterActivity"></activity>
+        <activity android:name=".SignUpActivity" />
     </application>
 
 </manifest>

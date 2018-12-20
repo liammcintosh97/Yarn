@@ -19,11 +19,20 @@
     <string name="main_signUpGoogleButton">Sign Up with Google</string>
     <string name="main_signUpTwitterButton">Sign Up with Twitter</string>
 
+    //Sign Up
+    <string name="signUp_title">--------------- Sign Up ---------------</string>
+    <string name="signUp_title2">------------ Sign Up With ------------</string>
+    <string name="signUp_emailHint">Email</string>
+    <string name="signUp_passwordHint">Password</string>
+    <string name="signUp_confirmPasswordHint">Confirm Password</string>
+    <string name="signUp_or">Or</string>
+    <string name="signUp_button">Sign Up</string>
+    <string name="signUp_facebookButtonContentDescription">Facebook Login Button</string>
+
     //Sign up email activity
     <string name="signUpEmail_title">Sign Up Email</string>
     <string name="signUpEmail_emailHint">Email</string>
     <string name="signUpEmail_passwordHint">Password</string>
-    <string name="signUp_button">Sign Up</string>
 
     //Sign up phone activity
     <string name="signUpPhone_title">Sign Up Phone</string>

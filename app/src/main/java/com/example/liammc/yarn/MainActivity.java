@@ -7,6 +7,8 @@ import android.view.View;
 
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.twitter.sdk.android.core.Twitter;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,6 +20,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        mAuth.signOut();
     }
 
 
@@ -26,33 +31,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void OnSignUpEmailPressed(View view)
+    public void OnSignUpPressed(View view)
     {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpEmailActivity.class);
+        Intent myIntent = new Intent(getBaseContext(),   SignUpActivity.class);
         startActivity(myIntent);
     }
 
-    public void OnSignUpPhonePressed(View view)
-    {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpPhoneActivity.class);
-        startActivity(myIntent);
-    }
 
-    public void OnSignUpGooglePressed(View view)
-    {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpGoogleActivity.class);
-        startActivity(myIntent);
-    }
-
-    public void OnSignUpFacebookPressed(View view)
-    {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpFacebookActivity.class);
-        startActivity(myIntent);
-    }
-
-    public void OnSignUpTwitterPressed(View view)
-    {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpTwitterActivity.class);
-        startActivity(myIntent);
-    }
 }
