@@ -7,6 +7,10 @@
     <string name="facebook_app_id">212630036311409</string>
     <string name="fb_login_protocol_scheme">fb212630036311409</string>
 
+    //Twitter
+    <string name="com.twitter.sdk.android.CONSUMER_KEY">ppv4du1RiVrMYRBz9X9h4Xwok</string>
+    <string name="com.twitter.sdk.android.CONSUMER_SECRET">LPMxYOfZpqsdJEtFbbYluMDuN5vc52nhFKtIBiQh1UnU2pLXwa </string>
+
     //Main Activity
     <string name="main_loginButton">Login</string>
     <string name="main_signUpEmialButton">Sign Up with Email</string>

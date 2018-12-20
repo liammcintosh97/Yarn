@@ -7,11 +7,14 @@ import android.view.View;
 
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
+import com.twitter.sdk.android.core.Twitter;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        Twitter.initialize(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -49,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void OnSignUpTwitterPressed(View view)
     {
-        Intent myIntent = new Intent(getBaseContext(),   SignUpEmailActivity.class);
+        Intent myIntent = new Intent(getBaseContext(),   SignUpTwitterActivity.class);
         startActivity(myIntent);
     }
 }
