@@ -66,59 +66,33 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseUser mCurrentUser;
 
-    //Google
-    private GoogleSignInOptions gso;
-    private GoogleSignInClient mGoogleSignInClient;
-    private GoogleApiClient mGoogleApiClient;
+    //Authentication
+    private Authenticator mAuthenticator;
+    private FacebookAuth mFacebookAuth;
+    private GoogleAuth mGoogleAuth;
+    private TwitterAuth mTwitterAuth;
+    private PhoneAuth mPhoneAuth;
 
-    //FaceBook
-    private CallbackManager mCallbackManager;
-    private LoginManager mLoginManager;
-
-    //Twitter
-    private TwitterAuthClient mTwitterAuthClient;
-
-    //Phone
-    private PhoneAuthProvider mPhoneAuth;
-    private PhoneAuthProvider.OnVerificationStateChangedCallbacks mPhoneCallbacks;
-    private String mVerificationId;
-    private PhoneAuthProvider.ForceResendingToken mResendToken;
-    private PopupWindow mPopupWindow;
-    private Context mContext;
-    private ConstraintLayout mMainConstraintLayout;
-
-    private View mPhoneAuthView;
-
-    private Button sendPhoneCodeButton;
-    private Button resendPhoneCodeButton;
-    private Button verifyPhoneButton;
-
-    private EditText phoneCodeInput;
-    private EditText phoneNumberInput;
-
-    private CountryCodePicker countryCodePicker;
-
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-    }
+    private PhoneAuthWindow mPhoneAuthWindow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
-        //Set up the phone auth interface
-        SetUpPhonePopup();
-        SetUpPhoneUI();
+        mAuth = FirebaseAuth.getInstance();
+        mCurrentUser = mAuth.getCurrentUser();
 
-        //Set up all the authorization systems
-        SetUpFirebaseAuth();
-        SetUpGoogleAuth();
-        SetUpFaceBookAuth();
-        SetUpTwitterAuth();
-        SetUpPhoneAuth();
+        mAuthenticator = new Authenticator(this,mAuth,mCurrentUser);
+        mFacebookAuth = new FacebookAuth(this,mAuth, mCurrentUser);
+        mGoogleAuth = new GoogleAuth(this,SignUpActivity.this,mAuth,mCurrentUser,GO_SIGN_IN);
+        mTwitterAuth = new TwitterAuth(this,mAuth,mCurrentUser);
+        mPhoneAuth = new PhoneAuth(this,mAuth,mCurrentUser);
+
+        mPhoneAuthWindow = new PhoneAuthWindow(this);
+
+        mPhoneAuth.window = mPhoneAuthWindow;
+        mPhoneAuthWindow.auth = mPhoneAuth;
 
         checkSignIn();
     }
@@ -126,9 +100,9 @@ public class SignUpActivity extends AppCompatActivity {
     @Override
     public void onBackPressed()
     {
-        if(mPopupWindow.isShowing())
+        if(PhoneAuthWindow.window.isShowing())
         {
-            mPopupWindow.dismiss();
+            PhoneAuthWindow.window.dismiss();
         }
         else super.onBackPressed();
     }
@@ -145,136 +119,20 @@ public class SignUpActivity extends AppCompatActivity {
                 // The Task returned from this call is always completed, no need to attach
                 // a listener.
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                handleSignInGoogleResult(task);
+                mGoogleAuth.handleSignInGoogleResult(task);
             }
             else if(requestCode == PH_SIGN_IN)
             {
                 String id = data.getStringExtra("verificationID");
                 String code = data.getStringExtra("code");
 
-                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(id, code);
-                firebaseAuthPhone(credential);
+                mPhoneAuth.signUp(code);
             }
         }
 
-        mCallbackManager.onActivityResult(requestCode, resultCode, data);
-        mTwitterAuthClient.onActivityResult(requestCode, resultCode, data);
+        mFacebookAuth.mCallbackManager.onActivityResult(requestCode, resultCode, data);
+        mTwitterAuth.mTwitterAuthClient.onActivityResult(requestCode, resultCode, data);
     }
-
-    //region Set Up
-    private void SetUpFirebaseAuth()
-    {
-        mAuth = FirebaseAuth.getInstance();
-        mCurrentUser = mAuth.getCurrentUser();
-    }
-
-    private void SetUpGoogleAuth()
-    {
-        // Configure Google Sign In
-        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        // Build a GoogleSignInClient with the options specified by gso.
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        mGoogleApiClient = new GoogleApiClient.Builder(SignUpActivity.this)
-                .enableAutoManage(SignUpActivity.this, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
-                    {
-                        Log.d(TAG,"Failed to connect to Google- " + connectionResult) ;
-
-                        Toast.makeText(SignUpActivity.this, "Failed to connect to Google",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                } )
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-    }
-
-    private void SetUpFaceBookAuth()
-    {
-        //FacebookSdk.sdkInitialize(this.getApplicationContext());
-
-        mCallbackManager = CallbackManager.Factory.create();
-        mLoginManager = LoginManager.getInstance();
-
-        mLoginManager.registerCallback(mCallbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        Log.d(TAG, "Facebook Login is successful");
-                        firebaseAuthFacebook(loginResult.getAccessToken());
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        Toast.makeText(SignUpActivity.this, "Facebook Login Cancel", Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                        Toast.makeText(SignUpActivity.this, exception.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
-
-    }
-
-    private void SetUpTwitterAuth()
-    {
-
-        mTwitterAuthClient = new TwitterAuthClient();
-    }
-
-    private void SetUpPhoneAuth()
-    {
-        mPhoneAuth = PhoneAuthProvider.getInstance();
-
-        mPhoneCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-
-            @Override
-            public void onVerificationCompleted(PhoneAuthCredential credential) {
-
-                Log.d(TAG, "onVerificationCompleted:" + credential);
-
-                firebaseAuthPhone(credential);
-            }
-
-            @Override
-            public void onVerificationFailed(FirebaseException e) {
-
-                Log.w(TAG, "onVerificationFailed", e);
-
-                Toast.makeText(SignUpActivity.this, "Phone Verification Failed",
-                        Toast.LENGTH_SHORT).show();
-
-                if (e instanceof FirebaseAuthInvalidCredentialsException)
-                {
-                    Log.v(TAG,e.getMessage());
-                } else if (e instanceof FirebaseTooManyRequestsException)
-                {
-                    Log.v(TAG,e.getMessage());
-                }
-            }
-
-            @Override
-            public void onCodeSent(String verificationId,
-                                   PhoneAuthProvider.ForceResendingToken token) {
-
-                Log.d(TAG, "onCodeSent:" + verificationId);
-
-                mVerificationId = verificationId;
-                mResendToken = token;
-
-                ShowVerifyPhoneUI();
-                ShowResendPhoneUI();
-            }
-        };
-    }
-
-    //endregion
 
     //region Button Methods
     public void OnSignUpPressed(View view)
@@ -293,7 +151,7 @@ public class SignUpActivity extends AppCompatActivity {
             if(ErrorManager.validateEmail(email)
                     && ErrorManager.validatePassword(password,confirmPassword))
             {
-                firebaseAuthEmail(email,password);
+                mAuthenticator.signUp(email,password);
             }
         }
         catch(IOException e)
@@ -305,379 +163,35 @@ public class SignUpActivity extends AppCompatActivity {
 
     public void OnSignUpFacebookPressed(View view)
     {
-        mLoginManager.logInWithReadPermissions(SignUpActivity.this,
-                Arrays.asList("public_profile", "user_friends"));
+        mFacebookAuth.login();
     }
 
     public void OnSignUpGooglePressed(View view)
     {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, GO_SIGN_IN);
+        mGoogleAuth.login();
     }
 
     public void OnSignUpTwitterPressed(View view)
     {
-        mTwitterAuthClient.authorize(this, new com.twitter.sdk.android.core.Callback<TwitterSession>() {
-
-            @Override
-            public void success(Result<TwitterSession> twitterSessionResult) {
-                Log.d(TAG, "twitterLogin:success" + twitterSessionResult);
-                handleSignInTwitterResult(twitterSessionResult.data);
-            }
-
-            @Override
-            public void failure(TwitterException e) {
-                Log.w(TAG, "twitterLogin:failure", e);
-
-                Toast.makeText(SignUpActivity.this, "Twitter sign in Failed",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+        mTwitterAuth.login();
     }
 
     public void OnSignUpPhonePressed(View view)
     {
-        mPopupWindow.showAtLocation(mMainConstraintLayout, Gravity.CENTER,0,0);
-    }
-
-    public void OnSendPhoneCodePressed(View view)
-    {
-        //Get user Input
-        String phoneNumber = phoneNumberInput.getText().toString();
-        String countryCode = countryCodePicker.getSelectedCountryCode();
-
-        try
-        {
-            if(ErrorManager.validatePhoneNumber(phoneNumber))
-            {
-                String number = countryCode + phoneNumber;
-
-                mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, this, mPhoneCallbacks);
-            }
-        }
-        catch(IOException e)
-        {
-            Toast.makeText(SignUpActivity.this, e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void OnResendPhoneCodePressed(View view)
-    {
-        //Get user Input
-        String phoneNumber = phoneNumberInput.getText().toString();
-        String countryCode = countryCodePicker.getSelectedCountryCode();
-
-        try
-        {
-            if(ErrorManager.validatePhoneNumber(phoneNumber))
-            {
-                String number = countryCode + phoneNumber;
-
-                mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, this, mPhoneCallbacks,mResendToken);
-            }
-        }
-        catch(IOException e)
-        {
-            Toast.makeText(SignUpActivity.this, e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void OnVerifyPhonePressed(View view)
-    {
-        String code  = phoneCodeInput.getText().toString();
-
-        try
-        {
-            if(ErrorManager.validatePhoneCode(code))
-            {
-                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId,code);
-                firebaseAuthPhone(credential);
-            }
-        }
-        catch(IOException e)
-        {
-            Toast.makeText(SignUpActivity.this, e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void OnClosePhoneAuthPressed(View view)
-    {
-        mPopupWindow.dismiss();
-    }
-
-    //endregion
-
-    //region Sign in Handles
-    private void handleSignInGoogleResult(Task<GoogleSignInAccount> completedTask)
-    {
-        try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            if(account != null)firebaseAuthGoogle(account);
-
-        } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
-
-            Toast.makeText(SignUpActivity.this, "Google sign in Failed",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void handleSignInTwitterResult(TwitterSession session)
-    {
-        Log.d(TAG, "handleTwitterSession:" + session);
-
-        AuthCredential credential = TwitterAuthProvider.getCredential(
-                session.getAuthToken().token,
-                session.getAuthToken().secret);
-
-        firebaseAuthTwitter(credential);
-    }
-    //endregion
-
-    //region FireBaseAuth
-    private void firebaseAuthEmail(String email, String password)
-    {
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "createUserWithEmail:success");
-                            mCurrentUser = mAuth.getCurrentUser();
-                            goToAccountSetup();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
-
-                            Toast.makeText(SignUpActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-    }
-
-    private void firebaseAuthFacebook(AccessToken token)
-    {
-        Log.d(TAG, "handleFacebookAccessToken:" + token);
-
-        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            mCurrentUser = mAuth.getCurrentUser();
-                            goToAccountSetup();
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-
-                            Toast.makeText(SignUpActivity.this, "Authentication failed ",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                        // ...
-                    }
-                });
-    }
-
-    private void firebaseAuthGoogle(GoogleSignInAccount acct)
-    {
-        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
-
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-
-                            goToAccountSetup();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-
-                            Toast.makeText(SignUpActivity.this, "Authentication failed ",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
-
-    private void firebaseAuthTwitter(AuthCredential credential)
-    {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            mCurrentUser = mAuth.getCurrentUser();
-
-                            goToAccountSetup();
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-
-                            Toast.makeText(SignUpActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
-
-    private void firebaseAuthPhone(PhoneAuthCredential credential)
-    {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-
-                            mCurrentUser = task.getResult().getUser();
-                            goToAccountSetup();
-
-                        } else {
-                            // Sign in failed, display a message and update the UI
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-
-                                Toast.makeText(SignUpActivity.this, "Invalid Credentials",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                });
-    }
-
-    //endregion
-
-    //region UI
-    private void ShowVerifyPhoneUI()
-    {
-        phoneCodeInput.setVisibility(View.VISIBLE);
-        verifyPhoneButton.setVisibility(View.VISIBLE);
-    }
-
-    private void ShowResendPhoneUI()
-    {
-        sendPhoneCodeButton.setVisibility(View.INVISIBLE);
-        resendPhoneCodeButton.setVisibility(View.VISIBLE);
-    }
-
-    private void SetUpPhonePopup()
-    {
-        // Get the application context
-        mContext = getApplicationContext();
-
-        // Get the widgets reference from XML layout
-        mMainConstraintLayout = findViewById(R.id.mainConstraintLayout);
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(LAYOUT_INFLATER_SERVICE);
-        mPhoneAuthView = inflater.inflate(R.layout.popup_sign_up_phone,null);
-
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        // Initialize a new instance of popup window
-        mPopupWindow = new PopupWindow(mPhoneAuthView, (int) width, (int) height,true);
-        mPopupWindow.setAnimationStyle(R.style.popup_window_animation_phone);
-        mPopupWindow.setOutsideTouchable(true);
-        mPopupWindow.update();
-
-        // Set an elevation value for popup window
-        // Call requires API level 21
-        if(Build.VERSION.SDK_INT>=21){
-            mPopupWindow.setElevation(5.0f);
-        }
-    }
-
-    private void SetUpPhoneUI()
-    {
-        //Get Phone buttons
-        Button closePhoneAuthButton = mPhoneAuthView.findViewById(R.id.closePhoneButton);
-        sendPhoneCodeButton = mPhoneAuthView.findViewById(R.id.sendPhoneCodeButton);
-        verifyPhoneButton = mPhoneAuthView.findViewById(R.id.verifyPhoneCodeButton);
-        resendPhoneCodeButton = mPhoneAuthView.findViewById(R.id.resendPhoneCodeButton);
-
-        //Get Phone Inputs
-        phoneCodeInput = mPhoneAuthView.findViewById(R.id.phoneCodeInput);
-        phoneNumberInput = mPhoneAuthView.findViewById(R.id.phoneNumberInput);
-
-        //Get Country Code Picker
-        countryCodePicker =  (CountryCodePicker) mPhoneAuthView.findViewById(R.id.ccp);
-
-        //Set up the listners for all the buttons
-        sendPhoneCodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnSendPhoneCodePressed(view);
-            }
-        });
-
-        resendPhoneCodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnResendPhoneCodePressed(view);
-            }
-        });
-
-        closePhoneAuthButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnClosePhoneAuthPressed(view);
-            }
-        });
-
-        verifyPhoneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnVerifyPhonePressed(view);
-            }
-        });
-
-        //Intialize visiblities
-        phoneCodeInput.setVisibility(View.INVISIBLE);
-        verifyPhoneButton.setVisibility(View.INVISIBLE);
-
-        sendPhoneCodeButton.setVisibility(View.VISIBLE);
-        resendPhoneCodeButton.setVisibility(View.INVISIBLE);
+       mPhoneAuthWindow.ShowPhoneAuth();
     }
     //endregion
 
     //region Utility
-
     private void checkSignIn()
     {
+        mPhoneAuthWindow.dissmissPhoneAuth();
+
         if(mCurrentUser != null)
         {
-            goToAccountSetup();
+            mAuthenticator.goToAccountSetup();
         }
-    }
 
-    private void goToAccountSetup()
-    {
-        if(mPopupWindow.isShowing()) mPopupWindow.dismiss();
-
-        Intent myIntent = new Intent(getBaseContext(),   IntroActivity.class);
-        startActivity(myIntent);
     }
     //endregion
 

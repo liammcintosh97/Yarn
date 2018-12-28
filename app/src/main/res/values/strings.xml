@@ -12,12 +12,8 @@
     <string name="com.twitter.sdk.android.CONSUMER_SECRET">LPMxYOfZpqsdJEtFbbYluMDuN5vc52nhFKtIBiQh1UnU2pLXwa </string>
 
     //Main Activity
-    <string name="main_loginButton">Login</string>
-    <string name="main_signUpEmialButton">Sign Up with Email</string>
-    <string name="main_signUpPhoneButton">Sign Up with Phone</string>
-    <string name="main_signUpFacebookButton">Sign Up with Facebook</string>
-    <string name="main_signUpGoogleButton">Sign Up with Google</string>
-    <string name="main_signUpTwitterButton">Sign Up with Twitter</string>
+    <string name="main_signInButton">Sign In</string>
+    <string name="main_signUpButton">Sign Up</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>
@@ -37,6 +33,13 @@
     <string name="signUpPhone_resendCode">Resend Code</string>
     <string name="signUpPhone_verify">Verify</string>
     <string name="SignUpPhone_closeButton">Close</string>
+
+    //Sign In
+    <string name="signIn_title">--------------- Sign In ---------------</string>
+    <string name="signIn_title2">------------ Sign In With ------------</string>
+    <string name="signIn_emailHint">Email</string>
+    <string name="signIn_passwordHint">Password</string>
+    <string name="signIn_button">Sign In</string>
 
     //Intro Fragments
     <string name="intro_skipButton">Skip</string>

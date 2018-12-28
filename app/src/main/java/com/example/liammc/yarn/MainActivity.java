@@ -26,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void OnLoginPressed(View view)
+    public void OnSignInPressed(View view)
     {
-
+        Intent myIntent = new Intent(getBaseContext(),   SignInActivity.class);
+        startActivity(myIntent);
     }
 
     public void OnSignUpPressed(View view)

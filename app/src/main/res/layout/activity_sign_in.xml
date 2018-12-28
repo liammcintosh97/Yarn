@@ -5,7 +5,7 @@
     android:id="@+id/mainConstraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SignUpActivity">
+    tools:context=".SignInActivity">
 
     <TextView
         android:id="@+id/appTitle"
@@ -23,17 +23,17 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/signUpTitle"
+        android:id="@+id/signInTitle"
         android:layout_width="wrap_content"
         android:layout_height="26dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="@string/signUp_title"
+        android:text="@string/signIn_title"
         android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.504"
+        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appTitle" />
 
@@ -46,12 +46,12 @@
         android:layout_marginEnd="16dp"
         android:autofillHints=""
         android:ems="10"
-        android:hint="@string/signUp_emailHint"
+        android:hint="@string/signIn_emailHint"
         android:inputType="textEmailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.503"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUpTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/signInTitle" />
 
     <EditText
         android:id="@+id/passwordInput"
@@ -62,49 +62,33 @@
         android:layout_marginEnd="16dp"
         android:autofillHints=""
         android:ems="10"
-        android:hint="@string/signUp_passwordHint"
+        android:hint="@string/signIn_passwordHint"
         android:inputType="textPassword"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/emailInput" />
-
-    <EditText
-        android:id="@+id/confirmPasswordInput"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:autofillHints=""
-        android:ems="10"
-        android:hint="@string/signUp_confirmPasswordHint"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.503"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordInput" />
 
     <Button
         android:id="@+id/signInButton"
         android:layout_width="216dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="8dp"
-        android:onClick="OnSignUpPressed"
-        android:text="@string/signUp_button"
+        android:onClick="onSignInEmailButtonPressed"
+        android:text="@string/signIn_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.513"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/confirmPasswordInput" />
+        app:layout_constraintTop_toBottomOf="@+id/passwordInput" />
 
     <TextView
         android:id="@+id/signUpOr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:text="@string/signUp_or"
         android:textAlignment="center"
@@ -119,17 +103,15 @@
         android:layout_width="wrap_content"
         android:layout_height="29dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/signUp_title2"
+        android:text="@string/signIn_title2"
         android:textAlignment="center"
         android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.547"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUpOr"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/signUpOr" />
 
     <ImageButton
         android:id="@+id/btn_fb_login"
@@ -141,7 +123,7 @@
         android:layout_marginBottom="16dp"
         android:background="@null"
         android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="OnSignUpFacebookPressed"
+        android:onClick="onSignInFacebookButtonPressed"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_go_login"
         app:layout_constraintHorizontal_bias="1.0"
@@ -159,7 +141,7 @@
         android:layout_marginBottom="16dp"
         android:background="@null"
         android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="OnSignUpGooglePressed"
+        android:onClick="onSignInGoogleButtonPressed"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_tw_login"
         app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
@@ -175,7 +157,7 @@
         android:layout_marginBottom="16dp"
         android:background="@null"
         android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="OnSignUpTwitterPressed"
+        android:onClick="onSignInTwitterButtonPressed"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_ph_login"
         app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
@@ -191,7 +173,7 @@
         android:layout_marginBottom="16dp"
         android:background="@null"
         android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="OnSignUpPhonePressed"
+        android:onClick="onSignInPhoneButtonPressed"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
