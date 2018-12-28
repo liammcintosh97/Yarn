@@ -7,6 +7,7 @@ android {
         applicationId "com.example.liammc.yarn"
         minSdkVersion 19
         targetSdkVersion 28
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -20,6 +21,7 @@ android {
 }
 
 dependencies {
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
     implementation 'com.google.android.gms:play-services-places:16.0.0'
@@ -41,4 +43,8 @@ dependencies {
     implementation 'com.twitter.sdk.android:tweet-ui:3.1.1'
     implementation 'com.twitter.sdk.android:tweet-composer:3.1.1'
     implementation 'com.twitter.sdk.android:twitter-mopub:3.1.1'
+    implementation('com.hbb20:ccp:2.2.3', {
+        exclude group: 'com.android.support'
+    })
+    implementation 'com.android.support:multidex:1.0.3'
 }

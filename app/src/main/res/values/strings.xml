@@ -29,26 +29,14 @@
     <string name="signUp_button">Sign Up</string>
     <string name="signUp_facebookButtonContentDescription">Facebook Login Button</string>
 
-    //Sign up email activity
-    <string name="signUpEmail_title">Sign Up Email</string>
-    <string name="signUpEmail_emailHint">Email</string>
-    <string name="signUpEmail_passwordHint">Password</string>
-
     //Sign up phone activity
     <string name="signUpPhone_title">Sign Up Phone</string>
     <string name="signUpPhone_phoneNumberHint">Phone Number</string>
     <string name="signUpPhone_codeHint">Code</string>
     <string name="signUpPhone_sendCode">Send Code</string>
+    <string name="signUpPhone_resendCode">Resend Code</string>
     <string name="signUpPhone_verify">Verify</string>
-
-    //Sign up facebook activity
-    <string name="signUpFacebook_title">Sign Up Facebook</string>
-
-    //Sign up google activity
-    <string name="signUpGoogle_title">Sign Up Google</string>
-
-    //Sign up twitter activity
-    <string name="signUpTwitter_title">Sign Up Twitter</string>
+    <string name="SignUpPhone_closeButton">Close</string>
 
     //Intro Fragments
     <string name="intro_skipButton">Skip</string>
