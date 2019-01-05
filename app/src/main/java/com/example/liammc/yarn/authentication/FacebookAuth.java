@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -20,22 +20,21 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
-import java.util.concurrent.Executor;
 
-public class FacebookAuth extends com.example.liammc.yarn.Authenticator
+class FacebookAuth extends Authenticator
 {
     //FaceBook
-    public CallbackManager mCallbackManager;
-    public LoginManager mLoginManager;
+    CallbackManager mCallbackManager;
+    LoginManager mLoginManager;
 
     //Constructor
-    public FacebookAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
+    FacebookAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
     {
         super(_callingActivity,_mAuth, _currentUser);
         this.SetUpFaceBookAuth();
     }
 
-    public void login()
+    void login()
     {
         mLoginManager.logInWithReadPermissions(callingActivity,
                 Arrays.asList("public_profile", "user_friends"));
@@ -81,8 +80,11 @@ public class FacebookAuth extends com.example.liammc.yarn.Authenticator
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(CALLINGTAG, "signInWithCredential:success");
-                            mCurrentUser = mAuth.getCurrentUser();
-                            goToAccountSetup();
+
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew) goToAccountSetup();
+                            else goToMap();
+
 
                         } else {
                             // If sign in fails, display a message to the user.

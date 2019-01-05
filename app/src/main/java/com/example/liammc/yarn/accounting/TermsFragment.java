@@ -1,10 +1,12 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.accounting;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.example.liammc.yarn.R;
 
 
 public class TermsFragment extends Fragment {

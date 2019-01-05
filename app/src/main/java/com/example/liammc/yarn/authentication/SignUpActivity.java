@@ -1,69 +1,31 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.google.android.gms.auth.api.Auth;
+import com.example.liammc.yarn.utility.CompatabiltyTools;
+import com.example.liammc.yarn.utility.ErrorManager;
+import com.example.liammc.yarn.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.FirebaseTooManyRequestsException;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.auth.TwitterAuthProvider;
-import com.hbb20.CountryCodePicker;
-import com.twitter.sdk.android.core.Result;
-import com.twitter.sdk.android.core.TwitterException;
-import com.twitter.sdk.android.core.TwitterSession;
-import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 public class SignUpActivity extends AppCompatActivity {
 
-    private int GO_SIGN_IN = 0;
-    private int PH_SIGN_IN = 1;
-
-    private String TAG = "SignUpActivity";
+    private final int GO_SIGN_IN = 0;
+    final int PH_SIGN_IN = 1;
 
     //Firebase
-    private FirebaseAuth mAuth;
+    FirebaseAuth mAuth;
     private FirebaseUser mCurrentUser;
 
     //Authentication
@@ -74,6 +36,12 @@ public class SignUpActivity extends AppCompatActivity {
     private PhoneAuth mPhoneAuth;
 
     private PhoneAuthWindow mPhoneAuthWindow;
+    EditText passwordInput;
+    EditText confirmPasswordInput;
+    EditText emailInput;
+    EditText phoneNumberInput;
+    EditText codeInput;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,16 +53,31 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuthenticator = new Authenticator(this,mAuth,mCurrentUser);
         mFacebookAuth = new FacebookAuth(this,mAuth, mCurrentUser);
-        mGoogleAuth = new GoogleAuth(this,SignUpActivity.this,mAuth,mCurrentUser,GO_SIGN_IN);
+        mGoogleAuth = new GoogleAuth(this,SignUpActivity.this,mAuth,
+                mCurrentUser,GO_SIGN_IN);
         mTwitterAuth = new TwitterAuth(this,mAuth,mCurrentUser);
         mPhoneAuth = new PhoneAuth(this,mAuth,mCurrentUser);
 
-        mPhoneAuthWindow = new PhoneAuthWindow(this);
+        ViewGroup parentViewGroup = findViewById(R.id.mainConstraintLayout);
+
+        mPhoneAuthWindow = new PhoneAuthWindow(this, parentViewGroup);
 
         mPhoneAuth.window = mPhoneAuthWindow;
         mPhoneAuthWindow.auth = mPhoneAuth;
 
         checkSignIn();
+
+        passwordInput = findViewById(R.id.passwordInput);
+        confirmPasswordInput = findViewById(R.id.emailInput);
+        emailInput = findViewById(R.id.confirmPasswordInput);
+        phoneNumberInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneNumberInput);
+        codeInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneCodeInput);
+
+        CompatabiltyTools.setPasswordAutofill(passwordInput);
+        CompatabiltyTools.setEmailAutofill(emailInput);
+        CompatabiltyTools.setPasswordAutofill(confirmPasswordInput);
+        CompatabiltyTools.setNumberAutoFill(phoneNumberInput);
+        CompatabiltyTools.setNumberAutoFill(codeInput);
     }
 
     @Override
@@ -123,10 +106,10 @@ public class SignUpActivity extends AppCompatActivity {
             }
             else if(requestCode == PH_SIGN_IN)
             {
-                String id = data.getStringExtra("verificationID");
+                //String id = data.getStringExtra("verificationID");
                 String code = data.getStringExtra("code");
 
-                mPhoneAuth.signUp(code);
+                mPhoneAuth.signIn(code);
             }
         }
 
@@ -148,11 +131,11 @@ public class SignUpActivity extends AppCompatActivity {
 
         try
         {
-            if(ErrorManager.validateEmail(email)
-                    && ErrorManager.validatePassword(password,confirmPassword))
-            {
-                mAuthenticator.signUp(email,password);
-            }
+            ErrorManager.validateEmail(email);
+            ErrorManager.validatePassword(password,confirmPassword);
+
+            mAuthenticator.signUp(email,password);
+
         }
         catch(IOException e)
         {

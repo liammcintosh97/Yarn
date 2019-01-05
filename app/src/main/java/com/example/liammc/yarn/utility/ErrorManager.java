@@ -1,8 +1,12 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.utility;
+
+import android.util.Log;
 
 import java.io.IOException;
 
 public final class ErrorManager {
+
+    private static String TAG = "ErrorManager";
 
     //Default constructor
     private ErrorManager()
@@ -10,7 +14,7 @@ public final class ErrorManager {
 
     }
 
-    public static boolean validatePassword(String password, String passwordConfirm) throws IOException
+    public static void validatePassword(String password, String passwordConfirm) throws IOException
     {
         String invalidChars = " ,<.>/?;:'[{]}|!@#$%^&*()_+=\\\"`~";
 
@@ -34,11 +38,9 @@ public final class ErrorManager {
         {
             throw new IOException("Password does not equal confirmed password");
         }
-
-        return true;
     }
 
-    public static boolean validateEmail(String email) throws IOException
+    public static void validateEmail(String email) throws IOException
     {
         String at = "@";
         String dotCom = ".com";
@@ -51,50 +53,46 @@ public final class ErrorManager {
         {
             throw new IOException("Email is an invalid format");
         }
-
-        return true;
     }
 
-    public static boolean validatePhoneNumber(String phoneNumber) throws IOException
+    public static void validatePhoneNumber(String phoneNumber) throws IOException
     {
-        if(phoneNumber == null && phoneNumber.equals(""))
+        if(phoneNumber == null || phoneNumber.equals(""))
         {
-            throw new IOException("Please Enter a phone Number");
+            throw new IOException("Please enter a phone number");
         }
-        else if(checkStringNumeric(phoneNumber))
+        else if(!checkStringNumeric(phoneNumber))
         {
             throw new IOException("Phone can only be numeric");
         }
         else if(phoneNumber.length() != 9)
         {
-            throw new IOException("Not a valid phone Number");
+            throw new IOException("Not a valid phone number");
         }
-
-        return true;
     }
 
-    public static boolean validatePhoneCode(String code) throws IOException
+    public static void validatePhoneCode(String code) throws IOException
     {
-        if(code == null && code.equals(""))
+        if(code == null || code.equals(""))
         {
             throw new IOException("Please Enter a Code");
         }
-
-        return true;
     }
 
     //region Utility
     private static boolean checkStringNumeric(String toCheck)
     {
+        Log.d(TAG,toCheck);
+
         try
         {
-            double d = Double.parseDouble(toCheck);
+            Integer.parseInt(toCheck);
+            return true;
         }
         catch(NumberFormatException nfe)
         {
             return false;
         }
-        return true;
     }
 
     private static boolean checkStringForChars(String toCheck, String against)

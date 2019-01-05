@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context=".SignUpActivity">
+    tools:context=".authentication.SignUpActivity"
+    tools:ignore="Overdraw">
 
     <TextView
         android:id="@+id/signUpPhoneTitle"
@@ -34,7 +35,6 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:autofillHints=""
         android:ems="10"
         android:hint="@string/signUpPhone_phoneNumberHint"
         android:inputType="phone"
@@ -42,7 +42,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.347" />
+        app:layout_constraintVertical_bias="0.347"
+        tools:ignore="Autofill" />
 
     <Button
         android:id="@+id/sendPhoneCodeButton"
@@ -84,7 +85,6 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:autofillHints=""
         android:ems="10"
         android:hint="@string/signUpPhone_codeHint"
         android:inputType="number"
@@ -95,7 +95,8 @@
         app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.562" />
+        app:layout_constraintVertical_bias="0.562"
+        tools:ignore="Autofill,TextFields" />
 
     <Button
         android:id="@+id/verifyPhoneCodeButton"
@@ -138,6 +139,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.013"

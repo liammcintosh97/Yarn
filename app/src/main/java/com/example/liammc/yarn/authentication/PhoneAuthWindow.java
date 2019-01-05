@@ -1,32 +1,38 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.support.constraint.ConstraintLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.utility.CompatabiltyTools;
+import com.example.liammc.yarn.utility.ErrorManager;
+import com.example.liammc.yarn.R;
 import com.hbb20.CountryCodePicker;
 
 import java.io.IOException;
 
 public class PhoneAuthWindow
 {
+    private static String TAG = "PhoneAuthWindow";
+
     public PhoneAuth auth;
 
-    private Activity mCallingActivity;
+    private final Activity mCallingActivity;
+    private final ViewGroup parentViewGroup;
 
     public static PopupWindow window;
-    private Context mContext;
-    private ConstraintLayout mMainConstraintLayout;
 
-    private View mPhoneAuthView;
+    public View mPhoneAuthView;
 
     private Button sendPhoneCodeButton;
     private Button resendPhoneCodeButton;
@@ -36,17 +42,19 @@ public class PhoneAuthWindow
 
     private CountryCodePicker countryCodePicker;
 
-    public PhoneAuthWindow(Activity _callingActivity)
+    PhoneAuthWindow(Activity _callingActivity,ViewGroup _parent)
     {
         this.mCallingActivity = _callingActivity;
+        this.parentViewGroup = _parent;
 
         this.SetUpPhonePopup();
         this.SetUpPhoneUI();
     }
 
+
     //region Button Methods
 
-    public void OnSendPhoneCodePressed(View view)
+    private void OnSendPhoneCodePressed()
     {
         //Get user Input
         String phoneNumber = phoneNumberInput.getText().toString();
@@ -54,11 +62,14 @@ public class PhoneAuthWindow
 
         try
         {
-            if(ErrorManager.validatePhoneNumber(phoneNumber))
-            {
-                String number = countryCode + phoneNumber;
-                auth.verify(number);
-            }
+            ErrorManager.validatePhoneNumber(phoneNumber);
+
+            String number = "+" + countryCode + phoneNumber;
+
+            Log.d(TAG,"phone number = " + number);
+
+            auth.verify(number);
+
         }
         catch(IOException e)
         {
@@ -67,7 +78,7 @@ public class PhoneAuthWindow
         }
     }
 
-    public void OnResendPhoneCodePressed(View view)
+    private void OnResendPhoneCodePressed()
     {
         //Get user Input
         String phoneNumber = phoneNumberInput.getText().toString();
@@ -75,12 +86,10 @@ public class PhoneAuthWindow
 
         try
         {
-            if(ErrorManager.validatePhoneNumber(phoneNumber))
-            {
-                String number = countryCode + phoneNumber;
+            ErrorManager.validatePhoneNumber(phoneNumber);
 
-                auth.resend(number);
-            }
+            String number = countryCode + phoneNumber;
+            auth.resend(number);
         }
         catch(IOException e)
         {
@@ -89,16 +98,14 @@ public class PhoneAuthWindow
         }
     }
 
-    public void OnVerifyPhonePressed(View view)
+    private void OnVerifyPhonePressed()
     {
         String code  = phoneCodeInput.getText().toString();
 
         try
         {
-            if(ErrorManager.validatePhoneCode(code))
-            {
-                auth.signUp(code);
-            }
+            ErrorManager.validatePhoneCode(code);
+            auth.signIn(code);
         }
         catch(IOException e)
         {
@@ -107,7 +114,7 @@ public class PhoneAuthWindow
         }
     }
 
-    public void OnClosePhoneAuthPressed(View view)
+    private void OnClosePhoneAuthPressed()
     {
         dissmissPhoneAuth();
     }
@@ -117,30 +124,21 @@ public class PhoneAuthWindow
 
     private void SetUpPhonePopup()
     {
-        // Get the application context
-        mContext = mCallingActivity.getApplicationContext();
-
-        // Get the widgets reference from XML layout
-        mMainConstraintLayout = mCallingActivity.findViewById(R.id.mainConstraintLayout);
 
         // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(mCallingActivity.LAYOUT_INFLATER_SERVICE);
-        mPhoneAuthView = inflater.inflate(R.layout.popup_sign_up_phone,null);
+        LayoutInflater inflater = (LayoutInflater) mCallingActivity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        mPhoneAuthView = inflater.inflate(R.layout.popup_sign_up_phone,parentViewGroup,false);
 
+        // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
         double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
 
-        // Initialize a new instance of popup window
         window = new PopupWindow(mPhoneAuthView, (int) width, (int) height,true);
         window.setAnimationStyle(R.style.popup_window_animation_phone);
         window.setOutsideTouchable(true);
         window.update();
 
-        // Set an elevation value for popup window
-        // Call requires API level 21
-        if(Build.VERSION.SDK_INT>=21){
-            window.setElevation(5.0f);
-        }
+        CompatabiltyTools.setPopupElevation(window,5.0f);
     }
 
     private void SetUpPhoneUI()
@@ -162,28 +160,28 @@ public class PhoneAuthWindow
         sendPhoneCodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnSendPhoneCodePressed(view);
+                OnSendPhoneCodePressed();
             }
         });
 
         resendPhoneCodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnResendPhoneCodePressed(view);
+                OnResendPhoneCodePressed();
             }
         });
 
         closePhoneAuthButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnClosePhoneAuthPressed(view);
+                OnClosePhoneAuthPressed();
             }
         });
 
         verifyPhoneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnVerifyPhonePressed(view);
+                OnVerifyPhonePressed();
             }
         });
 
@@ -198,24 +196,24 @@ public class PhoneAuthWindow
     //endregion
 
     //region UI
-    public void ShowPhoneAuth()
+    void ShowPhoneAuth()
     {
-        window.showAtLocation(mMainConstraintLayout, Gravity.CENTER,0,0);
+        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
     }
 
-    public void ShowVerifyPhoneUI()
+    void ShowVerifyPhoneUI()
     {
         phoneCodeInput.setVisibility(View.VISIBLE);
         verifyPhoneButton.setVisibility(View.VISIBLE);
     }
 
-    public void ShowResendPhoneUI()
+    void ShowResendPhoneUI()
     {
         sendPhoneCodeButton.setVisibility(View.INVISIBLE);
         resendPhoneCodeButton.setVisibility(View.VISIBLE);
     }
 
-    public void dissmissPhoneAuth()
+    void dissmissPhoneAuth()
     {
         if(window.isShowing()) window.dismiss();
     }

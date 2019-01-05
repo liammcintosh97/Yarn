@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.R;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -23,16 +24,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-public class GoogleAuth extends com.example.liammc.yarn.Authenticator
+class GoogleAuth extends Authenticator
 {
-    private GoogleSignInOptions gso;
-    private GoogleSignInClient mGoogleSignInClient;
+    GoogleSignInOptions gso;
+    GoogleSignInClient mGoogleSignInClient;
+
     private GoogleApiClient mGoogleApiClient;
-    private int resultCode;
-    private FragmentActivity fragAct;
+    private final int resultCode;
+    private final FragmentActivity fragAct;
 
     //Constructor
-    public GoogleAuth(Activity _callingActivity, FragmentActivity _fragAct, FirebaseAuth _mAuth, FirebaseUser _currentUser,int _resultCode)
+    GoogleAuth(Activity _callingActivity, FragmentActivity _fragAct, FirebaseAuth _mAuth, FirebaseUser _currentUser,int _resultCode)
     {
         super(_callingActivity,_mAuth, _currentUser);
         this.resultCode = _resultCode;
@@ -40,7 +42,7 @@ public class GoogleAuth extends com.example.liammc.yarn.Authenticator
         this.SetUpGoogleAuth();
     }
 
-    public void login()
+    void login()
     {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         callingActivity.startActivityForResult(signInIntent, resultCode);
@@ -72,7 +74,7 @@ public class GoogleAuth extends com.example.liammc.yarn.Authenticator
                 .build();
     }
 
-    public void handleSignInGoogleResult(Task<GoogleSignInAccount> completedTask)
+    void handleSignInGoogleResult(Task<GoogleSignInAccount> completedTask)
     {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
@@ -101,7 +103,11 @@ public class GoogleAuth extends com.example.liammc.yarn.Authenticator
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(CALLINGTAG, "signInWithCredential:success");
 
-                            goToAccountSetup();
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew) goToAccountSetup();
+                            else goToMap();
+
+
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(CALLINGTAG, "signInWithCredential:failure", task.getException());

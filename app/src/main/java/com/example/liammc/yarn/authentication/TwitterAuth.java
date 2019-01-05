@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -17,21 +17,19 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
-import java.util.concurrent.Executor;
-
-public class TwitterAuth extends com.example.liammc.yarn.Authenticator
+class TwitterAuth extends Authenticator
 {
 
-    public TwitterAuthClient mTwitterAuthClient;
+   TwitterAuthClient mTwitterAuthClient;
 
     //Constructor
-    public TwitterAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
+    TwitterAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
     {
         super(_callingActivity,_mAuth, _currentUser);
         this.SetUpTwitterAuth();
     }
 
-    public void login()
+    void login()
     {
         mTwitterAuthClient.authorize(callingActivity, new com.twitter.sdk.android.core.Callback<TwitterSession>() {
 
@@ -76,9 +74,10 @@ public class TwitterAuth extends com.example.liammc.yarn.Authenticator
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(CALLINGTAG, "signInWithCredential:success");
-                            mCurrentUser = mAuth.getCurrentUser();
 
-                            goToAccountSetup();
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew) goToAccountSetup();
+                            else goToMap();
 
                         } else {
                             // If sign in fails, display a message to the user.

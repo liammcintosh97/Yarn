@@ -1,8 +1,7 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.authentication;
 
 
 import android.app.Activity;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.PopupWindow;
@@ -19,10 +18,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-public class PhoneAuth extends com.example.liammc.yarn.Authenticator
+public class PhoneAuth extends Authenticator
 {
     public PhoneAuthWindow window;
 
@@ -30,10 +28,9 @@ public class PhoneAuth extends com.example.liammc.yarn.Authenticator
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mPhoneCallbacks;
     private String mVerificationId;
     private PhoneAuthProvider.ForceResendingToken mResendToken;
-    private PopupWindow mPopupWindow;
 
 
-    public PhoneAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
+    PhoneAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
     {
         super(_callingActivity,_mAuth, _currentUser);
         this.SetUpPhoneAuth();
@@ -85,17 +82,17 @@ public class PhoneAuth extends com.example.liammc.yarn.Authenticator
         };
     }
 
-    public void verify(String number)
+    void verify(String number)
     {
         mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, callingActivity, mPhoneCallbacks);
     }
 
-    public void resend(String number)
+    void resend(String number)
     {
         mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, callingActivity, mPhoneCallbacks,mResendToken);
     }
 
-    public void signUp(String code)
+    void signIn(String code)
     {
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId,code);
         firebaseAuthPhone(credential);
@@ -111,8 +108,9 @@ public class PhoneAuth extends com.example.liammc.yarn.Authenticator
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(CALLINGTAG, "signInWithCredential:success");
 
-                            mCurrentUser = task.getResult().getUser();
-                            goToAccountSetup();
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew) goToAccountSetup();
+                            else goToMap();
 
                         } else {
                             // Sign in failed, display a message and update the UI
@@ -131,5 +129,11 @@ public class PhoneAuth extends com.example.liammc.yarn.Authenticator
     {
         window.dissmissPhoneAuth();
         super.goToAccountSetup();
+    }
+
+    public void goToMap()
+    {
+        window.dissmissPhoneAuth();
+        super.goToMap();
     }
 }
