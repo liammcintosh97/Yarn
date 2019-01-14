@@ -3,6 +3,12 @@
     <string name="app_name">Yarn</string>
     <string name="title_activity_maps">Map</string>
 
+    //Google
+    <string name="google_place_android_key">AIzaSyDJugIcIH8Pmr6M3Vj_poooPuxPfl1BBO4</string>
+    <string name="google_place_key">AIzaSyDInIjo7RGKGGMB0YhHLMDUMsDmZQviOwE</string>
+    <string name="google_geo_coding_key">AIzaSyBn7fiuXUVjM66h4iWp0txhxjxEC0tjUVw</string>
+    <string name="google_geo_location_key">AIzaSyAX3LevyOPcYKQEWG8hV9xdnG_jEdncGrw</string>
+
     //Facebook
     <string name="facebook_app_id">212630036311409</string>
     <string name="fb_login_protocol_scheme">fb212630036311409</string>
@@ -53,6 +59,14 @@
 
     //Terms Fragment
     <string name="terms_acceptButton">Accept</string>
+
+    //Chat Creator
+    <string name="chatCreator_title">Create Chat</string>
+    <string name="chatCreator_create_button">Create</string>
+    <string name="chatCreator_place_discription">Create a chat here? -</string>
+    <string name="chatCreator_date_button">Date</string>
+    <string name="chatCreator_time_button">Time</string>
+    <string name="chatCreator_duration_button">Duration</string>
 
     //Misc
     <string name="lorem_ipsum" tools:ignore="Typos">Lorem ipsum dolor sit amet, sed in. Sollicitudin nisl donec dictumst tellus, luctus pretium. Eget ut nec sit. Gravida taciti faucibus bibendum velit id, urna ultricies nec viverra inventore, et sed in viverra posuere, vitae enim in. Praesent libero varius pellentesque ultrices, eget aenean, leo et, fames quis primis mi. Ac pellentesque ultrices lobortis nullam, eget urna dolorem lorem congue. Vel ultricies nullam erat pede quis viverra, suspendisse molestie, erat vitae morbi amet diam ut.

@@ -48,4 +48,5 @@ dependencies {
         exclude group: 'com.android.support'
     })
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'mobi.upod:time-duration-picker:1.1.3'
 }

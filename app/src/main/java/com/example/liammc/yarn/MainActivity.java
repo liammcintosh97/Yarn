@@ -11,12 +11,15 @@ import android.view.View;
 
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
+import com.example.liammc.yarn.core.MapsActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.twitter.sdk.android.core.Twitter;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE =1;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +28,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        mAuth.signOut();
+        mAuth = FirebaseAuth.getInstance();
 
         requestPermissions();
+
+        if(isSignedIn()) goToMap();
     }
 
 
@@ -42,6 +45,12 @@ public class MainActivity extends AppCompatActivity {
     public void OnSignUpPressed(View view)
     {
         Intent myIntent = new Intent(getBaseContext(),   SignUpActivity.class);
+        startActivity(myIntent);
+    }
+
+    private void goToMap()
+    {
+        Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
         startActivity(myIntent);
     }
 
@@ -65,5 +74,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    //region Utility
+
+    private boolean isSignedIn()
+    {
+        return mAuth.getCurrentUser() != null;
+    }
+
+    //endregion
 
 }

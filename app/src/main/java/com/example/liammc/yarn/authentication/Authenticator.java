@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.liammc.yarn.MapsActivity;
+import com.example.liammc.yarn.core.MapsActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
