@@ -1,22 +1,18 @@
 package com.example.liammc.yarn.accounting;
 
 import android.app.Activity;
-import android.app.IntentService;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,14 +21,18 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 
-public class YarnUser
+public class YarnUser implements LocationSource
 {
     //endregion
+    private Geocoder geocoder;
     private final StorageReference userStorageReferance;
     private final DatabaseReference userDatabaseReference;
+    private Activity callingActivity;
     private final String CALLINGTAG;
 
     //User info
@@ -42,12 +42,15 @@ public class YarnUser
     public String email;
     public double rating;
     public boolean termsAcceptance;
+
+    //User Location
     public Location lastLocation;
     public LatLng lastLatLng;
-    public Address lastAddress;
+    public String lastAddress;
 
     public YarnUser(Activity _callingActivity, String _userID)
     {
+        this.callingActivity = _callingActivity;
         this.CALLINGTAG = _callingActivity.getLocalClassName();
 
         this.userStorageReferance = FirebaseStorage.getInstance().getReference().child("Users");
@@ -59,7 +62,36 @@ public class YarnUser
         this.getEmail();
         this.getUserRating();
         this.getUserTermAcceptance();
+
+        this.setupUserLocation();
     }
+
+    @Override
+    public void deactivate(){}
+
+    @Override
+    public void activate(OnLocationChangedListener listener){}
+
+    //region User Setup
+
+    private void setupUserLocation()
+    {
+        geocoder = new Geocoder(callingActivity, Locale.getDefault());
+
+        activate(new OnLocationChangedListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                lastLocation = location;
+                lastLatLng = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+
+                getAddressFromLocation();
+            }
+        });
+    }
+
+    //endregion
+
+    //region Get User Data
     private void getUserName()
     {
         userDatabaseReference
@@ -161,4 +193,36 @@ public class YarnUser
         });
     }
 
+    //endregion
+
+    //region Utility
+
+    private void getAddressFromLocation()
+    {
+        List<Address> addresses;
+
+        String country;
+        String admin1;
+        String admin2;
+        String locality;
+
+        try{
+            addresses = geocoder.getFromLocation(lastLatLng.latitude,
+                    lastLatLng.longitude, 1);
+
+             country = addresses.get(0).getCountryCode();
+             admin1 = addresses.get(0).getAdminArea();
+             admin2 = addresses.get(0).getSubAdminArea();
+             locality = addresses.get(0).getLocality();
+
+            lastAddress = country + " " + admin1 + " " + admin2 + " " + locality;
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+            Log.e(CALLINGTAG,"Unable to get addresses from location");
+        }
+    }
+
+    //endregion
 }

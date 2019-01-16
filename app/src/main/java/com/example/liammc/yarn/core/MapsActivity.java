@@ -1,20 +1,10 @@
 package com.example.liammc.yarn.core;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
+
 import android.content.res.Resources;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Handler;
-import android.os.ResultReceiver;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.liammc.yarn.Events.Chat;
@@ -22,7 +12,6 @@ import com.example.liammc.yarn.Events.ChatCreator;
 import com.example.liammc.yarn.Events.PlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.UserLocator;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
@@ -32,7 +21,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
@@ -44,47 +32,15 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         PlaceFinder.PlaceFinderCallback {
 
-    //region Address Result Receiver
-
-    class AddressResultReceiver extends ResultReceiver {
-
-        public String mAddressOutput;
-
-
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-
-            if (resultData == null) {
-                return;
-            }
-
-            // Display the address string
-            // or an error message sent from the intent service.
-
-            mAddressOutput = resultData.getString(UserLocator.GeoCoderConstants.RESULT_DATA_KEY);
-
-            if (mAddressOutput == null) {
-                mAddressOutput = "";
-            }
-        }
-    }
-
-    //endregion
 
     private final int PROXIMITY_RADIUS = 10000;
     private final String TAG = "MapsActivity";
 
     //Google Services
     GoogleMap mMap;
-    LocationManager locationManager;
     PlaceDetectionClient mPlaceDetectionClient;
     GeoDataClient mGeoDataClient;
     ChatCreator chatCreator;
-    AddressResultReceiver mResultReceiver;
 
     //Map Data
     public YarnUser localUser;
@@ -144,7 +100,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         ViewGroup parentViewGroup = findViewById(R.id.map);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mPlaceDetectionClient =  Places.getPlaceDetectionClient(this);
         mGeoDataClient = Places.getGeoDataClient(this);
         chatCreator = new ChatCreator(this,parentViewGroup);
@@ -197,21 +152,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    protected void startUserLocatorService() {
-        Intent intent = new Intent(this, UserLocator.class);
-        intent.putExtra(UserLocator.GeoCoderConstants.RECEIVER, mResultReceiver);
-        intent.putExtra(UserLocator.GeoCoderConstants.LOCATION_DATA_EXTRA, localUser.lastLocation);
-        startService(intent);
-    }
-
     //endregion
 
     //region local methods
 
     private void focusOnUser(GoogleMap map)
     {
-        getLastKnowLocation(new Criteria());
-
         if (localUser.lastLocation != null)
         {
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(localUser.lastLatLng, 13));
@@ -224,7 +170,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .build();                   // Creates a CameraPosition from the builder
             map.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
-
     }
 
     private void getBars()
@@ -342,22 +287,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         return null;
-    }
-
-    private void getLastKnowLocation(Criteria criteria)
-    {
-        //Check if we have permission to access to the user's location
-        if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED)
-        {
-            localUser.lastLocation = locationManager.getLastKnownLocation(
-                    locationManager.getBestProvider(criteria, false));
-
-            localUser.lastLatLng = new LatLng(localUser.lastLocation.getLatitude(),
-                    localUser.lastLocation.getLongitude());
-
-            if(!mMap.isMyLocationEnabled()) mMap.setMyLocationEnabled(true);
-        }
     }
 
     //endregion

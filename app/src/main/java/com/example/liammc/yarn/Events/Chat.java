@@ -64,7 +64,7 @@ public class Chat
         this.intializeDatabase();
     }
 
-    public Chat(Activity _callingActivity,String _chatId)
+    public Chat(Activity _callingActivity,String _chatId, String _chatAdress)
     {
         //This is the constructor for creating an instance of an exsisting chat
 
@@ -72,15 +72,17 @@ public class Chat
         this.CALLINGTAG = _callingActivity.getLocalClassName();
 
         this.chatID = _chatId;
+        this.chatAddress = _chatAdress;
 
         this.mGeoDataClient = Places.getGeoDataClient(_callingActivity);
 
-        this.userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Chats");
+        this.userDatabaseReference = this.getDatabaseReference(_chatAdress);
 
         this.addDataListner("chatID");
         this.addDataListner("host");
         this.addDataListner("guest");
         this.addDataListner("place");
+        this.addDataListner("address");
         this.addDataListner("time");
         this.addDataListner("date");
         this.addDataListner("length");
@@ -107,6 +109,7 @@ public class Chat
        updateData("host",hostUser.userID);
        updateData("guest","");
        updateData("place",chatPlaceID);
+       updateData("address",chatAddress);
        updateData("date",chatDate);
        updateData("length",chatLength);
        updateData("accepted",accepted);
