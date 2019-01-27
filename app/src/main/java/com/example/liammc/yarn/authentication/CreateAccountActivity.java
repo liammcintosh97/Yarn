@@ -63,7 +63,7 @@ public class CreateAccountActivity extends AppCompatActivity {
 
         userUpdator.updateUserName(userName);
         userUpdator.updateUserProfilePicture(profilePictureBitmap);
-        userUpdator.updateUserRating(5);
+        userUpdator.updateUserRating(5.0);
 
         Intent intent = new Intent(getBaseContext(), IntroActivity.class);
         startActivity(intent);

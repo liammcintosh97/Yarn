@@ -1,7 +1,9 @@
 package com.example.liammc.yarn.Events;
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.networking.Downloader;
 import com.example.liammc.yarn.networking.PlaceDataParser;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,13 +25,16 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
 
     private List<YarnPlace> yarnPlaces = new ArrayList<>();
 
+    private MapsActivity mapsActivity;
     private String googlePlacesData;
     private GoogleMap mMap;
+    private YarnPlace.PlaceType placeType;
 
     private PlaceFinderCallback listener;
 
-    public PlaceFinder(PlaceFinderCallback listener){
+    public PlaceFinder(MapsActivity _mapsActivity, PlaceFinderCallback listener){
         this.listener = listener;
+        this.mapsActivity = _mapsActivity;
     }
 
     @Override
@@ -37,6 +42,7 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
 
         mMap = (GoogleMap)objects[0];
         String url = (String)objects[1];
+        placeType = (YarnPlace.PlaceType)objects[2];
 
         try {
             googlePlacesData = Downloader.readUrl(url);
@@ -64,7 +70,7 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
         for(int i = 0; i < nearbyPlaceList.size(); i++)
         {
             HashMap<String, String> placeMap = nearbyPlaceList.get(i);
-            yarnPlaces.add(new YarnPlace(mMap,placeMap));
+            yarnPlaces.add(new YarnPlace(mapsActivity,mMap,placeMap,placeType));
         }
 
         listener.onFoundPlaces(yarnPlaces);

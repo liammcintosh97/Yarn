@@ -1,9 +1,9 @@
 package com.example.liammc.yarn.Events;
 
 import android.app.Activity;
-import android.location.Location;
+import android.icu.util.LocaleData;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.FragmentActivity;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 
 import android.view.LayoutInflater;
@@ -21,8 +21,8 @@ import com.example.liammc.yarn.time.TimeDialog;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
 import com.example.liammc.yarn.utility.DateTools;
 
-import java.time.Duration;
-
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -71,7 +71,7 @@ public class ChatCreator
     {
         // Initialize a new instance of LayoutInflater service
         LayoutInflater inflater = (LayoutInflater) mapsActivity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mChatCreatorView = inflater.inflate(R.layout.popup_sign_up_phone,parentViewGroup,false);
+        mChatCreatorView = inflater.inflate(R.layout.popup_chat_creator,parentViewGroup,false);
 
         // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
@@ -151,18 +151,13 @@ public class ChatCreator
         int minute = timePicker.minute;
         String duration = DateTools.millisToDurationString(mapsActivity,durationPicker.milliSeconds);
 
-        Locale locale = mapsActivity.getResources().getConfiguration().locale;
-        TimeZone timeZone = TimeZone.getDefault();
+        String date = month + "/" + day + "/" + year;
+        String time = hour + ":" + minute;
 
-        Calendar calendar = Calendar.getInstance(timeZone,locale);
-        calendar.set(year,month,day,hour,minute);
-
-        Chat chat = new Chat(mapsActivity,mapsActivity.localUser,chatPlaceID,chatPlaceAddress,
-                calendar.toString(),duration);
+        Chat chat = new Chat(mapsActivity,mapsActivity.localUser,chatPlaceID,yarnPlace.address,
+                yarnPlace.placeType,date,time,duration);
 
         mapsActivity.activeChat = chat;
-
-        yarnPlace.chats.add(chat);
 
         dissmissChatCreator();
     }
@@ -191,7 +186,7 @@ public class ChatCreator
 
     public void dissmissChatCreator()
     {
-        if(window.isShowing()) window.dismiss();
+        if(window != null && window.isShowing()) window.dismiss();
     }
     //endregion
 

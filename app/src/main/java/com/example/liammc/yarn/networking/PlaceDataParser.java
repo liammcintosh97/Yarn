@@ -52,7 +52,7 @@ public class PlaceDataParser
         HashMap<String, String> googlePlaceMap = new HashMap<>();
         String id = "";
         String placeName = "--NA--";
-        String address = "--NA--";
+        //String address = "--NA--";
         String vicinity= "--NA--";
         String latitude= "";
         String longitude="";
@@ -77,11 +77,11 @@ public class PlaceDataParser
 
             reference = googlePlaceJson.getString("reference");
 
-            address = buildAddress(googlePlaceJson);
+            //address = buildAddress(googlePlaceJson);
 
             googlePlaceMap.put("id",id);
             googlePlaceMap.put("name", placeName);
-            googlePlaceMap.put("address",address);
+            //googlePlaceMap.put("address",address);
             googlePlaceMap.put("vicinity", vicinity);
             googlePlaceMap.put("lat", latitude);
             googlePlaceMap.put("lng", longitude);
@@ -94,6 +94,7 @@ public class PlaceDataParser
         return googlePlaceMap;
     }
 
+    /*
     private String buildAddress(JSONObject googlePlaceJson)
     {
         String address;
@@ -144,5 +145,5 @@ public class PlaceDataParser
                     "Couldn't build address because address components are null");
             return null;
         }
-    }
+    }*/
 }

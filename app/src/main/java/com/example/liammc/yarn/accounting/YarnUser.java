@@ -1,14 +1,25 @@
 package com.example.liammc.yarn.accounting;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Debug;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.example.liammc.yarn.Events.ChatFinder;
+import com.example.liammc.yarn.utility.AddressTools;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -26,10 +37,14 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class YarnUser implements LocationSource
+public class YarnUser implements LocationSource, LocationListener
 {
     //endregion
-    private Geocoder geocoder;
+    public enum UserType{LOCAL,NETWORK}
+    private UserType userType;
+    Geocoder geocoder;
+    LocationManager locationManager;
+    String provider;
     private final StorageReference userStorageReferance;
     private final DatabaseReference userDatabaseReference;
     private Activity callingActivity;
@@ -46,15 +61,19 @@ public class YarnUser implements LocationSource
     //User Location
     public Location lastLocation;
     public LatLng lastLatLng;
-    public String lastAddress;
+    public Address lastAddress;
 
-    public YarnUser(Activity _callingActivity, String _userID)
+    public YarnUser(Activity _callingActivity, String _userID, UserType type)
     {
+        this.userType = type;
+
         this.callingActivity = _callingActivity;
         this.CALLINGTAG = _callingActivity.getLocalClassName();
 
         this.userStorageReferance = FirebaseStorage.getInstance().getReference().child("Users");
         this.userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+
+        if(this.userType == UserType.LOCAL) this.setupUserLocation();
 
         this.userID = _userID;
         this.getUserName();
@@ -62,8 +81,6 @@ public class YarnUser implements LocationSource
         this.getEmail();
         this.getUserRating();
         this.getUserTermAcceptance();
-
-        this.setupUserLocation();
     }
 
     @Override
@@ -72,21 +89,47 @@ public class YarnUser implements LocationSource
     @Override
     public void activate(OnLocationChangedListener listener){}
 
+    @Override
+    public void onLocationChanged(Location location) {
+        lastLocation = location;
+        lastLatLng = new LatLng(lastLocation.getLatitude()
+                ,lastLocation.getLongitude());
+
+        lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
+        Log.d(CALLINGTAG, "Got local user's location");
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
+
     //region User Setup
 
     private void setupUserLocation()
     {
         geocoder = new Geocoder(callingActivity, Locale.getDefault());
 
-        activate(new OnLocationChangedListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                lastLocation = location;
-                lastLatLng = new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude());
+        locationManager = (LocationManager) callingActivity
+                .getSystemService(callingActivity.LOCATION_SERVICE);
+        provider = locationManager.getBestProvider(new Criteria(), true);
 
-                getAddressFromLocation();
-            }
-        });
+        if (ContextCompat.checkSelfPermission(callingActivity,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            onLocationChanged(locationManager.getLastKnownLocation(provider));
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    100, 0, this);
+        }
+
     }
 
     //endregion
@@ -100,7 +143,7 @@ public class YarnUser implements LocationSource
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                rating = (double)snapshot.getValue();
+                userName = (String) snapshot.getValue();
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
@@ -165,7 +208,14 @@ public class YarnUser implements LocationSource
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot)
                     {
-                        rating = (double)snapshot.getValue();
+                        try {
+                            rating = (double) snapshot.getValue();
+                        }
+                        catch (ClassCastException e)
+                        {
+                            Long l = (long)snapshot.getValue();
+                            rating = l.doubleValue();
+                        }
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError)
@@ -195,34 +245,4 @@ public class YarnUser implements LocationSource
 
     //endregion
 
-    //region Utility
-
-    private void getAddressFromLocation()
-    {
-        List<Address> addresses;
-
-        String country;
-        String admin1;
-        String admin2;
-        String locality;
-
-        try{
-            addresses = geocoder.getFromLocation(lastLatLng.latitude,
-                    lastLatLng.longitude, 1);
-
-             country = addresses.get(0).getCountryCode();
-             admin1 = addresses.get(0).getAdminArea();
-             admin2 = addresses.get(0).getSubAdminArea();
-             locality = addresses.get(0).getLocality();
-
-            lastAddress = country + " " + admin1 + " " + admin2 + " " + locality;
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-            Log.e(CALLINGTAG,"Unable to get addresses from location");
-        }
-    }
-
-    //endregion
 }
