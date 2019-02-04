@@ -47,7 +47,6 @@ public class YarnUser implements LocationSource, LocationListener
     String provider;
     private final StorageReference userStorageReferance;
     private final DatabaseReference userDatabaseReference;
-    private Activity callingActivity;
     private final String CALLINGTAG;
 
     //User info
@@ -63,17 +62,14 @@ public class YarnUser implements LocationSource, LocationListener
     public LatLng lastLatLng;
     public Address lastAddress;
 
-    public YarnUser(Activity _callingActivity, String _userID, UserType type)
+    public YarnUser(String callingTag, String _userID, UserType type)
     {
         this.userType = type;
 
-        this.callingActivity = _callingActivity;
-        this.CALLINGTAG = _callingActivity.getLocalClassName();
+        this.CALLINGTAG = callingTag;
 
         this.userStorageReferance = FirebaseStorage.getInstance().getReference().child("Users");
         this.userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
-
-        if(this.userType == UserType.LOCAL) this.setupUserLocation();
 
         this.userID = _userID;
         this.getUserName();
@@ -113,7 +109,7 @@ public class YarnUser implements LocationSource, LocationListener
 
     //region User Setup
 
-    private void setupUserLocation()
+    public void setupUserLocation(Activity callingActivity)
     {
         geocoder = new Geocoder(callingActivity, Locale.getDefault());
 

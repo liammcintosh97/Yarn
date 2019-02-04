@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -30,13 +29,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 public class YarnPlace
 {
-    public enum PlaceType{BAR,CAFE, RESTAURANT};
+    public final class PlaceType
+    {
+        public static final String BAR = "BAR";
+        public static final String CAFE = "CAFE";
+        public static final String RESTAURANT = "RESTAURANT";
+
+        private PlaceType(){}
+    }
 
     private Geocoder geocoder;
     private MapsActivity mapsActivity;
@@ -46,7 +51,7 @@ public class YarnPlace
     //Chat Data
     public HashMap<String, String>  placeMap;
     public Address address;
-    public PlaceType placeType;
+    public String placeType;
     public List<Chat> chats;
 
     //Google
@@ -68,7 +73,7 @@ public class YarnPlace
     private Button createChatButton;
     private ScrollView chatScrollView;
 
-    public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap, PlaceType _placeType)
+    public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap, String _placeType)
     {
         this.mapsActivity = _mapsActivity;
         this.geocoder = new Geocoder(_mapsActivity
@@ -79,11 +84,14 @@ public class YarnPlace
         this.map = _map;
 
         this.createMarker();
-        this.chatFinder = new ChatFinder(_mapsActivity,this);
+        this.chatFinder = new ChatFinder("YarnPlace",mapsActivity.localUser.userID
+                ,this);
 
         this.parentViewGroup = _mapsActivity.findViewById(R.id.map);
 
-        this.chatCreator = new ChatCreator(_mapsActivity,parentViewGroup);
+
+        this.chatCreator = new ChatCreator(_mapsActivity,parentViewGroup,
+                mapsActivity.localUser.userID);
         this.initializePopUp();
         this.initializeUI();
     }
@@ -177,8 +185,8 @@ public class YarnPlace
 
     private void OnJoinChatPressed(Chat chat)
     {
-        chat.acceptChat(mapsActivity.localUser);
-        mapsActivity.activeChat = chat;
+        chat.acceptChat(mapsActivity.chatRecorder,mapsActivity.localUser);
+        mapsActivity.chatRecorder.recordChat(chat);
     }
     //endregion
 

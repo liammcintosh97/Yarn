@@ -1,9 +1,9 @@
 package com.example.liammc.yarn.Events;
 
 import android.app.Activity;
-import android.icu.util.LocaleData;
 import android.support.constraint.ConstraintLayout;
-import android.util.DisplayMetrics;
+import android.support.v4.app.FragmentManager;
+import android.text.Layout;
 import android.view.Gravity;
 
 import android.view.LayoutInflater;
@@ -14,6 +14,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
@@ -21,18 +22,12 @@ import com.example.liammc.yarn.time.TimeDialog;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
 import com.example.liammc.yarn.utility.DateTools;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 
 public class ChatCreator
 {
-
-    private final String TAG = "ChatCreator";
-    private final MapsActivity mapsActivity;
+    private MapsActivity mapsActivity;
     private final ViewGroup parentViewGroup;
 
     public PopupWindow window;
@@ -41,6 +36,7 @@ public class ChatCreator
     public DurationDialog durationPicker;
     public View mChatCreatorView;
 
+    String localUserID;
     public YarnPlace yarnPlace;
 
     //UI
@@ -56,10 +52,12 @@ public class ChatCreator
     public String chatPlaceName;
     public String chatPlaceAddress;
 
-    public ChatCreator(MapsActivity _mapsActivity,ViewGroup _parent)
+    public ChatCreator(MapsActivity _mapsActivity, ViewGroup _parent, String localUserID)
     {
-        this.mapsActivity = _mapsActivity;
         this.parentViewGroup = _parent;
+        this.mapsActivity = _mapsActivity;
+
+        this.localUserID = localUserID;
 
         SetUpChatCreatorPopUp();
         SetUpChatUI();
@@ -70,8 +68,10 @@ public class ChatCreator
     private void SetUpChatCreatorPopUp()
     {
         // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) mapsActivity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mChatCreatorView = inflater.inflate(R.layout.popup_chat_creator,parentViewGroup,false);
+        LayoutInflater inflater = (LayoutInflater) mapsActivity
+                .getSystemService(mapsActivity.LAYOUT_INFLATER_SERVICE);
+        mChatCreatorView = inflater.inflate(R.layout.popup_chat_creator,parentViewGroup,
+                false);
 
         // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
@@ -119,7 +119,6 @@ public class ChatCreator
         });
     }
 
-
     //endregion
 
     //region Button Methods
@@ -149,15 +148,17 @@ public class ChatCreator
         int day = datepicker.day;
         int hour = timePicker.hour;
         int minute = timePicker.minute;
-        String duration = DateTools.millisToDurationString(mapsActivity,durationPicker.milliSeconds);
+
+        String duration = DateTools.millisToDurationString(Locale.getDefault()
+                ,durationPicker.milliSeconds);
 
         String date = month + "/" + day + "/" + year;
         String time = hour + ":" + minute;
 
-        Chat chat = new Chat(mapsActivity,mapsActivity.localUser,chatPlaceID,yarnPlace.address,
-                yarnPlace.placeType,date,time,duration);
+        Chat chat = new Chat("ChatCreator",localUserID,localUserID,chatPlaceID,
+                yarnPlace.address, yarnPlace.placeType,date,time,duration);
 
-        mapsActivity.activeChat = chat;
+        mapsActivity.chatRecorder.recordChat(chat);
 
         dissmissChatCreator();
     }

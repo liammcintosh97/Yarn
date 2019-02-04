@@ -28,7 +28,7 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
     private MapsActivity mapsActivity;
     private String googlePlacesData;
     private GoogleMap mMap;
-    private YarnPlace.PlaceType placeType;
+    private String placeType;
 
     private PlaceFinderCallback listener;
 
@@ -42,7 +42,7 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
 
         mMap = (GoogleMap)objects[0];
         String url = (String)objects[1];
-        placeType = (YarnPlace.PlaceType)objects[2];
+        placeType = (String)objects[2];
 
         try {
             googlePlacesData = Downloader.readUrl(url);

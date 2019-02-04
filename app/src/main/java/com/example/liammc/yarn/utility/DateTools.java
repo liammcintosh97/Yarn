@@ -1,9 +1,12 @@
 package com.example.liammc.yarn.utility;
 
 import android.app.Activity;
+import android.util.Log;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -12,44 +15,24 @@ import java.util.concurrent.TimeUnit;
 
 public final class DateTools
 {
-    public static Calendar StringToCalendar(Activity callingActivity, String timeString)
+    public static Long dateStringToMilli(String dateString)
     {
-        Locale locale = callingActivity.getResources().getConfiguration().locale;
-        TimeZone timeZone = TimeZone.getDefault();
-
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy",locale);
         try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy",Locale.getDefault());
+            Date date = sdf.parse(dateString);
 
-            Calendar calendar = Calendar.getInstance(timeZone,locale);
-            calendar.setTime(sdf.parse(timeString));
-
-            return calendar;
-        } catch (Exception e) {
+            return date.getTime();
+        }
+        catch(ParseException e)
+        {
             e.printStackTrace();
-            return null;
+            Log.e("DateTools","Cannot parse date string");
+            return 0L;
         }
     }
 
-
-    public static Duration StringToDuration(Activity callingActivity, String durationString)
+    public static String millisToDurationString(Locale locale,long millis)
     {
-        try
-        {
-            //Duration duration = new Duration(durationString);
-
-            return null;
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static String millisToDurationString(Activity callingActivity,long millis)
-    {
-        Locale locale = callingActivity.getResources().getConfiguration().locale;
-
         try {
             String duration = String.format(locale, "%02d:%02d:%02d",
                     TimeUnit.MILLISECONDS.toHours(millis),

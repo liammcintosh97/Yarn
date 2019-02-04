@@ -1,16 +1,15 @@
 package com.example.liammc.yarn.Events;
 
-import android.app.Activity;
 import android.location.Address;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.example.liammc.yarn.accounting.YarnUser;
 
-import com.example.liammc.yarn.core.MapsActivity;
+import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.utility.AddressTools;
-import com.google.android.gms.location.places.GeoDataClient;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -19,12 +18,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.UUID;
-public class Chat
+
+public class Chat implements Parcelable
 {
-    private final GeoDataClient mGeoDataClient;
     private final DatabaseReference userDatabaseReference;
-    private final MapsActivity mapsActivity;
     private final String CALLINGTAG;
+    private final String localUserID;
 
     //public String chatID;
     public YarnUser hostUser;
@@ -41,7 +40,7 @@ public class Chat
     public String chatStreet;
     public String chatPostcode;
 
-    public YarnPlace.PlaceType chatPlaceType;
+    public String chatPlaceType;
     public String chatDate;
     public String chatTime;
     public String chatLength;
@@ -52,17 +51,15 @@ public class Chat
 
     //region Constructors
 
-    public Chat(MapsActivity _mapsActivity, YarnUser _host, String _chatPlaceID, Address address,
-                YarnPlace.PlaceType _placeType, String _chatDate, String _chatTime, String _chatLength)
+    public Chat(String callingTag,String _localUserID, String _hostUserID, String _chatPlaceID, Address address,
+                String _placeType, String _chatDate, String _chatTime, String _chatLength)
     {
         //This is the constructor for creating an instance of a new chat
-
-        this.mapsActivity = _mapsActivity;
-        this.CALLINGTAG = _mapsActivity.getLocalClassName();
+        this.localUserID = _localUserID;
+        this.CALLINGTAG = callingTag;
 
         //Intialize chat variables
-        //this.chatID = generateChatID();
-        this.hostUser = _host;
+        this.hostUser = new YarnUser("Chat",_hostUserID,YarnUser.UserType.LOCAL);
         this.chatPlaceID = _chatPlaceID;
 
         this.UpdateAddress(address);
@@ -73,56 +70,163 @@ public class Chat
         this.chatTime = _chatTime;
         this.chatLength = _chatLength;
 
-        this.intializeChatState();
-
-        this.mGeoDataClient = Places.getGeoDataClient(mapsActivity);
+        this.initializeChatState();
 
         this.userDatabaseReference = AddressTools.getChatDatabaseReference(chatPlaceID);
         this.updateDatabase();
     }
 
-    public Chat(MapsActivity _mapsActivity,String chatPlaceID, String _chatID, Address address)
+    public Chat(String callingTag,String localUserID,String chatPlaceID, String _chatID, Address address)
     {
         //This is the constructor for creating an instance of an exsisting chat
-
-        this.mapsActivity = _mapsActivity;
-        this.CALLINGTAG = _mapsActivity.getLocalClassName();
-
-        //this.chatID = _chatId;
+        this.CALLINGTAG = callingTag;
+        this.localUserID = localUserID;
 
         this.UpdateAddress(address);
-
-        this.mGeoDataClient = Places.getGeoDataClient(_mapsActivity);
 
         this.userDatabaseReference = AddressTools.getChatDatabaseReference(chatPlaceID);
         this.chatID = _chatID;
         //this.addDataListner("chatID");
-        this.addDataListner("host");
-        this.addDataListner("guest");
-        this.addDataListner("placeID");
-        this.addDataListner("formatted_address");
-        this.addDataListner("country");
-        this.addDataListner("admin1");
-        this.addDataListner("admin2");
-        this.addDataListner("locality");
-        this.addDataListner("street");
-        this.addDataListner("postcode");
-        this.addDataListner("place_type");
-        this.addDataListner("time");
-        this.addDataListner("date");
-        this.addDataListner("length");
-        this.addDataListner("accepted");
-        this.addDataListner("active");
-        this.addDataListner("canceled");
+        this.addDataListener("host");
+        this.addDataListener("guest");
+        this.addDataListener("placeID");
+        this.addDataListener("formatted_address");
+        this.addDataListener("country");
+        this.addDataListener("admin1");
+        this.addDataListener("admin2");
+        this.addDataListener("locality");
+        this.addDataListener("street");
+        this.addDataListener("postcode");
+        this.addDataListener("place_type");
+        this.addDataListener("time");
+        this.addDataListener("date");
+        this.addDataListener("length");
+        this.addDataListener("accepted");
+        this.addDataListener("active");
+        this.addDataListener("canceled");
     }
 
     //endregion Constructors
 
-    //region Intialization
+    //region Parcelable methods
 
-    private void intializeChatState()
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+
+        out.writeString(CALLINGTAG);
+        out.writeString(localUserID);
+
+        out.writeString(hostUser.userID);
+        if(guestUser != null)out.writeString(guestUser.userID);
+        else out.writeValue("");
+
+        out.writeString(chatID);
+        out.writeString(chatPlaceID);
+        out.writeParcelable(chatAdressObject,flags);
+        out.writeString(chatCountry);
+        out.writeString(chatAdmin1);
+        out.writeString(chatAdmin2);
+        out.writeString(chatLocality);
+        out.writeString(chatStreet);
+        out.writeString(chatPostcode);
+
+        out.writeString(chatPlaceType);
+        out.writeString(chatDate);
+        out.writeString(chatTime);
+        out.writeString(chatLength);
+
+        out.writeByte((byte) (accepted ? 1 : 0));
+        out.writeByte((byte) (active ? 1 : 0));
+        out.writeByte((byte) (canceled ? 1 : 0));
+
+    }
+
+    public static final Parcelable.Creator<Chat> CREATOR
+            = new Parcelable.Creator<Chat>() {
+
+        public Chat createFromParcel(Parcel in) {
+            return new Chat(in);
+        }
+
+        public Chat[] newArray(int size) {
+            return new Chat[size];
+        }
+    };
+
+    private Chat(Parcel in) {
+
+        this.CALLINGTAG = in.readString();
+        this.localUserID = in.readString();
+
+        //Read host from parcel
+        String hostUserID = in.readString();
+        if(hostUserID.equals(localUserID)){
+            this.hostUser = new YarnUser("Chat",hostUserID,YarnUser.UserType.LOCAL);
+        }
+        else{
+            this.hostUser = new YarnUser("Chat",hostUserID,YarnUser.UserType.NETWORK);
+        }
+
+        //read guest from parcel
+        String guestUserId = in.readString();
+        if(guestUserId.equals(localUserID)){
+            this.guestUser = new YarnUser("Chat",guestUserId,YarnUser.UserType.LOCAL);
+        }
+        else if(!guestUserId.equals("")){
+            this.guestUser = new YarnUser("Chat",guestUserId,YarnUser.UserType.NETWORK);
+        }
+        else this.guestUser = null;
+
+        this.chatID = in.readString();
+        this.chatPlaceID = in.readString();
+        this.chatAdressObject = in.readParcelable(Address.class.getClassLoader());
+        this.chatCountry = in.readString();
+        this.chatAdmin1 = in.readString();
+        this.chatAdmin2 = in.readString();
+        this.chatLocality = in.readString();
+        this.chatStreet = in.readString();
+        this.chatPostcode = in.readString();
+
+        this.chatPlaceType = in.readString();
+        this.chatDate = in.readString();
+        this.chatTime = in.readString();
+        this.chatLength = in.readString();
+
+        this.accepted = in.readByte() != 0;
+        this.active = in.readByte() != 0;
+        this.canceled = in.readByte() != 0;
+
+        this.userDatabaseReference = AddressTools.getChatDatabaseReference(this.chatPlaceID);
+
+        this.addDataListener("host");
+        this.addDataListener("guest");
+        this.addDataListener("placeID");
+        this.addDataListener("formatted_address");
+        this.addDataListener("country");
+        this.addDataListener("admin1");
+        this.addDataListener("admin2");
+        this.addDataListener("locality");
+        this.addDataListener("street");
+        this.addDataListener("postcode");
+        this.addDataListener("place_type");
+        this.addDataListener("time");
+        this.addDataListener("date");
+        this.addDataListener("length");
+        this.addDataListener("accepted");
+        this.addDataListener("active");
+        this.addDataListener("canceled");
+    }
+
+    //endregion
+
+    //region Initialization
+
+    private void initializeChatState()
     {
-        //Intialize chat state
+        //Initialize chat state
         accepted = false;
         active = false;
         canceled = false;
@@ -154,14 +258,14 @@ public class Chat
 
     //region Public Local Methods
 
-    public void acceptChat(YarnUser guestUser)
+    public void acceptChat(ChatRecorder chatRecorder,YarnUser guestUser)
     {
         accepted = true;
         updateData("guest",guestUser.userID);
         updateData("accepted",true);
         updateData("active",active);
 
-        mapsActivity.activeChat = this;
+        chatRecorder.recordChat(this);
     }
 
     public void cancelChat()
@@ -176,40 +280,6 @@ public class Chat
     //endregion
 
     //region Private Local Methods
-
-    /*
-    public void updateChat(String _chatID, String _hostID, String _guestID, String _placeID
-            , String _formattted_address, String _country, String _admin1, String _admin2
-            , String _locality, String _street, String _postcode, YarnPlace.PlaceType _placeType
-            , String _date, String _length, Boolean _accepted, Boolean _active, Boolean _canceled )
-    {
-        //chatID = _chatID;
-
-        if(_hostID == mapsActivity.localUser.userID)
-        {
-            hostUser =
-        }
-        hostUser = _hostID;
-        guestUser = _guestID;
-
-        //chatPlaceID = _placeID;
-        chatFormattedAddress = _formattted_address;
-        chatCountry = _country;
-        chatAdmin1 = _admin1;
-        chatAdmin2 = _admin2;
-        chatLocality = _locality;
-        chatStreet = _street;
-        chatPostcode = _postcode;
-
-        chatPlaceType = _placeType;
-        chatDate = _date;
-        chatLength = _length;
-
-        accepted = _accepted;
-        active = _active;
-        canceled = _canceled;
-
-    }*/
 
     private void UpdateAddress(Address address)
     {
@@ -236,7 +306,7 @@ public class Chat
                     public void onSuccess(Void aVoid)
                     {
                         Log.d(CALLINGTAG,dataType +" write to database was a success");
-                        addDataListner(dataType);
+                        addDataListener(dataType);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener()
@@ -249,7 +319,7 @@ public class Chat
                 });
     }
 
-    private void addDataListner(final String dataType)
+    private void addDataListener(final String dataType)
     {
         DatabaseReference ref = userDatabaseReference.child(chatID).child(dataType);
 
@@ -283,23 +353,25 @@ public class Chat
             //case("chatID"): chatID = (String) snapshot.getValue();
             case("host"):
                 {
-                    if(snapshot.getValue() == mapsActivity.localUser.userID)
+                    if(snapshot.getValue() == localUserID)
                     {
-                        hostUser = mapsActivity.localUser;
+                        hostUser = new YarnUser("Chat", localUserID,
+                            YarnUser.UserType.LOCAL);
                     }
                     else{
-                        hostUser = new YarnUser(mapsActivity, (String) snapshot.getValue(),
+                        hostUser = new YarnUser("Chat", (String) snapshot.getValue(),
                                 YarnUser.UserType.NETWORK);
                     }
                 }
             case("guest"):
                 {
-                    if(snapshot.getValue() == mapsActivity.localUser.userID)
+                    if(snapshot.getValue() == localUserID)
                     {
-                        guestUser = mapsActivity.localUser;
+                        guestUser = new YarnUser("Chat", localUserID,
+                            YarnUser.UserType.LOCAL);
                     }
                     else if(!snapshot.getValue().equals("")){
-                        guestUser = new YarnUser(mapsActivity, (String) snapshot.getValue(),
+                        guestUser = new YarnUser("Chat", (String) snapshot.getValue(),
                                 YarnUser.UserType.NETWORK);
                     }
                     else{
@@ -315,6 +387,7 @@ public class Chat
             case("locality"): chatLocality = (String) snapshot.getValue();
             case("street"): chatStreet = (String) snapshot.getValue();
             case("postcode"): chatPostcode = (String) snapshot.getValue();
+            case("place_type"): chatPlaceType = (String) snapshot.getValue();
 
             case("date"): chatDate =  (String) snapshot.getValue();
             case("time"): chatTime = (String) snapshot.getValue();

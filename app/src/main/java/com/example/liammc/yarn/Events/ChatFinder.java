@@ -14,17 +14,17 @@ import com.google.firebase.database.DatabaseReference;
 
 public class ChatFinder
 {
-    MapsActivity mapsActivity;
     final String CALLINGTAG;
+    final String localUserID;
     DatabaseReference chatDatabaseReference;
 
     private YarnPlace yarnPlace;
 
 
-    public ChatFinder(MapsActivity _mapsActivity,YarnPlace _yarnPlace)
+    public ChatFinder(String callingTag, String localUserID,YarnPlace _yarnPlace)
     {
-        this.mapsActivity = _mapsActivity;
-        this.CALLINGTAG = _mapsActivity.getLocalClassName();
+        this.CALLINGTAG = callingTag;
+        this.localUserID = localUserID;
 
         this.yarnPlace = _yarnPlace;
 
@@ -95,7 +95,7 @@ public class ChatFinder
             if(chatID.equals(yarnPlace.chats.get(i).chatID)) return;
         }
 
-        Chat newChat  = new Chat(mapsActivity,chatPlaceID,chatID,yarnPlace.address);
+        Chat newChat  = new Chat("ChatFinder",localUserID,chatPlaceID,chatID,yarnPlace.address);
 
         yarnPlace.chats.add(newChat);
         yarnPlace.addChatToScrollView(newChat);
@@ -129,7 +129,6 @@ public class ChatFinder
 
     private boolean isHost(DataSnapshot snapshot) throws Exception
     {
-        String localUserID = mapsActivity.localUser.userID;
         String chatHostID = snapshot.child("host").getValue().toString();
 
         if(snapshot.getKey().equals("host"))

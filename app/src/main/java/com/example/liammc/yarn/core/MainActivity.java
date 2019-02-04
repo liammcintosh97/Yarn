@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.core;
 
 import android.Manifest;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
 import com.example.liammc.yarn.core.MapsActivity;

@@ -2,15 +2,13 @@ package com.example.liammc.yarn.core;
 
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.location.Criteria;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
@@ -22,14 +20,12 @@ import com.example.liammc.yarn.Events.PlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.YarnUser;
-import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -42,9 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.security.Provider;
 import java.util.List;
-import java.util.Locale;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
@@ -60,7 +54,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Map Data
     public YarnUser localUser;
-    public Chat activeChat;
     List<YarnPlace> bars;
     List<YarnPlace> cafes;
     List<YarnPlace> resturants;
@@ -75,6 +68,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     NumberPicker numberPicker;
     Circle circle;
     CircleOptions circleOptions;
+
+    //Chat Planner
+    public ChatRecorder chatRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,9 +89,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         applyMapStyle();
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
-        localUser = new YarnUser(this,
+        localUser = new YarnUser("MapsActivity",
                 FirebaseAuth.getInstance().getCurrentUser().getUid()
                 ,YarnUser.UserType.LOCAL);
+        localUser.setupUserLocation(this);
 
         initializeMapUI();
         initializeMapServices();
@@ -134,6 +131,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         mPlaceDetectionClient =  Places.getPlaceDetectionClient(this);
         mGeoDataClient = Places.getGeoDataClient(this);
+        chatRecorder = new ChatRecorder();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -318,7 +316,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
+    public void onChatPlannerPressed(View view)
+    {
+        Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
+        intent.putExtra("recordedChats",chatRecorder.recordedChats);
+        startActivity(intent);
+    }
     //endregion
 
     //region local methods
