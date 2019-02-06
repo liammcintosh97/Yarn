@@ -18,7 +18,7 @@ public final class DateTools
     public static Long dateStringToMilli(String dateString)
     {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy",Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
             Date date = sdf.parse(dateString);
 
             return date.getTime();

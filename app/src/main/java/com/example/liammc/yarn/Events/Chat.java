@@ -31,6 +31,7 @@ public class Chat implements Parcelable
 
     public String chatID;
     public String chatPlaceID;
+    public String chatPlaceName;
     public Address chatAdressObject;
     public String chatFormattedAddress;
     public String chatCountry;
@@ -51,8 +52,9 @@ public class Chat implements Parcelable
 
     //region Constructors
 
-    public Chat(String callingTag,String _localUserID, String _hostUserID, String _chatPlaceID, Address address,
-                String _placeType, String _chatDate, String _chatTime, String _chatLength)
+    public Chat(String callingTag,String _localUserID, String _hostUserID, String _chatPlaceID,
+                String _chatPlaceName, Address address, String _placeType, String _chatDate,
+                String _chatTime, String _chatLength)
     {
         //This is the constructor for creating an instance of a new chat
         this.localUserID = _localUserID;
@@ -61,6 +63,7 @@ public class Chat implements Parcelable
         //Intialize chat variables
         this.hostUser = new YarnUser("Chat",_hostUserID,YarnUser.UserType.LOCAL);
         this.chatPlaceID = _chatPlaceID;
+        this.chatPlaceName = _chatPlaceName;
 
         this.UpdateAddress(address);
 
@@ -87,9 +90,9 @@ public class Chat implements Parcelable
         this.userDatabaseReference = AddressTools.getChatDatabaseReference(chatPlaceID);
         this.chatID = _chatID;
         //this.addDataListner("chatID");
+        this.addDataListener("place_name");
         this.addDataListener("host");
         this.addDataListener("guest");
-        this.addDataListener("placeID");
         this.addDataListener("formatted_address");
         this.addDataListener("country");
         this.addDataListener("admin1");
@@ -115,16 +118,15 @@ public class Chat implements Parcelable
     }
 
     public void writeToParcel(Parcel out, int flags) {
-
-        out.writeString(CALLINGTAG);
         out.writeString(localUserID);
 
         out.writeString(hostUser.userID);
         if(guestUser != null)out.writeString(guestUser.userID);
-        else out.writeValue("");
+        else out.writeString("");
 
         out.writeString(chatID);
         out.writeString(chatPlaceID);
+        out.writeString(chatPlaceName);
         out.writeParcelable(chatAdressObject,flags);
         out.writeString(chatCountry);
         out.writeString(chatAdmin1);
@@ -158,7 +160,7 @@ public class Chat implements Parcelable
 
     private Chat(Parcel in) {
 
-        this.CALLINGTAG = in.readString();
+        this.CALLINGTAG = "Parcel";
         this.localUserID = in.readString();
 
         //Read host from parcel
@@ -182,6 +184,7 @@ public class Chat implements Parcelable
 
         this.chatID = in.readString();
         this.chatPlaceID = in.readString();
+        this.chatPlaceName = in.readString();
         this.chatAdressObject = in.readParcelable(Address.class.getClassLoader());
         this.chatCountry = in.readString();
         this.chatAdmin1 = in.readString();
@@ -201,9 +204,9 @@ public class Chat implements Parcelable
 
         this.userDatabaseReference = AddressTools.getChatDatabaseReference(this.chatPlaceID);
 
+        this.addDataListener("place_name");
         this.addDataListener("host");
         this.addDataListener("guest");
-        this.addDataListener("placeID");
         this.addDataListener("formatted_address");
         this.addDataListener("country");
         this.addDataListener("admin1");
@@ -235,6 +238,7 @@ public class Chat implements Parcelable
     private void updateDatabase()
     {
        //updateData("chatID",chatID);
+        updateData("place_name",chatPlaceName);
        updateData("host",hostUser.userID);
        updateData("guest","");
        //updateData("placeID",chatPlaceID);
@@ -284,17 +288,36 @@ public class Chat implements Parcelable
     private void UpdateAddress(Address address)
     {
         chatAdressObject = address;
-
         chatFormattedAddress = AddressTools.formatAddress(address);
-        chatCountry = address.getCountryCode();
-        chatAdmin1 = address.getAdminArea();
-        chatAdmin2 = address.getSubAdminArea();
-        chatLocality = address.getLocality();
-        chatStreet = address.getAddressLine(0);
-        chatPostcode = address.getPostalCode();
+
+        String country = address.getCountryCode();
+        String admin1 = address.getAdminArea();
+        String admin2 = address.getSubAdminArea();
+        String locality = address.getLocality();
+        String street = address.getAddressLine(0);
+        String postcode = address.getPostalCode();
+
+        if(country != null)chatCountry = country;
+        else chatCountry = "";
+
+        if(admin1 != null)chatAdmin1 = admin1;
+        else chatAdmin1 = "";
+
+        if(admin2 != null)chatAdmin2 = admin2;
+        else chatAdmin2 = "";
+
+        if(locality != null)chatLocality = locality;
+        else chatLocality = "";
+
+        if(street != null)chatStreet = street;
+        else chatStreet = "";
+
+        if(postcode != null)chatPostcode = postcode;
+        else chatPostcode = "";
+
     }
 
-    private void updateData(final String dataType, Object dataValue)
+    private void updateData(final String dataType, final Object dataValue)
     {
        final DatabaseReference ref = userDatabaseReference.child(chatID).child(dataType);
 
@@ -305,7 +328,8 @@ public class Chat implements Parcelable
                     @Override
                     public void onSuccess(Void aVoid)
                     {
-                        Log.d(CALLINGTAG,dataType +" write to database was a success");
+                        Log.d(CALLINGTAG,dataType +" write to database was a success :"
+                                + dataValue.toString());
                         addDataListener(dataType);
                     }
                 })
@@ -327,7 +351,13 @@ public class Chat implements Parcelable
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                translateDatabase(dataType,snapshot);
+                if(translateDatabase(dataType,snapshot))
+                {
+                    Log.d(CALLINGTAG,"Updated " + dataType + " from database : "
+                            + snapshot.getValue().toString());
+                }
+                else Log.e(CALLINGTAG,"Fatal error when trying to update "
+                        + dataType + " from database");
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
@@ -346,56 +376,164 @@ public class Chat implements Parcelable
         return UUID.randomUUID().toString();
     }
 
-    private void translateDatabase(String dataType,DataSnapshot snapshot)
+    private boolean translateDatabase(String dataType,DataSnapshot snapshot)
     {
-        switch(dataType)
-        {
-            //case("chatID"): chatID = (String) snapshot.getValue();
-            case("host"):
-                {
-                    if(snapshot.getValue() == localUserID)
-                    {
+        switch(dataType) {
+            //region Place Name
+            case ("place_name"): {
+                if(snapshot.getValue() != null){
+                    chatPlaceName = (String)snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Host
+            case ("host"): {
+                if(snapshot.getValue() != null){
+                    if (snapshot.getValue() == localUserID) {
                         hostUser = new YarnUser("Chat", localUserID,
-                            YarnUser.UserType.LOCAL);
-                    }
-                    else{
+                                YarnUser.UserType.LOCAL);
+                    } else {
                         hostUser = new YarnUser("Chat", (String) snapshot.getValue(),
                                 YarnUser.UserType.NETWORK);
                     }
-                }
-            case("guest"):
-                {
-                    if(snapshot.getValue() == localUserID)
-                    {
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Guest
+            case ("guest"): {
+                if(snapshot.getValue() != null){
+                    if (snapshot.getValue() == localUserID) {
                         guestUser = new YarnUser("Chat", localUserID,
-                            YarnUser.UserType.LOCAL);
-                    }
-                    else if(!snapshot.getValue().equals("")){
+                                YarnUser.UserType.LOCAL);
+                    } else if (!snapshot.getValue().equals("")) {
                         guestUser = new YarnUser("Chat", (String) snapshot.getValue(),
                                 YarnUser.UserType.NETWORK);
-                    }
-                    else{
+                    } else {
                         guestUser = null;
                     }
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Formatted Address
+            case ("formatted_address"): {
+                if(snapshot.getValue() != null){
+                    chatFormattedAddress = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Country
+            case ("country"): {
+                if(snapshot.getValue() != null){
+                    chatCountry = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Admin 1
+            case ("admin1"): {
+                if(snapshot.getValue() != null){
+                    chatAdmin1 = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Admin 2
+            case ("admin2"): {
+                if(snapshot.getValue() != null){
+                    chatAdmin2 = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion Admin 2
+            //region Locality
+            case ("locality"): {
+                if(snapshot.getValue() != null){
+                    chatLocality = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Street
+            case ("street"): {
+                if(snapshot.getValue() != null){
+                    chatStreet = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Postcode
+            case ("postcode"): {
+                if(snapshot.getValue() != null){
+                    chatPostcode = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Place Type
+            case ("place_type"): {
+                if(snapshot.getValue() != null){
+                    chatPlaceType = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Date
+            case ("date"): {
+                if(snapshot.getValue() != null){
+                    chatDate = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Time
+            case ("time"): {
+                if(snapshot.getValue() != null) {
+                    chatTime = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Length
+            case ("length"): {
+                if(snapshot.getValue() != null){
+                    chatLength = (String) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
+            //region Accepted
+            case ("accepted"): {
+                if (snapshot.getValue() != null) {
+                    accepted = Boolean.valueOf(snapshot.getValue().toString());
+                    return true;
+                } else{
+                    return false;
                 }
-            //case("place"): chatPlaceID = (String) snapshot.getValue();
-
-            case("formatted_address"): chatFormattedAddress = (String) snapshot.getValue();
-            case("country"): chatCountry = (String) snapshot.getValue();
-            case("admin1"): chatAdmin1 = (String) snapshot.getValue();
-            case("admin2"): chatAdmin2 = (String) snapshot.getValue();
-            case("locality"): chatLocality = (String) snapshot.getValue();
-            case("street"): chatStreet = (String) snapshot.getValue();
-            case("postcode"): chatPostcode = (String) snapshot.getValue();
-            case("place_type"): chatPlaceType = (String) snapshot.getValue();
-
-            case("date"): chatDate =  (String) snapshot.getValue();
-            case("time"): chatTime = (String) snapshot.getValue();
-            case("length"): chatLength = (String) snapshot.getValue();
-            case("accepted"): accepted = Boolean.valueOf(snapshot.getValue().toString());
-            case("active"): active = Boolean.valueOf(snapshot.getValue().toString());
-            case("canceled"): canceled = Boolean.valueOf(snapshot.getValue().toString());
+            }
+            //endregion
+            //region Active
+            case ("active"): {
+                if (snapshot.getValue() != null) {
+                    active = Boolean.valueOf(snapshot.getValue().toString());
+                    return true;
+                } else return false;
+            }
+            //endregion
+            //region Canceled
+            case ("canceled"): {
+                if (snapshot.getValue() != null) {
+                    canceled = Boolean.valueOf(snapshot.getValue().toString());
+                    return true;
+                } else return false;
+            }
+            //endregion
         }
+
+        return false;
     }
 
     //endregion

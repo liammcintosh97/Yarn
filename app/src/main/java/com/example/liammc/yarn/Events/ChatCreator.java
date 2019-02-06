@@ -144,19 +144,36 @@ public class ChatCreator
     private void onCreateChatPressed()
     {
         int year = datepicker.year;
-        int month = datepicker.month;
-        int day = datepicker.day;
+        int intMonth = datepicker.month + 1;
+        int intDay = datepicker.day;
         int hour = timePicker.hour;
         int minute = timePicker.minute;
 
+        //Format duration
         String duration = DateTools.millisToDurationString(Locale.getDefault()
                 ,durationPicker.milliSeconds);
 
-        String date = month + "/" + day + "/" + year;
+        //Format day
+        String day;
+        if(intDay < 10) {
+            day = "0" + intDay;
+        }
+        else day = String.valueOf(intDay);
+
+        //Format month
+        String month;
+        if(intMonth < 10) {
+            month = "0" + intMonth;
+        }else month = String.valueOf(intMonth);
+
+        //Format date
+        String date = day + "-" + month + "-" + year;
+
+        //Format time
         String time = hour + ":" + minute;
 
         Chat chat = new Chat("ChatCreator",localUserID,localUserID,chatPlaceID,
-                yarnPlace.address, yarnPlace.placeType,date,time,duration);
+                chatPlaceName, yarnPlace.address, yarnPlace.placeType,date,time,duration);
 
         mapsActivity.chatRecorder.recordChat(chat);
 

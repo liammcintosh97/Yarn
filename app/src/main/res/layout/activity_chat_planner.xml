@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parentView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".core.ChatPlannerActivity">
@@ -43,7 +44,7 @@
             android:background="@color/colorPrimary"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
-            android:text="@string/chatplanner_monthDefault"
+            android:text="@string/chatPlanner_monthDefault"
             android:textAlignment="center"
             android:textColor="#fff"
             android:textSize="24sp"

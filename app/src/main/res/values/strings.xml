@@ -31,7 +31,10 @@
 
     //Chat Planner
     <string name="chatPlanner_title">Chat Planner</string>
-    <string name="chatplanner_monthDefault">Month - Year</string>
+    <string name="chatPlanner_eventWindow_title">Chats</string>
+    <string name="chatPlanner_monthDefault">Month - Year</string>
+    <string name ="chatPlanner_cancelChat_button">Cancel Chat</string>
+    <string name ="chatPlanner_chatWindow_default_text">Place Name\n00/00/00\n00:00AM\n00:00</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>
