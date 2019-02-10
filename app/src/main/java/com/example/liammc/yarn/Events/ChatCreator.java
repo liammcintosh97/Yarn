@@ -173,9 +173,10 @@ public class ChatCreator
         String time = hour + ":" + minute;
 
         Chat chat = new Chat("ChatCreator",localUserID,localUserID,chatPlaceID,
-                chatPlaceName, yarnPlace.address, yarnPlace.placeType,date,time,duration);
+                chatPlaceName, yarnPlace.address,yarnPlace.latLng, yarnPlace.placeType,date
+                ,time,duration);
 
-        mapsActivity.chatRecorder.recordChat(chat);
+        ChatRecorder.getInstance().recordChat(chat);
 
         dissmissChatCreator();
     }

@@ -68,7 +68,8 @@
         <activity android:name=".authentication.SignUpActivity" />
         <activity android:name=".authentication.SignInActivity" />
         <activity android:name=".authentication.CreateAccountActivity" />
-        <activity android:name=".core.ChatPlannerActivity"></activity>
+        <activity android:name=".core.ChatPlannerActivity" />
+        <activity android:name=".core.NotificationsActivity"></activity>
     </application>
 
 </manifest>

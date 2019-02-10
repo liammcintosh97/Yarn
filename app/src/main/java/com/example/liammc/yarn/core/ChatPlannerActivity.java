@@ -20,6 +20,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.Events.Chat;
+import com.example.liammc.yarn.Events.Notifier;
+import com.example.liammc.yarn.Notification;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
@@ -75,7 +77,9 @@ public class ChatPlannerActivity extends AppCompatActivity{
     //endregion
 
     private final String TAG = "ChatPlannerActivity";
-    private HashMap<Long,ArrayList<Chat>> recordedChats;
+    //private HashMap<Long,ArrayList<Chat>> recordedChats;
+    ChatRecorder chatRecorder;
+    Notifier notifier;
 
     //Window
     public PopupWindow window;
@@ -89,6 +93,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
     private CompactCalendarView calendarView;
     private TextView monthYearTitle;
     private static ScrollView chatScrollView;
+    private static ScrollView chatSuggestionScrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,21 +106,43 @@ public class ChatPlannerActivity extends AppCompatActivity{
         initializePopUp();
         initialiseUI();
 
+        chatRecorder = ChatRecorder.getInstance();
+        Notifier.getInstance().context = this;
+        initializeEvents();
+
+        notifier = Notifier.getInstance();
+
+        registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
+        setNotifier();
+        /*
         if(getRecordedChats()){
             initializeEvents(recordedChats);
-        }
+        }*/
 
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(notifier.timeChangeReceiver);
+    }
+
+    /*
+    @Override
     public void onBackPressed(){
+
+        // Put the String to pass back into an Intent and close this activity
+        Intent intent = new Intent();
+        intent.putExtra("recordedChats", recordedChats);
+        setResult(RESULT_OK, intent);
 
         if(dismissEventWindow() || warningDialog.dissmissDialog()){
 
+            finish();
         }
         else super.onBackPressed();
 
-    }
+    }*/
 
     //region Set Up
 
@@ -144,10 +171,25 @@ public class ChatPlannerActivity extends AppCompatActivity{
         });
     }
 
-    private void initializeEvents(HashMap<Long,ArrayList<Chat>> recordedChats)
+    private void setNotifier()
+    {
+        notifier = Notifier.getInstance();
+
+        notifier.setSuggestionListener(new Notifier.SuggestionListener() {
+
+            @Override
+            public void onSuggestionAdded(Notification notification, Chat chat)
+            {
+                addChatToSuggestionScrollView(notification,chat);
+            }
+        });
+    }
+
+    private void initializeEvents()//HashMap<Long,ArrayList<Chat>> recordedChats)
     {
 
-        for (HashMap.Entry<Long, ArrayList<Chat>> entry : recordedChats.entrySet()) {
+
+        for (HashMap.Entry<Long, ArrayList<Chat>> entry : chatRecorder.recordedChats.entrySet()) {
 
             for(int i = 0 ; i < entry.getValue().size(); i++){
 
@@ -194,6 +236,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
         warningDialog = new WarningDialog();
         chatScrollView = eventsView.findViewById(R.id.chatScrollView);
+        chatSuggestionScrollView = findViewById(R.id.suggestionScrollView);
         parentViewGroup = findViewById(R.id.parentView);
     }
 
@@ -205,7 +248,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
         chatScrollView.removeAllViews();
 
-        ArrayList<Chat> chats = recordedChats.get(date.getTime());
+        ArrayList<Chat> chats = chatRecorder.recordedChats.get(date.getTime());
 
         if(chats != null){
 
@@ -235,6 +278,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
         return false;
     }
 
+    /*
     private boolean getRecordedChats(){
 
         Intent intent = getIntent();
@@ -248,6 +292,28 @@ public class ChatPlannerActivity extends AppCompatActivity{
             Log.e(TAG,"Fatal error - recorded Chats is null");
             return false;
         }
+    }*/
+
+    private void addChatToSuggestionScrollView(final Notification notification, final Chat chat)
+    {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        final View element = inflater.inflate(R.layout.chat_suggestion_element,
+                parentViewGroup,false);
+
+        element.findViewById(R.id.removeSuggestionButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onRemoveSuggestionPress(element,notification);
+            }
+        });
+
+        String suggestionText = notification.message;
+
+        TextView suggestionTextView = findViewById(R.id.suggestionText);
+        suggestionTextView.setContentDescription(chat.chatID);
+        suggestionTextView.setText(suggestionText);
+
+        chatSuggestionScrollView.addView(element);
     }
 
     private void addChatToScrollView(final Chat chat) {
@@ -264,20 +330,22 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
         String displayText = chat.chatPlaceName + "\n" + chat.chatDate + "\n" + chat.chatTime + "/n"
                 + chat.chatLength;
+
         TextView chatDetails = element.findViewById(R.id.chatDetails);
+        chatDetails.setContentDescription(chat.chatID);
         chatDetails.setText(displayText);
 
         chatScrollView.addView(element);
     }
 
-    private static void removeChatFromScrollView(String removedChatID) {
-        for(int i = 0; i < chatScrollView.getChildCount(); i++)
+    private static void removeChatFromScrollView(ScrollView scrollView, String removedChatID) {
+        for(int i = 0; i < scrollView.getChildCount(); i++)
         {
-            View child = chatScrollView.getChildAt(i);
+            View child = scrollView.getChildAt(i);
 
             if(child.getContentDescription().toString().equals(removedChatID))
             {
-                chatScrollView.removeViewAt(i);
+                scrollView.removeViewAt(i);
             }
         }
     }
@@ -297,13 +365,21 @@ public class ChatPlannerActivity extends AppCompatActivity{
     private void onCancelChatPress(Chat chat){
         warningDialog.show(getSupportFragmentManager(),TAG);
 
+        /*
         Bundle bundle = new Bundle();
         bundle.putParcelable("chat",chat);
-        warningDialog.setArguments(bundle);
+        warningDialog.setArguments(bundle);*/
+    }
+
+    private void onRemoveSuggestionPress(View view,Notification notification)
+    {
+        chatSuggestionScrollView.removeView(view);
+
+        notifier.removeSuggestion(notification);
     }
 
     private static void onVerifyCancelPress(Chat chat){
-        removeChatFromScrollView(chat.chatID);
+        removeChatFromScrollView(chatScrollView,chat.chatID);
         chat.cancelChat();
     }
 

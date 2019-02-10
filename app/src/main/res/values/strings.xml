@@ -28,13 +28,24 @@
     <string name="map_cafeCheckBox">Cafes</string>
     <string name="map_restaurantCheckBox">Restaurants</string>
     <string name="map_chatPlannerButton">Chat Planner</string>
+    <string name="map_notificationsButton">Notifications</string>
+    <string name="map_accountButton">Account</string>
 
     //Chat Planner
     <string name="chatPlanner_title">Chat Planner</string>
     <string name="chatPlanner_eventWindow_title">Chats</string>
     <string name="chatPlanner_monthDefault">Month - Year</string>
-    <string name ="chatPlanner_cancelChat_button">Cancel Chat</string>
-    <string name ="chatPlanner_chatWindow_default_text">Place Name\n00/00/00\n00:00AM\n00:00</string>
+    <string name="chatPlanner_cancelChat_button">Cancel Chat</string>
+    <string name="chatPlanner_chatWindow_default_text">Place Name\n00/00/00\n00:00AM\n00:00</string>
+    <string name="chatPlanner_suggestionTitle">Chat Suggestions</string>
+    <string name="chatPlanner_removeSuggestionButton">Remove</string>
+    <string name="chatPlanner_suggestionDefaultText">This is a suggestion</string>
+
+    //Notifications Activity
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_defaultText">No notifications</string>
+    <string name="notification_defaultNotification">This is a notification</string>
+    <string name ="notification_closeNotificationButton">Close</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>

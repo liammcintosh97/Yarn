@@ -18,6 +18,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.example.liammc.yarn.Events.ChatFinder;
+import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
@@ -121,11 +122,13 @@ public class YarnUser implements LocationSource, LocationListener
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            onLocationChanged(locationManager.getLastKnownLocation(provider));
+            Location location = locationManager.getLastKnownLocation(provider);
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                     100, 0, this);
-        }
 
+            onLocationChanged(location);
+            Notifier.getInstance().onLocationChanged(location);
+        }
     }
 
     //endregion

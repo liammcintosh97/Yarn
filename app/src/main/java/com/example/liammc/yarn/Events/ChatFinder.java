@@ -97,6 +97,10 @@ public class ChatFinder
 
         Chat newChat  = new Chat("ChatFinder",localUserID,chatPlaceID,chatID,yarnPlace.address);
 
+        Notifier.getInstance().addChatSuggestion("Chat suggestion","A new chat was " +
+                "created at " + newChat.chatPlaceName + " on " + newChat.chatDate +
+                " at " + newChat.chatTime, newChat);
+
         yarnPlace.chats.add(newChat);
         yarnPlace.addChatToScrollView(newChat);
     }

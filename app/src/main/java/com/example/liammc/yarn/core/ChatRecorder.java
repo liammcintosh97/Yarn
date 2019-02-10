@@ -3,6 +3,7 @@ package com.example.liammc.yarn.core;
 import android.util.Log;
 
 import com.example.liammc.yarn.Events.Chat;
+import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.utility.DateTools;
 
 import java.util.ArrayList;
@@ -10,16 +11,31 @@ import java.util.HashMap;
 
 public class ChatRecorder
 {
+    //region singleton pattern
+    private static final ChatRecorder instance = new ChatRecorder();
+
+    //private constructor to avoid client applications to use constructor
+    private ChatRecorder(){
+        this.notifier = Notifier.getInstance();
+    }
+
+    public static ChatRecorder getInstance(){
+        return instance;
+    }
+    //endregion
+
     private static String TAG = "ChatRecorder";
 
     public HashMap<Long,ArrayList<Chat>> recordedChats;
-    private ArrayList<Chat> chatList;
+    public ArrayList<Chat> chatList;
+    private Notifier notifier;
 
+    /*
     public ChatRecorder()
     {
         this.recordedChats = new HashMap<Long,ArrayList<Chat>>();
         this.chatList = new ArrayList<>();
-    }
+    }*/
 
     public void recordChat(Chat chat)
     {
@@ -32,5 +48,7 @@ public class ChatRecorder
         {
             recordedChats.put(dateMilli,chatList);
         }
+
+        notifier.listenToChat(chat);
     }
 }

@@ -31,6 +31,22 @@ public final class DateTools
         }
     }
 
+    public static Date dateStringToDateObject(String dateString)
+    {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
+            Date date = sdf.parse(dateString);
+
+            return date;
+        }
+        catch(ParseException e)
+        {
+            e.printStackTrace();
+            Log.e("DateTools","Cannot parse date string");
+            return null;
+        }
+    }
+
     public static String millisToDurationString(Locale locale,long millis)
     {
         try {

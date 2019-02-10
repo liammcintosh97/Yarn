@@ -16,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.NumberPicker;
 
 import com.example.liammc.yarn.Events.Chat;
+import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.Events.PlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
 import com.example.liammc.yarn.R;
@@ -44,6 +45,8 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         PlaceFinder.PlaceFinderCallback {
 
+    //private final int CHAT_PLANNER_CODE = 1;
+    //private final int NOTIFICATION_ACTIVITY_CODE = 2;
     private  final int PERMISSION_REQUEST_CODE = 1;
     private final String TAG = "MapsActivity";
 
@@ -60,6 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //User Interaction
     YarnPlace touchedYarnPlace;
+    Notifier notifier;
 
     //UI
     CheckBox barCheckBox;
@@ -70,7 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     CircleOptions circleOptions;
 
     //Chat Planner
-    public ChatRecorder chatRecorder;
+    //public ChatRecorder chatRecorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        Notifier.getInstance().context = this;
+        registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
     }
 
     @Override
@@ -125,13 +131,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Called when any instance of a Place Finder returns a list of Yarn places
     }
 
+    /*
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Check that it is the SecondActivity with an OK result
+        if (requestCode == CHAT_PLANNER_CODE ) {
+            if (resultCode == RESULT_OK) {
+                chatRecorder.recordedChats = data.getParcelableExtra("recordedChats");
+            }
+        }
+    }*/
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(notifier.timeChangeReceiver);
+    }
+
     //region SetUp
 
     private void initializeMapServices()
     {
         mPlaceDetectionClient =  Places.getPlaceDetectionClient(this);
         mGeoDataClient = Places.getGeoDataClient(this);
-        chatRecorder = new ChatRecorder();
+        //chatRecorder = new ChatRecorder();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -319,7 +344,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onChatPlannerPressed(View view)
     {
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
+        startActivity(intent);
+        /*
+        Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         intent.putExtra("recordedChats",chatRecorder.recordedChats);
+        startActivityForResult(intent,CHAT_PLANNER_CODE);*/
+    }
+
+    public void onNotificationsPressed(View view)
+    {
+        Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
         startActivity(intent);
     }
     //endregion

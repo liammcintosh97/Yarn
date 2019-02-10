@@ -1,8 +1,6 @@
 package com.example.liammc.yarn.Events;
 
 import android.location.Address;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -10,6 +8,7 @@ import com.example.liammc.yarn.accounting.YarnUser;
 
 import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.utility.AddressTools;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -19,8 +18,26 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.UUID;
 
-public class Chat implements Parcelable
+public class Chat //implements Parcelable
 {
+    //region Listener
+    private ValueChangeListener listener;
+
+    public interface ValueChangeListener {
+        void onAcceptedChange();
+        void onActiveChange();
+        void onCanceledChange();
+    }
+
+    public ValueChangeListener getListener() {
+        return listener;
+    }
+
+    public void setListener(ValueChangeListener listener) {
+        this.listener = listener;
+    }
+    //endregion
+
     private final DatabaseReference userDatabaseReference;
     private final String CALLINGTAG;
     private final String localUserID;
@@ -34,6 +51,7 @@ public class Chat implements Parcelable
     public String chatPlaceName;
     public Address chatAdressObject;
     public String chatFormattedAddress;
+    public LatLng chatLatLng;
     public String chatCountry;
     public String chatAdmin1;
     public String chatAdmin2;
@@ -46,14 +64,14 @@ public class Chat implements Parcelable
     public String chatTime;
     public String chatLength;
 
-    private boolean accepted = false;
-    private boolean active = false;
-    private boolean canceled = false;
+    public boolean accepted = false;
+    public boolean active = false;
+    public boolean canceled = false;
 
     //region Constructors
 
-    public Chat(String callingTag,String _localUserID, String _hostUserID, String _chatPlaceID,
-                String _chatPlaceName, Address address, String _placeType, String _chatDate,
+    public Chat(String callingTag, String _localUserID, String _hostUserID, String _chatPlaceID,
+                String _chatPlaceName, Address address, LatLng _latLng, String _placeType, String _chatDate,
                 String _chatTime, String _chatLength)
     {
         //This is the constructor for creating an instance of a new chat
@@ -66,6 +84,7 @@ public class Chat implements Parcelable
         this.chatPlaceName = _chatPlaceName;
 
         this.UpdateAddress(address);
+        this.chatLatLng = _latLng;
 
         this.chatID = this.generateChatID();
         this.chatPlaceType = _placeType;
@@ -94,6 +113,7 @@ public class Chat implements Parcelable
         this.addDataListener("host");
         this.addDataListener("guest");
         this.addDataListener("formatted_address");
+        this.addDataListener("latLng");
         this.addDataListener("country");
         this.addDataListener("admin1");
         this.addDataListener("admin2");
@@ -111,6 +131,7 @@ public class Chat implements Parcelable
 
     //endregion Constructors
 
+    /*
     //region Parcelable methods
 
     public int describeContents() {
@@ -128,6 +149,7 @@ public class Chat implements Parcelable
         out.writeString(chatPlaceID);
         out.writeString(chatPlaceName);
         out.writeParcelable(chatAdressObject,flags);
+        out.writeParcelable(chatLatLng,flags)
         out.writeString(chatCountry);
         out.writeString(chatAdmin1);
         out.writeString(chatAdmin2);
@@ -186,6 +208,7 @@ public class Chat implements Parcelable
         this.chatPlaceID = in.readString();
         this.chatPlaceName = in.readString();
         this.chatAdressObject = in.readParcelable(Address.class.getClassLoader());
+        this.chatLatLng = in.readParcelable(LatLng.class.getClassLoader());
         this.chatCountry = in.readString();
         this.chatAdmin1 = in.readString();
         this.chatAdmin2 = in.readString();
@@ -208,6 +231,7 @@ public class Chat implements Parcelable
         this.addDataListener("host");
         this.addDataListener("guest");
         this.addDataListener("formatted_address");
+        this.addDataListener("latLng");
         this.addDataListener("country");
         this.addDataListener("admin1");
         this.addDataListener("admin2");
@@ -220,11 +244,12 @@ public class Chat implements Parcelable
         this.addDataListener("length");
         this.addDataListener("accepted");
         this.addDataListener("active");
-        this.addDataListener("canceled");
+
+        this.notifier = Notifier.getInstance();
     }
 
     //endregion
-
+*/
     //region Initialization
 
     private void initializeChatState()
@@ -243,6 +268,7 @@ public class Chat implements Parcelable
        updateData("guest","");
        //updateData("placeID",chatPlaceID);
        updateData("formatted_address",chatFormattedAddress);
+       updateData("latLng",chatLatLng);
        updateData("country",chatCountry);
        updateData("admin1",chatAdmin1);
        updateData("admin2",chatAdmin2);
@@ -262,14 +288,14 @@ public class Chat implements Parcelable
 
     //region Public Local Methods
 
-    public void acceptChat(ChatRecorder chatRecorder,YarnUser guestUser)
+    public void acceptChat(YarnUser guestUser)
     {
         accepted = true;
         updateData("guest",guestUser.userID);
         updateData("accepted",true);
         updateData("active",active);
 
-        chatRecorder.recordChat(this);
+        ChatRecorder.getInstance().recordChat(this);
     }
 
     public void cancelChat()
@@ -425,6 +451,14 @@ public class Chat implements Parcelable
                 }else return false;
             }
             //endregion
+            //region Lat Lng
+            case("latLng"):{
+                if(snapshot.getValue() != null){
+                     chatLatLng = (LatLng) snapshot.getValue();
+                    return true;
+                }else return false;
+            }
+            //endregion
             //region Country
             case ("country"): {
                 if(snapshot.getValue() != null){
@@ -509,6 +543,7 @@ public class Chat implements Parcelable
             case ("accepted"): {
                 if (snapshot.getValue() != null) {
                     accepted = Boolean.valueOf(snapshot.getValue().toString());
+                    listener.onAcceptedChange();
                     return true;
                 } else{
                     return false;
@@ -519,6 +554,7 @@ public class Chat implements Parcelable
             case ("active"): {
                 if (snapshot.getValue() != null) {
                     active = Boolean.valueOf(snapshot.getValue().toString());
+                    listener.onActiveChange();
                     return true;
                 } else return false;
             }
@@ -527,6 +563,7 @@ public class Chat implements Parcelable
             case ("canceled"): {
                 if (snapshot.getValue() != null) {
                     canceled = Boolean.valueOf(snapshot.getValue().toString());
+                    listener.onCanceledChange();
                     return true;
                 } else return false;
             }

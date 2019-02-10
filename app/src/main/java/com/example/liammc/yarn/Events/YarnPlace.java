@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -19,6 +20,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
@@ -51,6 +53,7 @@ public class YarnPlace
     //Chat Data
     public HashMap<String, String>  placeMap;
     public Address address;
+    public LatLng latLng;
     public String placeType;
     public List<Chat> chats;
 
@@ -108,7 +111,7 @@ public class YarnPlace
         double lat = Double.parseDouble( placeMap.get("lat"));
         double lng = Double.parseDouble( placeMap.get("lng"));
 
-        LatLng latLng = new LatLng( lat, lng);
+        latLng = new LatLng( lat, lng);
         markerOptions.position(latLng);
         markerOptions.title(placeName + " : "+ vicinity);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
@@ -185,8 +188,8 @@ public class YarnPlace
 
     private void OnJoinChatPressed(Chat chat)
     {
-        chat.acceptChat(mapsActivity.chatRecorder,mapsActivity.localUser);
-        mapsActivity.chatRecorder.recordChat(chat);
+        chat.acceptChat(mapsActivity.localUser);
+        ChatRecorder.getInstance().recordChat(chat);
     }
     //endregion
 
