@@ -1,5 +1,6 @@
 package com.example.liammc.yarn.Events;
 
+import android.content.Context;
 import android.location.Address;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -288,14 +289,14 @@ public class Chat //implements Parcelable
 
     //region Public Local Methods
 
-    public void acceptChat(YarnUser guestUser)
+    public void acceptChat(Context context, YarnUser guestUser)
     {
         accepted = true;
         updateData("guest",guestUser.userID);
         updateData("accepted",true);
         updateData("active",active);
 
-        ChatRecorder.getInstance().recordChat(this);
+        ChatRecorder.getInstance().recordChat(context,this);
     }
 
     public void cancelChat()

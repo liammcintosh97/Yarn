@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
 
-public class Notifier implements LocationListener
+public class Notifier
 {
     //region singleton pattern
     private static final Notifier instance = new Notifier();
@@ -36,6 +36,7 @@ public class Notifier implements LocationListener
     public static Notifier getInstance(){
         return instance;
     }
+
     //endregion
 
     //region Notification Listener
@@ -76,7 +77,6 @@ public class Notifier implements LocationListener
 
     public ArrayList<Notification> notifications;
     public ArrayList<Notification> chatSuggestions;
-    public Context context;
     public static IntentFilter intentFilter;
 
     static {
@@ -86,42 +86,8 @@ public class Notifier implements LocationListener
         intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
     }
 
-    //region Location Listener
-    @Override
-    public void onLocationChanged(Location location)
-    {
-        int nearbyChats = 0;
-        ArrayList<Chat> chatList = ChatRecorder.getInstance().chatList;
-
-        for(int i  = 0 ; i < chatList.size(); i++)
-        {
-            Chat chat = chatList.get(i);
-
-            Location chatLocation = new Location(LocationManager.GPS_PROVIDER);
-            chatLocation.setLatitude(chat.chatLatLng.latitude);
-            chatLocation.setLatitude(chat.chatLatLng.longitude);
-
-            if(chatLocation.distanceTo(location) < NOTIFICATION_PROXIMITY) nearbyChats++;
-        }
-
-        addNotification("Nearby Chats","You have " + nearbyChats + " chats near you!");
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-    }
-    //endregion
-
     //region Public Methods
-    public void addNotification(String title, String message)
+    public void addNotification(Context context,String title, String message)
     {
         Notification notification = new Notification(title,message);
         notifications.add(notification);
@@ -170,14 +136,13 @@ public class Notifier implements LocationListener
         }
     }
 
-
-    public void listenToChat(final Chat chat)
+    public void listenToChat(final Context context,final Chat chat)
     {
         chat.setListener(new Chat.ValueChangeListener() {
             @Override
             public void onAcceptedChange() {
 
-                if(chat.accepted) addNotification("Chat Accepted","Your chat at "
+                if(chat.accepted) addNotification(context,"Chat Accepted","Your chat at "
                          + chat.chatPlaceName + " on " + chat.chatDate + " at " + chat.chatTime
                         + " was accepted");
             }
@@ -190,12 +155,38 @@ public class Notifier implements LocationListener
             @Override
             public void onCanceledChange()
             {
-                if(chat.accepted) addNotification("Chat Canceled","Your chat at "
+                if(chat.accepted) addNotification(context,"Chat Canceled","Your chat at "
                         + chat.chatPlaceName + " on " + chat.chatDate + " at " + chat.chatTime
                         + " was canceled");
             }
         });
     }
+
+    public void onLocationChanged(Context context, Location location)
+    {
+        int nearbyChats = 0;
+        ArrayList<Chat> chatList = ChatRecorder.getInstance().chatList;
+
+        if(chatList != null){
+
+            for(int i  = 0 ; i < chatList.size(); i++)
+            {
+                Chat chat = chatList.get(i);
+
+                Location chatLocation = new Location(LocationManager.GPS_PROVIDER);
+                chatLocation.setLatitude(chat.chatLatLng.latitude);
+                chatLocation.setLatitude(chat.chatLatLng.longitude);
+
+                if(chatLocation.distanceTo(location) < NOTIFICATION_PROXIMITY) nearbyChats++;
+            }
+
+            addNotification(context,"Nearby Chats","You have " +
+                    nearbyChats + " chats near you!");
+        }
+
+    }
+
+
     //endregion
 
     //region BroadcastReceiver
@@ -216,7 +207,7 @@ public class Notifier implements LocationListener
 
                     if(currentTime.equals(chatDate))
                     {
-                        addNotification("Upcoming Chat","You have a chat today at "
+                        addNotification(context,"Upcoming Chat","You have a chat today at "
                         + chat.chatPlaceName + " at " + chat.chatTime);
                     }
                 }

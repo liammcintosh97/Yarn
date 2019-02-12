@@ -188,8 +188,8 @@ public class YarnPlace
 
     private void OnJoinChatPressed(Chat chat)
     {
-        chat.acceptChat(mapsActivity.localUser);
-        ChatRecorder.getInstance().recordChat(chat);
+        chat.acceptChat(mapsActivity,mapsActivity.localUser);
+        ChatRecorder.getInstance().recordChat(mapsActivity,chat);
     }
     //endregion
 

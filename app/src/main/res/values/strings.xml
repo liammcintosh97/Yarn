@@ -30,6 +30,8 @@
     <string name="map_chatPlannerButton">Chat Planner</string>
     <string name="map_notificationsButton">Notifications</string>
     <string name="map_accountButton">Account</string>
+    <string name="maps_searchButton">Search</string>
+    <string name="maps_searchDefaultText">Where to next?</string>
 
     //Chat Planner
     <string name="chatPlanner_title">Chat Planner</string>
@@ -45,7 +47,14 @@
     <string name="notifications_title">Notifications</string>
     <string name="notifications_defaultText">No notifications</string>
     <string name="notification_defaultNotification">This is a notification</string>
-    <string name ="notification_closeNotificationButton">Close</string>
+    <string name="notification_closeNotificationButton">Close</string>
+
+    //Account Activity
+    <string name="account_nameDefault">John Doe</string>
+    <string name="account_editButton">Edit</string>
+    <string name="account_cancelButton">Cancel</string>
+    <string name="account_updateButton">Update</string>
+    <string name="account_logOutButton">Log Out</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>

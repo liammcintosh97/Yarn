@@ -20,6 +20,7 @@ import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.Events.PlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -85,7 +86,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        Notifier.getInstance().context = this;
+        notifier = Notifier.getInstance();
         registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
     }
 
@@ -95,9 +96,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         applyMapStyle();
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
-        localUser = new YarnUser("MapsActivity",
-                FirebaseAuth.getInstance().getCurrentUser().getUid()
-                ,YarnUser.UserType.LOCAL);
+        localUser = LocalUser.getInstance().user;
         localUser.setupUserLocation(this);
 
         initializeMapUI();
@@ -121,7 +120,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         else{
-            super.onBackPressed();
+            onAccountPressed(null);
         }
     }
 
@@ -345,6 +344,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         startActivity(intent);
+        overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
         /*
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         intent.putExtra("recordedChats",chatRecorder.recordedChats);
@@ -355,6 +355,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
         startActivity(intent);
+        overridePendingTransition(R.anim.down_to_up,R.anim.up_to_down);
+    }
+
+    public void onAccountPressed(View view) {
+        Intent intent = new Intent(getBaseContext(), AccountActivity.class);
+        startActivity(intent);
+        overridePendingTransition(R.anim.left_to_right,R.anim.right_to_left);
+    }
+
+    public void onSearchPressed(View view){
+
     }
     //endregion
 

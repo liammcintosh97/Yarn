@@ -107,7 +107,6 @@ public class ChatPlannerActivity extends AppCompatActivity{
         initialiseUI();
 
         chatRecorder = ChatRecorder.getInstance();
-        Notifier.getInstance().context = this;
         initializeEvents();
 
         notifier = Notifier.getInstance();
@@ -188,22 +187,22 @@ public class ChatPlannerActivity extends AppCompatActivity{
     private void initializeEvents()//HashMap<Long,ArrayList<Chat>> recordedChats)
     {
 
+        if(chatRecorder.recordedChats != null) {
 
-        for (HashMap.Entry<Long, ArrayList<Chat>> entry : chatRecorder.recordedChats.entrySet()) {
+            for (HashMap.Entry<Long, ArrayList<Chat>> entry : chatRecorder.recordedChats.entrySet()) {
 
-            for(int i = 0 ; i < entry.getValue().size(); i++){
+                for (int i = 0; i < entry.getValue().size(); i++) {
 
-                Chat chat = entry.getValue().get(i);
-                if(chat != null)
-                {
-                    Event newEvent = new Event(Color.GREEN,entry.getKey());
-                    calendarView.addEvent(newEvent);
+                    Chat chat = entry.getValue().get(i);
+                    if (chat != null) {
+                        Event newEvent = new Event(Color.GREEN, entry.getKey());
+                        calendarView.addEvent(newEvent);
 
-                    Log.d(TAG,"initialized event - " + entry.getKey());
-                }
-                else{
-                    Log.e(TAG, "Fatal error when trying to initialize event. Chat object in" +
-                            "recorded chats is null");
+                        Log.d(TAG, "initialized event - " + entry.getKey());
+                    } else {
+                        Log.e(TAG, "Fatal error when trying to initialize event. Chat object in" +
+                                "recorded chats is null");
+                    }
                 }
             }
         }

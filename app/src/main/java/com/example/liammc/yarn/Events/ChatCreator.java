@@ -176,7 +176,7 @@ public class ChatCreator
                 chatPlaceName, yarnPlace.address,yarnPlace.latLng, yarnPlace.placeType,date
                 ,time,duration);
 
-        ChatRecorder.getInstance().recordChat(chat);
+        ChatRecorder.getInstance().recordChat(mapsActivity,chat);
 
         dissmissChatCreator();
     }

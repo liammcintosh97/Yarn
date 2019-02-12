@@ -1,5 +1,6 @@
 package com.example.liammc.yarn.core;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.liammc.yarn.Events.Chat;
@@ -37,7 +38,7 @@ public class ChatRecorder
         this.chatList = new ArrayList<>();
     }*/
 
-    public void recordChat(Chat chat)
+    public void recordChat(Context context, Chat chat)
     {
         chatList.add(chat);
 
@@ -49,6 +50,6 @@ public class ChatRecorder
             recordedChats.put(dateMilli,chatList);
         }
 
-        notifier.listenToChat(chat);
+        notifier.listenToChat(context,chat);
     }
 }

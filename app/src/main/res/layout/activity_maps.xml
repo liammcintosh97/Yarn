@@ -35,6 +35,33 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/searchBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:background="@android:color/background_light"
+                android:ems="10"
+                android:inputType="text"
+                android:text="@string/maps_searchDefaultText" />
+
+            <Button
+                android:id="@+id/button15"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:onClick="onSearchPressed"
+                android:text="@string/maps_searchButton" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/buttonBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,39 +69,30 @@
             tools:layout_editor_absoluteX="0dp"
             tools:layout_editor_absoluteY="396dp">
 
-            <Button
-                android:id="@+id/refreshButton"
+            <ImageButton
+                android:id="@+id/refreashButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_weight="0"
                 android:onClick="onRefreshButtonPressed"
-                android:text="@string/map_refreshButton" />
+                app:srcCompat="@android:drawable/stat_notify_sync_noanim"
+                tools:layout_marginRight="0dp" />
 
             <NumberPicker
                 android:id="@+id/numberPicker"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/focusOnUserButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
                 android:onClick="onFocusOnUserPressed"
-                android:text="@string/map_userFocusButton"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toEndOf="@+id/topInterface"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
         </LinearLayout>
 
@@ -131,6 +149,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="3"
+            android:onClick="onAccountPressed"
             android:text="@string/map_accountButton" />
 
         <Button
@@ -139,6 +158,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
+            android:onClick="onNotificationsPressed"
             android:text="@string/map_notificationsButton" />
 
         <Button

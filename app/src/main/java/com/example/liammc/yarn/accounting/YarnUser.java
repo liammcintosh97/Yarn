@@ -127,7 +127,7 @@ public class YarnUser implements LocationSource, LocationListener
                     100, 0, this);
 
             onLocationChanged(location);
-            Notifier.getInstance().onLocationChanged(location);
+            Notifier.getInstance().onLocationChanged(callingActivity,location);
         }
     }
 
