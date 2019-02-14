@@ -61,11 +61,9 @@ public class PlaceDataParser
         Log.d("DataParser","jsonobject ="+googlePlaceJson.toString());
 
         try {
+
             if (!googlePlaceJson.isNull("name")) {
                 placeName = googlePlaceJson.getString("name");
-            }
-            if (!googlePlaceJson.isNull("vicinity")) {
-                vicinity = googlePlaceJson.getString("vicinity");
             }
             if(!googlePlaceJson.isNull("place_id"))
             {
@@ -82,7 +80,6 @@ public class PlaceDataParser
             googlePlaceMap.put("id",id);
             googlePlaceMap.put("name", placeName);
             //googlePlaceMap.put("address",address);
-            googlePlaceMap.put("vicinity", vicinity);
             googlePlaceMap.put("lat", latitude);
             googlePlaceMap.put("lng", longitude);
             googlePlaceMap.put("reference", reference);

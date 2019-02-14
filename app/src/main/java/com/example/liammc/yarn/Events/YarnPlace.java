@@ -38,9 +38,9 @@ public class YarnPlace
 {
     public final class PlaceType
     {
-        public static final String BAR = "BAR";
-        public static final String CAFE = "CAFE";
-        public static final String RESTAURANT = "RESTAURANT";
+        public static final String BAR = "bar";
+        public static final String CAFE = "cafe";
+        public static final String RESTAURANT = "restaurant";
 
         private PlaceType(){}
     }
@@ -106,14 +106,12 @@ public class YarnPlace
         MarkerOptions markerOptions = new MarkerOptions();
 
         String placeName = placeMap.get("place_name");
-        String vicinity = placeMap.get("vicinity");
 
         double lat = Double.parseDouble( placeMap.get("lat"));
         double lng = Double.parseDouble( placeMap.get("lng"));
 
         latLng = new LatLng( lat, lng);
         markerOptions.position(latLng);
-        markerOptions.title(placeName + " : "+ vicinity);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
 
         marker = map.addMarker(markerOptions);

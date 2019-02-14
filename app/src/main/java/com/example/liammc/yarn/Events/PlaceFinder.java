@@ -3,10 +3,14 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.networking.Downloader;
 import com.example.liammc.yarn.networking.PlaceDataParser;
 import com.google.android.gms.maps.GoogleMap;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,16 +23,16 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
     //region Callback Interface
     public interface PlaceFinderCallback
     {
-        void onFoundPlaces(List<YarnPlace> yarnPlaces);
+        void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces);
     }
     //endregion
 
     private List<YarnPlace> yarnPlaces = new ArrayList<>();
 
     private MapsActivity mapsActivity;
-    private String googlePlacesData;
     private GoogleMap mMap;
     private String placeType;
+    private String nextPageToken;
 
     private PlaceFinderCallback listener;
 
@@ -45,12 +49,16 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
         placeType = (String)objects[2];
 
         try {
-            googlePlacesData = Downloader.readUrl(url);
+            StringBuilder data = new StringBuilder(Downloader.readUrl(url));
+            nextPageToken = getNextPageToken(data.toString());
+
+            return data.toString();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return googlePlacesData;
+        return null;
     }
 
     @Override
@@ -73,7 +81,28 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
             yarnPlaces.add(new YarnPlace(mapsActivity,mMap,placeMap,placeType));
         }
 
-        listener.onFoundPlaces(yarnPlaces);
+        listener.onFoundPlaces(nextPageToken,yarnPlaces);
     }
+
+    //region Utility
+
+    private String getNextPageToken(String jsonData)
+    {
+        JSONObject jsonObject;
+
+        try {
+            jsonObject = new JSONObject(jsonData);
+
+            if(jsonObject.isNull("next_page_token")) return null;
+
+            return jsonObject.getString("next_page_token");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //endregion
 }
 

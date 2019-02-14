@@ -7,15 +7,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.NumberPicker;
 
-import com.example.liammc.yarn.Events.Chat;
 import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.Events.PlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
@@ -38,13 +35,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
-        PlaceFinder.PlaceFinderCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
+{
 
     //private final int CHAT_PLANNER_CODE = 1;
     //private final int NOTIFICATION_ACTIVITY_CODE = 2;
@@ -58,9 +58,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Map Data
     public YarnUser localUser;
-    List<YarnPlace> bars;
-    List<YarnPlace> cafes;
-    List<YarnPlace> resturants;
+    List<YarnPlace> bars = new ArrayList<>();
+    List<YarnPlace> cafes = new ArrayList<>();
+    List<YarnPlace> restaurants = new ArrayList<>();
 
     //User Interaction
     YarnPlace touchedYarnPlace;
@@ -122,12 +122,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else{
             onAccountPressed(null);
         }
-    }
-
-    @Override
-    public void onFoundPlaces(List<YarnPlace> yarnPlaces)
-    {
-        //Called when any instance of a Place Finder returns a list of Yarn places
     }
 
     /*
@@ -261,7 +255,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Loop through all places to find the equal marker
                 touchedYarnPlace = searchMarkerInList(bars,marker);
                 if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(cafes,marker);
-                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(resturants,marker);
+                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(restaurants,marker);
 
                 if(touchedYarnPlace != null)
                 {
@@ -314,7 +308,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         removeYarnPlaces(bars);
         removeYarnPlaces(cafes);
-        removeYarnPlaces(resturants);
+        removeYarnPlaces(restaurants);
 
         if(localUser.lastLocation != null)
         {
@@ -326,9 +320,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .strokeColor(R.color.searchRadiusStroke)
                     .fillColor(R.color.searchRadiusFill));
 
-            if(barCheckBox.isChecked())getBars();
-            if(cafeCheckBox.isChecked())getCafes();
-            if(restaurantCheckBox.isChecked())getRestaurants();
+            if(barCheckBox.isChecked())getBars(null);
+            if(cafeCheckBox.isChecked())getCafes(null);
+            if(restaurantCheckBox.isChecked())getRestaurants(null);
         }
     }
 
@@ -384,116 +378,147 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
-    private void getBars()
+    private void getBars(String pageToken)
     {
-        //Clear the restaurants list and markers
-        if(bars != null) {
-            for(int i = 0; i < bars.size(); i++) {
-                bars.get(i).marker.remove();
-            }
-            bars.clear();
-        }
-
         PlaceFinder barFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
-            @Override
-            public void onFoundPlaces(List<YarnPlace> yarnPlaces) {
-                bars = yarnPlaces;
-            }
-        });
+                    @Override
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
 
-        Object barDataTransfer[] = new Object[3];
-        barDataTransfer[0] = mMap;
-        barDataTransfer[1] = getPlaceRequestUrl(numberPicker.getValue(),
-                localUser.lastLocation.getLatitude(),localUser.lastLocation.getLongitude(),
-                "bar");
-        barDataTransfer[2] = YarnPlace.PlaceType.BAR;
+                        //Add the found places to the list
+                        bars.addAll(yarnPlaces);
 
-        barFinder.execute(barDataTransfer);
+                        //If there is an other page call itself
+                        if(nextPageToken != null){
+                            Log.d(TAG,"More bars were found requesting the next page");
+                            getCafes(nextPageToken);
+                        }
+                    }
+                });
+
+        //Get the first page of results
+        if(pageToken == null){
+
+            clearYarnPlaceList(bars);
+            barFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.BAR+"|night_club"));
+        }
+        //Get the next page of results
+        else {
+            barFinder.execute(buildDataTransferObject(pageToken,
+                    YarnPlace.PlaceType.BAR));
+        }
     }
 
-    private void getCafes()
+    private void getCafes(String pageToken)
     {
-        //Clear the restaurants list and markers
-        if(cafes != null)
-        {
-            for(int i = 0; i < cafes.size(); i++)
-            {
-                cafes.get(i).marker.remove();
-            }
-            cafes.clear();
-        }
-
         //Make a new PlaceFinder instance and set the listener
         PlaceFinder cafeFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
-            @Override
-            public void onFoundPlaces(List<YarnPlace> yarnPlaces)
-            {
-                cafes = yarnPlaces;
-            }
-        });
+                    @Override
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
+                    {
+                        //Add the found places to the list
+                        cafes.addAll(yarnPlaces);
 
-        //Build the data transfer object
-        Object cafeDataTransfer[] = new Object[3];
-        cafeDataTransfer[0] = mMap;
-        cafeDataTransfer[1] = getPlaceRequestUrl(numberPicker.getValue(),
-                localUser.lastLocation.getLatitude(), localUser.lastLocation.getLongitude(),
-                "cafe");
-        cafeDataTransfer[2] = YarnPlace.PlaceType.CAFE;
+                        //If there is an other page call itself
+                        if(nextPageToken != null){
+                            Log.d(TAG,"More cafes were found requesting the next page");
+                            getCafes(nextPageToken);
+                        }
+                    }
+                });
 
-        //Execute the place finder and get the desired places
-        cafeFinder.execute(cafeDataTransfer);
+        //Get the first page of results
+        if(pageToken == null){
+
+            clearYarnPlaceList(cafes);
+            cafeFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.CAFE));
+        }
+        //Get the next page of results
+        else {
+            cafeFinder.execute(buildDataTransferObject(pageToken,
+                    YarnPlace.PlaceType.CAFE));
+        }
     }
 
-    private void getRestaurants()
+    private void getRestaurants(String pageToken)
     {
-        //Clear the restaurants list and markers
-        if(resturants != null)
-        {
-            for(int i = 0; i < resturants.size(); i++)
-            {
-                resturants.get(i).marker.remove();
-            }
-            resturants.clear();
-        }
-
         //Make a new PlaceFinder instance and set the listener
         PlaceFinder restaurantFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
-            @Override
-            public void onFoundPlaces(List<YarnPlace> yarnPlaces)
-            {
-                resturants = yarnPlaces;
-            }
-        });
+                    @Override
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
+                    {
+                       restaurants.addAll(yarnPlaces);
 
-        //Build the data transfer object
-        Object restaurantDataTransfer[] = new Object[3];
-        restaurantDataTransfer[0] = mMap;
-        restaurantDataTransfer[1] = getPlaceRequestUrl(numberPicker.getValue(),
-                localUser.lastLocation.getLatitude(), localUser.lastLocation.getLongitude(),
-                "restaurant");
-        restaurantDataTransfer[2] = YarnPlace.PlaceType.RESTAURANT;
+                       if(nextPageToken != null){
+                           Log.d(TAG,"More restaurants were found requesting the next page");
+                           getRestaurants(nextPageToken);
+                       }
+                    }
+                });
 
-        //Execute the place finder and get the desired places
-        restaurantFinder.execute(restaurantDataTransfer);
+        if(pageToken == null){
+
+            clearYarnPlaceList(restaurants);
+            restaurantFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.RESTAURANT));
+        }
+        else {
+            restaurantFinder.execute(buildDataTransferObject(pageToken,
+                    YarnPlace.PlaceType.RESTAURANT));
+        }
+
     }
 
     //endregion
 
     //region Utility
 
+    private Object[] buildDataTransferObject(String placeType)
+    {
+        //Build the data transfer object
+        Object dataTransfer[] = new Object[3];
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = getPlaceRequestUrl(numberPicker.getValue(),
+                localUser.lastLocation.getLatitude(), localUser.lastLocation.getLongitude(),
+                placeType);
+        dataTransfer[2] = placeType;
+
+        return dataTransfer;
+    }
+
+    private Object[] buildDataTransferObject(String nextPageToken,String placeType)
+    {
+        //Build the data transfer object
+        Object dataTransfer[] = new Object[3];
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = getNextPageRequestURL(nextPageToken);
+        dataTransfer[2] = placeType;
+
+        return dataTransfer;
+    }
+
     private String getPlaceRequestUrl(int radius, double latitude , double longitude , String nearbyPlace)
     {
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
-        googlePlaceUrl.append("&radius="+radius);
+        googlePlaceUrl.append("&radius="+100);
         googlePlaceUrl.append("&type="+nearbyPlace);
-        googlePlaceUrl.append("&sensor=true");
+        googlePlaceUrl.append("&fields=name,place_id,geometry,reference");
         googlePlaceUrl.append("&key="+getResources().getString(R.string.google_place_key));
 
         Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
+
+        return googlePlaceUrl.toString();
+    }
+
+    private String getNextPageRequestURL(String token)
+    {
+        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlaceUrl.append("key="+getResources().getString(R.string.google_place_key));
+        googlePlaceUrl.append("&pagetoken="+token);
+
+        Log.d(TAG,googlePlaceUrl.toString());
 
         return googlePlaceUrl.toString();
     }
@@ -520,7 +545,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 places.remove(i);
             }
         }
+    }
+
+    private void clearYarnPlaceList(List<YarnPlace> yarnPlaces){
+
+        //Clear the restaurants list and markers
+        if(yarnPlaces != null)
+        {
+            for(int i = 0; i < yarnPlaces.size(); i++)
+            {
+                yarnPlaces.get(i).marker.remove();
+            }
+            yarnPlaces.clear();
+        }
 
     }
+
     //endregion
 }
