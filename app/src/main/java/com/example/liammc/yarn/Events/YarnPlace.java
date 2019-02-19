@@ -41,6 +41,7 @@ public class YarnPlace
         public static final String BAR = "bar";
         public static final String CAFE = "cafe";
         public static final String RESTAURANT = "restaurant";
+        public static final String NIGHT_CLUB = "night_club";
 
         private PlaceType(){}
     }

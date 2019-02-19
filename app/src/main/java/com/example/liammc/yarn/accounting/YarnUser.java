@@ -1,8 +1,6 @@
 package com.example.liammc.yarn.accounting;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -12,15 +10,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import com.example.liammc.yarn.Events.ChatFinder;
 import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.utility.AddressTools;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -33,22 +27,27 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 
 public class YarnUser implements LocationSource, LocationListener
 {
     //endregion
+    private final String CALLINGTAG;
     public enum UserType{LOCAL,NETWORK}
-    private UserType userType;
+
+    //Local User Location;
+    OnLocationChangedListener listner;
     Geocoder geocoder;
     LocationManager locationManager;
     String provider;
+    Criteria criteria;
+    private final int minTime = 10000;     // minimum time interval between location updates, in milliseconds
+    private final int minDistance = 100;
+
+    //Firebase
     private final StorageReference userStorageReferance;
     private final DatabaseReference userDatabaseReference;
-    private final String CALLINGTAG;
 
     //User info
     public String userID;
@@ -57,6 +56,7 @@ public class YarnUser implements LocationSource, LocationListener
     public String email;
     public double rating;
     public boolean termsAcceptance;
+    private UserType userType;
 
     //User Location
     public Location lastLocation;
@@ -78,21 +78,50 @@ public class YarnUser implements LocationSource, LocationListener
         this.getEmail();
         this.getUserRating();
         this.getUserTermAcceptance();
+
     }
 
     @Override
-    public void deactivate(){}
+    public void deactivate(){
+
+        locationManager.removeUpdates(this);
+
+        listner = null;
+    }
 
     @Override
-    public void activate(OnLocationChangedListener listener){}
+    public void activate(OnLocationChangedListener _listener){
+
+        listner = _listener;
+        Log.d(CALLINGTAG,"The Listener has been activated");
+
+        try {
+            if (provider != null) {
+                locationManager.requestLocationUpdates(provider, minTime, minDistance, this);
+            } else {
+                Log.d(CALLINGTAG,"No providers at this time");
+            }
+        }catch (SecurityException e){
+            Log.e(CALLINGTAG,e.toString());
+        }
+
+    }
+
 
     @Override
     public void onLocationChanged(Location location) {
+
+        if (listner != null) {
+            listner.onLocationChanged(location);
+        }
+
+
         lastLocation = location;
         lastLatLng = new LatLng(lastLocation.getLatitude()
                 ,lastLocation.getLongitude());
-
         lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
+        //TODO make the notifier work with the new location structure
+        //Notifier.getInstance().onLocationChanged(context, location);
         Log.d(CALLINGTAG, "Got local user's location");
     }
 
@@ -110,25 +139,26 @@ public class YarnUser implements LocationSource, LocationListener
 
     //region User Setup
 
-    public void setupUserLocation(Activity callingActivity)
+
+    public void setUpUserLocation(Activity callingActivity)
     {
         geocoder = new Geocoder(callingActivity, Locale.getDefault());
 
+        locationManager = (LocationManager) callingActivity.getSystemService(callingActivity.LOCATION_SERVICE);
+
+        // Specify Location Provider criteria
+        criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setAltitudeRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setSpeedRequired(false);
+        criteria.setCostAllowed(true);
+
         locationManager = (LocationManager) callingActivity
                 .getSystemService(callingActivity.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(new Criteria(), true);
+        provider = locationManager.getBestProvider(criteria, true);
 
-        if (ContextCompat.checkSelfPermission(callingActivity,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            Location location = locationManager.getLastKnownLocation(provider);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    100, 0, this);
-
-            onLocationChanged(location);
-            Notifier.getInstance().onLocationChanged(callingActivity,location);
-        }
     }
 
     //endregion

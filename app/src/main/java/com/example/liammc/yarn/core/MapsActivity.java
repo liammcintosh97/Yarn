@@ -2,16 +2,20 @@ package com.example.liammc.yarn.core;
 
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.location.Geocoder;
+import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.NumberPicker;
+import android.widget.CompoundButton;
 
 import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.Events.PlaceFinder;
@@ -19,12 +23,16 @@ import com.example.liammc.yarn.Events.YarnPlace;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.PermissionTools;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -35,12 +43,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Locale;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
@@ -49,18 +58,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //private final int CHAT_PLANNER_CODE = 1;
     //private final int NOTIFICATION_ACTIVITY_CODE = 2;
     private  final int PERMISSION_REQUEST_CODE = 1;
+    private final int SEARCH_PROXIMITY = 100;
     private final String TAG = "MapsActivity";
 
     //Google Services
     GoogleMap mMap;
+    Geocoder geocoder;
     PlaceDetectionClient mPlaceDetectionClient;
     GeoDataClient mGeoDataClient;
+    FusedLocationProviderClient mFusedLocationProviderClient;
 
     //Map Data
     public YarnUser localUser;
-    List<YarnPlace> bars = new ArrayList<>();
-    List<YarnPlace> cafes = new ArrayList<>();
-    List<YarnPlace> restaurants = new ArrayList<>();
+    List<YarnPlace> nearbyYarnPlaces = new ArrayList<>();
+    //List<YarnPlace> bars = new ArrayList<>();
+    //List<YarnPlace> cafes = new ArrayList<>();
+    //List<YarnPlace> restaurants = new ArrayList<>();
+    //List<YarnPlace> nightClubs = new ArrayList<>();
 
     //User Interaction
     YarnPlace touchedYarnPlace;
@@ -70,7 +84,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     CheckBox barCheckBox;
     CheckBox cafeCheckBox;
     CheckBox restaurantCheckBox;
-    NumberPicker numberPicker;
+    CheckBox nightClubCheckBox;
+
     Circle circle;
     CircleOptions circleOptions;
 
@@ -86,6 +101,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mGeoDataClient = Places.getGeoDataClient(this);
+        mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         notifier = Notifier.getInstance();
         registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
     }
@@ -97,10 +116,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
         localUser = LocalUser.getInstance().user;
-        localUser.setupUserLocation(this);
 
-        initializeMapUI();
         initializeMapServices();
+        initializeMapUI();
 
         onFocusOnUserPressed(null);
         onRefreshButtonPressed(null);
@@ -124,18 +142,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    /*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Check that it is the SecondActivity with an OK result
-        if (requestCode == CHAT_PLANNER_CODE ) {
-            if (resultCode == RESULT_OK) {
-                chatRecorder.recordedChats = data.getParcelableExtra("recordedChats");
-            }
-        }
-    }*/
 
     @Override
     public void onDestroy() {
@@ -147,18 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initializeMapServices()
     {
-        mPlaceDetectionClient =  Places.getPlaceDetectionClient(this);
-        mGeoDataClient = Places.getGeoDataClient(this);
-        //chatRecorder = new ChatRecorder();
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            mMap.setMyLocationEnabled(true);
-            mMap.setLocationSource(localUser);
-
-        }
-
+        initializeUserLocation();
         setMarkerListener();
         setCameraMoveListener();
         setMapClickListener();
@@ -173,12 +168,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         uiSettings.setMyLocationButtonEnabled(false);
         uiSettings.setZoomControlsEnabled(false);
 
-        barCheckBox = findViewById(R.id.barCheckBox);
-        cafeCheckBox = findViewById(R.id.cafeCheckBox);
-        restaurantCheckBox = findViewById(R.id.restaurantCheckBox);
-        numberPicker = findViewById(R.id.numberPicker);
-
-        setNumberPicker();
+        setCheckBoxes();
     }
 
     private void applyMapStyle()
@@ -198,43 +188,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void setNumberPicker()
-    {
-        String[] values = {
-                "1000",
-                "2000",
-                "3000",
-                "4000",
-                "5000",
-                "6000",
-                "7000",
-                "8000",
-                "9000",
-                "10000"};
-
-        numberPicker.setMinValue(1000);
-        numberPicker.setMaxValue(10000);
-        //numberPicker.setDisplayedValues(values);
-        //numberPicker.setValue(Integer.parseInt(values[values.length -1]));
-
-        Log.d(TAG,"The number picker's value has been set to " + numberPicker.getValue());
-
-        numberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            @Override
-            public void onValueChange(NumberPicker numberPicker, int i, int i1)
-            {
-                circleOptions = new CircleOptions();
-
-                circleOptions.center(localUser.lastLatLng);
-                circleOptions.radius(i1);
-                circleOptions.strokeColor(R.color.searchRadiusStroke);
-                circleOptions.fillColor(R.color.searchRadiusFill);
-            }
-        });
-
-    }
-
-
     private void setMarkerListener()
     {
         mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
@@ -252,10 +205,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
 
+                /*
                 //Loop through all places to find the equal marker
                 touchedYarnPlace = searchMarkerInList(bars,marker);
                 if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(cafes,marker);
-                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(restaurants,marker);
+                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(restaurants,marker);*/
+
+                touchedYarnPlace = searchMarkerInList(nearbyYarnPlaces,marker);
 
                 if(touchedYarnPlace != null)
                 {
@@ -300,15 +256,100 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    private void setCheckBoxes()
+    {
+        //Get button references
+        barCheckBox = findViewById(R.id.barCheckBox);
+        cafeCheckBox = findViewById(R.id.cafeCheckBox);
+        restaurantCheckBox = findViewById(R.id.restaurantCheckBox);
+        nightClubCheckBox = findViewById(R.id.nightClubCheckBox);
+
+        //Set button values
+        barCheckBox.setChecked(false);
+        restaurantCheckBox.setChecked(false);
+        nightClubCheckBox.setChecked(false);
+
+        cafeCheckBox.setChecked(true);
+
+        //Set button listeners
+        barCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+                if(b){
+                    cafeCheckBox.setChecked(false);
+                    restaurantCheckBox.setChecked(false);
+                    nightClubCheckBox.setChecked(false);
+                }
+            }
+         });
+
+        cafeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+                if(b){
+                    barCheckBox.setChecked(false);
+                    restaurantCheckBox.setChecked(false);
+                    nightClubCheckBox.setChecked(false);
+                }
+            }
+        });
+
+        restaurantCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+                if(b){
+                    cafeCheckBox.setChecked(false);
+                    barCheckBox.setChecked(false);
+                    nightClubCheckBox.setChecked(false);
+                }
+            }
+        });
+
+        nightClubCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+                if(b){
+                    cafeCheckBox.setChecked(false);
+                    restaurantCheckBox.setChecked(false);
+                    barCheckBox.setChecked(false);
+                }
+            }
+        });
+    }
+
+    private void initializeUserLocation()
+    {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            //final Context context = this;
+            geocoder = new Geocoder(this, Locale.getDefault());
+
+            localUser.setUpUserLocation(this);
+
+            mMap.setLocationSource(localUser);
+            mMap.setMyLocationEnabled(true);
+        }
+    }
+
     //endregion
 
     //region Button Methods
 
-    public void onRefreshButtonPressed(View view)
-    {
-        removeYarnPlaces(bars);
-        removeYarnPlaces(cafes);
-        removeYarnPlaces(restaurants);
+    public void onRefreshButtonPressed(View view) {
+
+        /*
+        clearYarnPlaceList(bars);
+        clearYarnPlaceList(cafes);
+        clearYarnPlaceList(restaurants);
+        clearYarnPlaceList(nightClubs);
+        */
+
+        clearYarnPlaceList(nearbyYarnPlaces);
 
         if(localUser.lastLocation != null)
         {
@@ -316,26 +357,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             circle = mMap.addCircle(new CircleOptions()
                     .center(localUser.lastLatLng)
-                    .radius(numberPicker.getValue())
+                    .radius(SEARCH_PROXIMITY)
                     .strokeColor(R.color.searchRadiusStroke)
                     .fillColor(R.color.searchRadiusFill));
 
             if(barCheckBox.isChecked())getBars(null);
             if(cafeCheckBox.isChecked())getCafes(null);
             if(restaurantCheckBox.isChecked())getRestaurants(null);
+            if(nightClubCheckBox.isChecked())getNightClubs(null);
         }
     }
 
-    public void onFocusOnUserPressed(View view)
-    {
-        if(localUser.lastLocation != null) {
-            Log.d(TAG,"Focusing on user");
-            focusOnLatLng(localUser.lastLatLng);
-        }
+    public void onFocusOnUserPressed(View view) {
+        getUserLocation();
     }
 
-    public void onChatPlannerPressed(View view)
-    {
+    public void onChatPlannerPressed(View view) {
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
@@ -345,8 +382,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         startActivityForResult(intent,CHAT_PLANNER_CODE);*/
     }
 
-    public void onNotificationsPressed(View view)
-    {
+    public void onNotificationsPressed(View view) {
         Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.down_to_up,R.anim.up_to_down);
@@ -365,16 +401,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region local methods
 
+    private void getUserLocation() {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+        try {
+
+            Task locationResult = mFusedLocationProviderClient.getLastLocation();
+            locationResult.addOnCompleteListener(this, new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.
+                        localUser.lastLocation =(Location)task.getResult();
+                        LatLng latLng = new LatLng(localUser.lastLocation.getLatitude(),
+                                localUser.lastLocation.getLongitude());
+
+                        localUser.lastLatLng = latLng;
+                        focusOnLatLng(latLng);
+                        Log.d(TAG,"Got the user's current location");
+                    } else {
+                        Log.d(TAG, "Current location is null");
+                        Log.e(TAG, "Exception: %s", task.getException());
+                    }
+                }
+            });
+
+        } catch(SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+
     private void focusOnLatLng(LatLng latLng)
     {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(latLng)          // Sets the center of the map to location user
-                .zoom(17)                   // Sets the zoom
-                .bearing(90)                // Sets the orientation of the camera to east
-                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
+                .target(latLng)
+                .zoom(15)
+                .tilt(40)
+                .build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
@@ -386,7 +453,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
 
                         //Add the found places to the list
-                        bars.addAll(yarnPlaces);
+                        //bars.addAll(yarnPlaces);
+                        nearbyYarnPlaces.addAll(yarnPlaces);
 
                         //If there is an other page call itself
                         if(nextPageToken != null){
@@ -398,8 +466,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Get the first page of results
         if(pageToken == null){
-
-            clearYarnPlaceList(bars);
             barFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.BAR+"|night_club"));
         }
         //Get the next page of results
@@ -418,7 +484,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
                     {
                         //Add the found places to the list
-                        cafes.addAll(yarnPlaces);
+                        //cafes.addAll(yarnPlaces);
+                        nearbyYarnPlaces.addAll(yarnPlaces);
 
                         //If there is an other page call itself
                         if(nextPageToken != null){
@@ -430,8 +497,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Get the first page of results
         if(pageToken == null){
-
-            clearYarnPlaceList(cafes);
             cafeFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.CAFE));
         }
         //Get the next page of results
@@ -449,7 +514,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
                     {
-                       restaurants.addAll(yarnPlaces);
+                       //restaurants.addAll(yarnPlaces);
+                        nearbyYarnPlaces.addAll(yarnPlaces);
 
                        if(nextPageToken != null){
                            Log.d(TAG,"More restaurants were found requesting the next page");
@@ -459,13 +525,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
 
         if(pageToken == null){
-
-            clearYarnPlaceList(restaurants);
             restaurantFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.RESTAURANT));
         }
         else {
             restaurantFinder.execute(buildDataTransferObject(pageToken,
                     YarnPlace.PlaceType.RESTAURANT));
+        }
+
+    }
+
+    private void getNightClubs(String pageToken)
+    {
+        //Make a new PlaceFinder instance and set the listener
+        PlaceFinder nightClubFinder = new PlaceFinder(this,
+                new PlaceFinder.PlaceFinderCallback() {
+                    @Override
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
+                    {
+                        //nightClubs.addAll(yarnPlaces);
+                        nearbyYarnPlaces.addAll(yarnPlaces);
+
+                        if(nextPageToken != null){
+                            Log.d(TAG,"More restaurants were found requesting the next page");
+                            getRestaurants(nextPageToken);
+                        }
+                    }
+                });
+
+        if(pageToken == null){
+            nightClubFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.NIGHT_CLUB));
+        }
+        else {
+            nightClubFinder.execute(buildDataTransferObject(pageToken,
+                    YarnPlace.PlaceType.NIGHT_CLUB));
         }
 
     }
@@ -479,9 +571,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Build the data transfer object
         Object dataTransfer[] = new Object[3];
         dataTransfer[0] = mMap;
-        dataTransfer[1] = getPlaceRequestUrl(numberPicker.getValue(),
-                localUser.lastLocation.getLatitude(), localUser.lastLocation.getLongitude(),
-                placeType);
+        dataTransfer[1] = getPlaceRequestUrl(SEARCH_PROXIMITY, localUser.lastLocation.getLatitude(),
+                localUser.lastLocation.getLongitude(),placeType);
         dataTransfer[2] = placeType;
 
         return dataTransfer;
@@ -534,19 +625,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-    private void removeYarnPlaces(List<YarnPlace> places)
-    {
-        if(places != null)
-        {
-            for(int i = 0; i < places.size(); i++)
-            {
-                places.get(i).marker.remove();
-                places.get(i).dismissInfoWindow();
-                places.remove(i);
-            }
-        }
-    }
-
     private void clearYarnPlaceList(List<YarnPlace> yarnPlaces){
 
         //Clear the restaurants list and markers
@@ -555,6 +633,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             for(int i = 0; i < yarnPlaces.size(); i++)
             {
                 yarnPlaces.get(i).marker.remove();
+                yarnPlaces.get(i).dismissInfoWindow();
             }
             yarnPlaces.clear();
         }

@@ -78,15 +78,6 @@
                 app:srcCompat="@android:drawable/stat_notify_sync_noanim"
                 tools:layout_marginRight="0dp" />
 
-            <NumberPicker
-                android:id="@+id/numberPicker"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginTop="0dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
-
             <ImageButton
                 android:id="@+id/focusOnUserButton"
                 android:layout_width="wrap_content"
@@ -125,6 +116,15 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:text="@string/map_restaurantCheckBox"
+                tools:layout_editor_absoluteX="24dp"
+                tools:layout_editor_absoluteY="77dp" />
+
+            <CheckBox
+                android:id="@+id/nightClubCheckBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/map_nightClubCheckBox"
                 tools:layout_editor_absoluteX="24dp"
                 tools:layout_editor_absoluteY="77dp" />
         </LinearLayout>
