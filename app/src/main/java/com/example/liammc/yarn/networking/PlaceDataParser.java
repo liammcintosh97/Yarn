@@ -21,10 +21,15 @@ public class PlaceDataParser
 
         try {
             jsonObject = new JSONObject(jsonData);
-            jsonArray = jsonObject.getJSONArray("results");
+            if(!jsonObject.getString("status").equals("ZERO_RESULTS")){
+                jsonArray = jsonObject.getJSONArray("results");
+            }
+            else return null;
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         if(jsonArray != null)return getJsonPlaces(jsonArray);
         else return null;
     }

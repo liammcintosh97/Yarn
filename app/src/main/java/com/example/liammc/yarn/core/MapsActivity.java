@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Toast;
 
 import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.Events.PlaceFinder;
@@ -276,10 +277,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
+                //Un-check the other buttons if this one is checked
                 if(b){
                     cafeCheckBox.setChecked(false);
                     restaurantCheckBox.setChecked(false);
                     nightClubCheckBox.setChecked(false);
+                }
+
+                //If the buttons are all unchecked check the cafe one;
+                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
+                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
+                    cafeCheckBox.setChecked(true);
                 }
             }
          });
@@ -288,10 +296,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
+                //Un-check the other buttons if this one is checked
                 if(b){
                     barCheckBox.setChecked(false);
                     restaurantCheckBox.setChecked(false);
                     nightClubCheckBox.setChecked(false);
+                }
+
+                //If the buttons are all unchecked check the cafe one;
+                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
+                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
+                    cafeCheckBox.setChecked(true);
                 }
             }
         });
@@ -300,10 +315,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
+                //Un-check the other buttons if this one is checked
                 if(b){
                     cafeCheckBox.setChecked(false);
                     barCheckBox.setChecked(false);
                     nightClubCheckBox.setChecked(false);
+                }
+
+                //If the buttons are all unchecked check the cafe one;
+                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
+                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
+                    cafeCheckBox.setChecked(true);
                 }
             }
         });
@@ -312,10 +334,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
+                //Un-check the other buttons if this one is checked
                 if(b){
                     cafeCheckBox.setChecked(false);
                     restaurantCheckBox.setChecked(false);
                     barCheckBox.setChecked(false);
+                }
+
+                //If the buttons are all unchecked check the cafe one;
+                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
+                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
+                    cafeCheckBox.setChecked(true);
                 }
             }
         });
@@ -462,6 +491,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             getCafes(nextPageToken);
                         }
                     }
+
+                    @Override
+                    public void onNoPlacesFound(){
+                        clearYarnPlaceList(nearbyYarnPlaces);
+                        Toast.makeText(MapsActivity.this, "No places were found",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 });
 
         //Get the first page of results
@@ -481,8 +517,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PlaceFinder cafeFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
                     @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
-                    {
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
                         //Add the found places to the list
                         //cafes.addAll(yarnPlaces);
                         nearbyYarnPlaces.addAll(yarnPlaces);
@@ -492,6 +527,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.d(TAG,"More cafes were found requesting the next page");
                             getCafes(nextPageToken);
                         }
+                    }
+
+                    @Override
+                    public void onNoPlacesFound(){
+                        clearYarnPlaceList(nearbyYarnPlaces);
+                        Toast.makeText(MapsActivity.this, "No places were found",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -512,8 +554,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PlaceFinder restaurantFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
                     @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
-                    {
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
                        //restaurants.addAll(yarnPlaces);
                         nearbyYarnPlaces.addAll(yarnPlaces);
 
@@ -521,6 +562,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                            Log.d(TAG,"More restaurants were found requesting the next page");
                            getRestaurants(nextPageToken);
                        }
+                    }
+
+                    @Override
+                    public void onNoPlacesFound(){
+                        clearYarnPlaceList(nearbyYarnPlaces);
+                        Toast.makeText(MapsActivity.this, "No places were found",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -540,8 +588,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PlaceFinder nightClubFinder = new PlaceFinder(this,
                 new PlaceFinder.PlaceFinderCallback() {
                     @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces)
-                    {
+                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
                         //nightClubs.addAll(yarnPlaces);
                         nearbyYarnPlaces.addAll(yarnPlaces);
 
@@ -549,6 +596,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.d(TAG,"More restaurants were found requesting the next page");
                             getRestaurants(nextPageToken);
                         }
+                    }
+
+                    @Override
+                    public void onNoPlacesFound(){
+                        clearYarnPlaceList(nearbyYarnPlaces);
+                        Toast.makeText(MapsActivity.this, "No places were found",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
 

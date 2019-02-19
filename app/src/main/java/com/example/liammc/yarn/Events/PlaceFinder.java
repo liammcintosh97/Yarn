@@ -24,6 +24,7 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
     public interface PlaceFinderCallback
     {
         void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces);
+        void onNoPlacesFound();
     }
     //endregion
 
@@ -70,7 +71,10 @@ public class PlaceFinder extends AsyncTask<Object, String, String> {
 
         Log.d("nearbyplacesdata","called parse method");
 
-        createYarnPlaces(nearbyPlaceList);
+        if(nearbyPlaceList != null) {
+            createYarnPlaces(nearbyPlaceList);
+        }
+        else listener.onNoPlacesFound();
     }
 
     private void createYarnPlaces(List<HashMap<String, String>> nearbyPlaceList)
