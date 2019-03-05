@@ -2,7 +2,7 @@ package com.example.liammc.yarn.core;
 
 
 import android.Manifest;
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -18,22 +18,21 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.Events.NearbyChatFinder;
+import com.example.liammc.yarn.Events.NearbyPlaceFinder;
 import com.example.liammc.yarn.Events.Notifier;
-import com.example.liammc.yarn.Events.PlaceFinder;
+import com.example.liammc.yarn.Events.SearchPlaceFinder;
 import com.example.liammc.yarn.Events.YarnPlace;
+import com.example.liammc.yarn.FinderCallback;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
-import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.GeoDataClient;
-import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.Places;
+import com.google.android.libraries.places.api.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -46,9 +45,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 
 import java.util.ArrayList;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -59,23 +61,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //private final int CHAT_PLANNER_CODE = 1;
     //private final int NOTIFICATION_ACTIVITY_CODE = 2;
     private  final int PERMISSION_REQUEST_CODE = 1;
-    private final int SEARCH_PROXIMITY = 100;
+    private final int SEARCH_RADIUS = 1000;
     private final String TAG = "MapsActivity";
 
     //Google Services
     GoogleMap mMap;
     Geocoder geocoder;
-    PlaceDetectionClient mPlaceDetectionClient;
-    GeoDataClient mGeoDataClient;
+    PlacesClient placesClient;
     FusedLocationProviderClient mFusedLocationProviderClient;
+    NearbyPlaceFinder nearbyPlaceFinder;
+    NearbyChatFinder nearbyChatFinder;
+    SearchPlaceFinder searchPlaceFinder;
 
     //Map Data
     public YarnUser localUser;
-    List<YarnPlace> nearbyYarnPlaces = new ArrayList<>();
-    //List<YarnPlace> bars = new ArrayList<>();
-    //List<YarnPlace> cafes = new ArrayList<>();
-    //List<YarnPlace> restaurants = new ArrayList<>();
-    //List<YarnPlace> nightClubs = new ArrayList<>();
+    List<YarnPlace> yarnPlaces = new ArrayList<YarnPlace>();
 
     //User Interaction
     YarnPlace touchedYarnPlace;
@@ -102,9 +102,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mGeoDataClient = Places.getGeoDataClient(this);
-        mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
+        //mGeoDataClient = Places.getGeoDataClient(this);
+        //mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        setUpNearByChatFinder();
+        setUpNearByPlaceFinder();
+        setUpSearchPlaceFinder();
 
         notifier = Notifier.getInstance();
         registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
@@ -113,7 +117,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        applyMapStyle();
+
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
         localUser = LocalUser.getInstance().user;
@@ -126,8 +130,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         if(touchedYarnPlace != null)
         {
             if(touchedYarnPlace.chatCreator.window.isShowing())
@@ -143,7 +146,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -152,45 +154,121 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region SetUp
 
-    private void initializeMapServices()
-    {
+    private void initializeMapServices() {
         initializeUserLocation();
         setMarkerListener();
         setCameraMoveListener();
         setMapClickListener();
     }
 
-    private void initializeMapUI()
-    {
-        UiSettings uiSettings = mMap.getUiSettings();
+    private void initializeUserLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
 
-        uiSettings.setCompassEnabled(false);
-        uiSettings.setIndoorLevelPickerEnabled(false);
-        uiSettings.setMyLocationButtonEnabled(false);
-        uiSettings.setZoomControlsEnabled(false);
+            //final Context context = this;
+            geocoder = new Geocoder(this, Locale.getDefault());
 
-        setCheckBoxes();
-    }
+            localUser.setUpUserLocation(this);
 
-    private void applyMapStyle()
-    {
-        try {
-            // Customise the styling of the base map using a JSON object defined
-            // in a raw resource file.
-            boolean success = mMap.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                            this, R.raw.map_style));
-
-            if (!success) {
-                Log.e(TAG, "Style parsing failed.");
-            }
-        } catch (Resources.NotFoundException e) {
-            Log.e(TAG, "Can't find style. Error: ", e);
+            mMap.setLocationSource(localUser);
+            mMap.setMyLocationEnabled(true);
         }
     }
 
-    private void setMarkerListener()
-    {
+    //region Finders
+
+    private void setUpNearByChatFinder(){
+
+        final Activity activity =  this;
+
+        nearbyChatFinder = new NearbyChatFinder(SEARCH_RADIUS, new FinderCallback() {
+            @Override
+            public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
+
+                Log.d(TAG,placeMaps.toString());
+                addYarnPlaces(placeMaps);
+            }
+
+            @Override
+            public void onFoundPlace(HashMap<String, String> placeMap){
+
+            }
+
+            @Override
+            public void onNoPlacesFound(String message) {
+                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void setUpNearByPlaceFinder() {
+
+        final Activity activity =  this;
+
+        nearbyPlaceFinder = new NearbyPlaceFinder(
+                getResources().getString(R.string.google_place_key), SEARCH_RADIUS, new FinderCallback() {
+            @Override
+            public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
+
+                addYarnPlaces(placeMaps);
+                if(nextPageToken!= null) nearbyPlaceFinder.getPlacesNextPage(nextPageToken);
+            }
+
+            @Override
+            public void onFoundPlace(HashMap<String, String> placeMap){
+
+            }
+
+            @Override
+            public void onNoPlacesFound(String message) {
+                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void setUpSearchPlaceFinder(){
+
+        final Activity activity =  this;
+
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getResources()
+                    .getString(R.string.google_place_android_key));
+        }
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment searchBar = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        String country = getResources().getConfiguration().locale.getCountry();
+
+        searchPlaceFinder = new SearchPlaceFinder(searchBar,country, new FinderCallback() {
+
+            @Override
+            public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
+
+            }
+
+            @Override
+            public void onFoundPlace(HashMap<String, String> placeMap){
+
+                YarnPlace yarnPlace = addYarnPlace(placeMap);
+
+                focusOnLatLng(yarnPlace.latLng);
+                yarnPlace.showInfoWindow();
+            }
+
+            @Override
+            public void onNoPlacesFound(String message) {
+                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    //endregion
+
+    //region Map Listeners
+
+    private void setMarkerListener() {
         mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
 
             @Override
@@ -206,13 +284,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
 
-                /*
-                //Loop through all places to find the equal marker
-                touchedYarnPlace = searchMarkerInList(bars,marker);
-                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(cafes,marker);
-                if(touchedYarnPlace == null) touchedYarnPlace = searchMarkerInList(restaurants,marker);*/
-
-                touchedYarnPlace = searchMarkerInList(nearbyYarnPlaces,marker);
+                touchedYarnPlace = searchMarkerInList(yarnPlaces,marker);
 
                 if(touchedYarnPlace != null)
                 {
@@ -223,13 +295,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 else{
                     Log.e(TAG,"Fatal error, couldn't find touched marker in Yarn places lists");
                 }
-                    return true;
+                return true;
             }
         });
     }
 
-    private void setCameraMoveListener()
-    {
+    private void setCameraMoveListener() {
         mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {
@@ -242,8 +313,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void setMapClickListener()
-    {
+    private void setMapClickListener() {
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng){
@@ -257,8 +327,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void setCheckBoxes()
-    {
+    //endregion
+
+    //region UI
+
+    private void initializeMapUI() {
+        UiSettings uiSettings = mMap.getUiSettings();
+
+        uiSettings.setCompassEnabled(false);
+        uiSettings.setIndoorLevelPickerEnabled(false);
+        uiSettings.setMyLocationButtonEnabled(false);
+        uiSettings.setZoomControlsEnabled(false);
+
+        applyMapStyle();
+
+        setCheckBoxes();
+    }
+
+    private void applyMapStyle() {
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.map_style));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
+    }
+
+    private void setCheckBoxes() {
         //Get button references
         barCheckBox = findViewById(R.id.barCheckBox);
         cafeCheckBox = findViewById(R.id.cafeCheckBox);
@@ -274,35 +376,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Set button listeners
         barCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-
-                //Un-check the other buttons if this one is checked
-                if(b){
-                    cafeCheckBox.setChecked(false);
-                    restaurantCheckBox.setChecked(false);
-                    nightClubCheckBox.setChecked(false);
-                }
-
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 //If the buttons are all unchecked check the cafe one;
                 if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
                         && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
                     cafeCheckBox.setChecked(true);
                 }
             }
-         });
+        });
 
         cafeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-
-                //Un-check the other buttons if this one is checked
-                if(b){
-                    barCheckBox.setChecked(false);
-                    restaurantCheckBox.setChecked(false);
-                    nightClubCheckBox.setChecked(false);
-                }
-
                 //If the buttons are all unchecked check the cafe one;
                 if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
                         && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
@@ -314,14 +400,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         restaurantCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-
-                //Un-check the other buttons if this one is checked
-                if(b){
-                    cafeCheckBox.setChecked(false);
-                    barCheckBox.setChecked(false);
-                    nightClubCheckBox.setChecked(false);
-                }
-
                 //If the buttons are all unchecked check the cafe one;
                 if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
                         && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
@@ -333,14 +411,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         nightClubCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-
-                //Un-check the other buttons if this one is checked
-                if(b){
-                    cafeCheckBox.setChecked(false);
-                    restaurantCheckBox.setChecked(false);
-                    barCheckBox.setChecked(false);
-                }
-
                 //If the buttons are all unchecked check the cafe one;
                 if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
                         && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
@@ -350,20 +420,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void initializeUserLocation()
-    {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
 
-            //final Context context = this;
-            geocoder = new Geocoder(this, Locale.getDefault());
-
-            localUser.setUpUserLocation(this);
-
-            mMap.setLocationSource(localUser);
-            mMap.setMyLocationEnabled(true);
-        }
-    }
+    //endregion
 
     //endregion
 
@@ -371,29 +429,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onRefreshButtonPressed(View view) {
 
-        /*
-        clearYarnPlaceList(bars);
-        clearYarnPlaceList(cafes);
-        clearYarnPlaceList(restaurants);
-        clearYarnPlaceList(nightClubs);
-        */
-
-        clearYarnPlaceList(nearbyYarnPlaces);
-
         if(localUser.lastLocation != null)
         {
-            if(circle != null )circle.remove();
+            updateCircle();
 
-            circle = mMap.addCircle(new CircleOptions()
-                    .center(localUser.lastLatLng)
-                    .radius(SEARCH_PROXIMITY)
-                    .strokeColor(R.color.searchRadiusStroke)
-                    .fillColor(R.color.searchRadiusFill));
+            ArrayList<String> types = new ArrayList<>();
 
-            if(barCheckBox.isChecked())getBars(null);
-            if(cafeCheckBox.isChecked())getCafes(null);
-            if(restaurantCheckBox.isChecked())getRestaurants(null);
-            if(nightClubCheckBox.isChecked())getNightClubs(null);
+            if(barCheckBox.isChecked()) types.add(YarnPlace.PlaceType.BAR);
+            if(cafeCheckBox.isChecked()) types.add(YarnPlace.PlaceType.CAFE);
+            if(restaurantCheckBox.isChecked()) types.add(YarnPlace.PlaceType.RESTAURANT);
+            if(nightClubCheckBox.isChecked()) types.add(YarnPlace.PlaceType.NIGHT_CLUB);
+
+            nearbyChatFinder.getNearbyChats(types);
+            Log.d(TAG,"Getting near by chats");
         }
     }
 
@@ -423,12 +471,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         overridePendingTransition(R.anim.left_to_right,R.anim.right_to_left);
     }
 
-    public void onSearchPressed(View view){
-
-    }
     //endregion
 
-    //region local methods
+    //region Private methods
 
     private void getUserLocation() {
         /*
@@ -462,8 +507,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void focusOnLatLng(LatLng latLng)
-    {
+    private void focusOnLatLng(LatLng latLng) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -474,199 +518,72 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
-    private void getBars(String pageToken)
-    {
-        PlaceFinder barFinder = new PlaceFinder(this,
-                new PlaceFinder.PlaceFinderCallback() {
-                    @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
+    private void addYarnPlaces(List<HashMap<String,String>> placeMaps){
 
-                        //Add the found places to the list
-                        //bars.addAll(yarnPlaces);
-                        nearbyYarnPlaces.addAll(yarnPlaces);
+        final MapsActivity mapsActivity = this;
 
-                        //If there is an other page call itself
-                        if(nextPageToken != null){
-                            Log.d(TAG,"More bars were found requesting the next page");
-                            getCafes(nextPageToken);
-                        }
-                    }
-
-                    @Override
-                    public void onNoPlacesFound(){
-                        clearYarnPlaceList(nearbyYarnPlaces);
-                        Toast.makeText(MapsActivity.this, "No places were found",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        //Get the first page of results
-        if(pageToken == null){
-            barFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.BAR+"|night_club"));
+        //There are no yarn places so add them all
+        if(yarnPlaces.size() == 0)
+        {
+            for(HashMap<String,String> placeMap : placeMaps)
+            {
+                YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
+                yarnPlaces.add(yarnPlace);
+            }
         }
-        //Get the next page of results
-        else {
-            barFinder.execute(buildDataTransferObject(pageToken,
-                    YarnPlace.PlaceType.BAR));
+        //There are some yarn places so add the ones we need
+        else{
+            //Loop over our placeMaps
+            for(HashMap<String,String> placeMap : placeMaps)
+            {
+                boolean equal = false;
+                //Look for equal Yarn Places
+                for(YarnPlace place: yarnPlaces){
+
+                    if(place.placeMap.get("id").equals(placeMap.get(("id")))){
+                        equal = true;
+                        break;
+                    }
+                }
+                if(!equal){
+                    YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
+                    yarnPlaces.add(yarnPlace);
+                }
+            }
         }
     }
 
-    private void getCafes(String pageToken)
-    {
-        //Make a new PlaceFinder instance and set the listener
-        PlaceFinder cafeFinder = new PlaceFinder(this,
-                new PlaceFinder.PlaceFinderCallback() {
-                    @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
-                        //Add the found places to the list
-                        //cafes.addAll(yarnPlaces);
-                        nearbyYarnPlaces.addAll(yarnPlaces);
+    private YarnPlace addYarnPlace(HashMap<String,String> placeMap){
 
-                        //If there is an other page call itself
-                        if(nextPageToken != null){
-                            Log.d(TAG,"More cafes were found requesting the next page");
-                            getCafes(nextPageToken);
-                        }
-                    }
+        final MapsActivity mapsActivity = this;
 
-                    @Override
-                    public void onNoPlacesFound(){
-                        clearYarnPlaceList(nearbyYarnPlaces);
-                        Toast.makeText(MapsActivity.this, "No places were found",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        //Get the first page of results
-        if(pageToken == null){
-            cafeFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.CAFE));
+        //There are no yarn places so add them all
+        if(yarnPlaces.size() == 0)
+        {
+            YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
+            yarnPlaces.add(yarnPlace);
+            return yarnPlace;
         }
-        //Get the next page of results
-        else {
-            cafeFinder.execute(buildDataTransferObject(pageToken,
-                    YarnPlace.PlaceType.CAFE));
+        //There are some yarn places so add the ones we need
+        else{
+
+            //Look for equal Yarn Places
+            for(YarnPlace place: yarnPlaces){
+
+                if(place.placeMap.get("id").equals(placeMap.get(("id")))){
+                    return place;
+                }
+            }
+
+            YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
+            yarnPlaces.add(yarnPlace);
+            return yarnPlace;
         }
-    }
-
-    private void getRestaurants(String pageToken)
-    {
-        //Make a new PlaceFinder instance and set the listener
-        PlaceFinder restaurantFinder = new PlaceFinder(this,
-                new PlaceFinder.PlaceFinderCallback() {
-                    @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
-                       //restaurants.addAll(yarnPlaces);
-                        nearbyYarnPlaces.addAll(yarnPlaces);
-
-                       if(nextPageToken != null){
-                           Log.d(TAG,"More restaurants were found requesting the next page");
-                           getRestaurants(nextPageToken);
-                       }
-                    }
-
-                    @Override
-                    public void onNoPlacesFound(){
-                        clearYarnPlaceList(nearbyYarnPlaces);
-                        Toast.makeText(MapsActivity.this, "No places were found",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        if(pageToken == null){
-            restaurantFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.RESTAURANT));
-        }
-        else {
-            restaurantFinder.execute(buildDataTransferObject(pageToken,
-                    YarnPlace.PlaceType.RESTAURANT));
-        }
-
-    }
-
-    private void getNightClubs(String pageToken)
-    {
-        //Make a new PlaceFinder instance and set the listener
-        PlaceFinder nightClubFinder = new PlaceFinder(this,
-                new PlaceFinder.PlaceFinderCallback() {
-                    @Override
-                    public void onFoundPlaces(String nextPageToken,List<YarnPlace> yarnPlaces) {
-                        //nightClubs.addAll(yarnPlaces);
-                        nearbyYarnPlaces.addAll(yarnPlaces);
-
-                        if(nextPageToken != null){
-                            Log.d(TAG,"More restaurants were found requesting the next page");
-                            getRestaurants(nextPageToken);
-                        }
-                    }
-
-                    @Override
-                    public void onNoPlacesFound(){
-                        clearYarnPlaceList(nearbyYarnPlaces);
-                        Toast.makeText(MapsActivity.this, "No places were found",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        if(pageToken == null){
-            nightClubFinder.execute(buildDataTransferObject(YarnPlace.PlaceType.NIGHT_CLUB));
-        }
-        else {
-            nightClubFinder.execute(buildDataTransferObject(pageToken,
-                    YarnPlace.PlaceType.NIGHT_CLUB));
-        }
-
     }
 
     //endregion
 
     //region Utility
-
-    private Object[] buildDataTransferObject(String placeType)
-    {
-        //Build the data transfer object
-        Object dataTransfer[] = new Object[3];
-        dataTransfer[0] = mMap;
-        dataTransfer[1] = getPlaceRequestUrl(SEARCH_PROXIMITY, localUser.lastLocation.getLatitude(),
-                localUser.lastLocation.getLongitude(),placeType);
-        dataTransfer[2] = placeType;
-
-        return dataTransfer;
-    }
-
-    private Object[] buildDataTransferObject(String nextPageToken,String placeType)
-    {
-        //Build the data transfer object
-        Object dataTransfer[] = new Object[3];
-        dataTransfer[0] = mMap;
-        dataTransfer[1] = getNextPageRequestURL(nextPageToken);
-        dataTransfer[2] = placeType;
-
-        return dataTransfer;
-    }
-
-    private String getPlaceRequestUrl(int radius, double latitude , double longitude , String nearbyPlace)
-    {
-        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlaceUrl.append("location="+latitude+","+longitude);
-        googlePlaceUrl.append("&radius="+100);
-        googlePlaceUrl.append("&type="+nearbyPlace);
-        googlePlaceUrl.append("&fields=name,place_id,geometry,reference");
-        googlePlaceUrl.append("&key="+getResources().getString(R.string.google_place_key));
-
-        Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
-
-        return googlePlaceUrl.toString();
-    }
-
-    private String getNextPageRequestURL(String token)
-    {
-        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlaceUrl.append("key="+getResources().getString(R.string.google_place_key));
-        googlePlaceUrl.append("&pagetoken="+token);
-
-        Log.d(TAG,googlePlaceUrl.toString());
-
-        return googlePlaceUrl.toString();
-    }
 
     private YarnPlace searchMarkerInList(List<YarnPlace> yarnPlaces, Marker toSearch) {
 
@@ -679,20 +596,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-    private void clearYarnPlaceList(List<YarnPlace> yarnPlaces){
+    private void updateCircle(){
 
-        //Clear the restaurants list and markers
-        if(yarnPlaces != null)
-        {
-            for(int i = 0; i < yarnPlaces.size(); i++)
-            {
-                yarnPlaces.get(i).marker.remove();
-                yarnPlaces.get(i).dismissInfoWindow();
-            }
-            yarnPlaces.clear();
-        }
+        if(circle != null )circle.remove();
 
+        circle = mMap.addCircle(new CircleOptions()
+                .center(localUser.lastLatLng)
+                .radius(SEARCH_RADIUS)
+                .strokeColor(R.color.searchRadiusStroke)
+                .fillColor(R.color.searchRadiusFill));
     }
-
     //endregion
 }

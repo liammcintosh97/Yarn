@@ -39,7 +39,7 @@ public final class AddressTools
         String street;
         String postcode;
 
-        country = address.getCountryCode();
+        country = address.getCountryName();
         admin1 = address.getAdminArea();
         admin2 = address.getSubAdminArea();
         locality = address.getLocality();
@@ -55,6 +55,9 @@ public final class AddressTools
         List<Address> addresses;
 
         try{
+            Log.d("AddressTools","Getting address from LatLng = "
+                    + latLng.latitude + ", " + latLng.longitude);
+
             addresses = geocoder.getFromLocation(latLng.latitude,
                     latLng.longitude, 1);
 
@@ -62,16 +65,33 @@ public final class AddressTools
         }
         catch(IOException e)
         {
-            e.printStackTrace();
-            Log.e("YarnPlace","Unable to get addresses from location");
+            Log.e("AddressTools","Unable to get addresses from location \n" + e.toString());
             return null;
         }
     }
 
-    public static DatabaseReference getChatDatabaseReference(String placeID)
+    public static DatabaseReference getPlaceDatabaseReference(String country,String admin1,
+                                                             String placeID)
     {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats");
-        return ref.child(placeID);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
+                .child(country).child(admin1).child(placeID);
+        return ref;
+    }
+
+    public static DatabaseReference getChatDatabaseReference(String country,String admin1,
+                                                             String placeID, String chatID)
+    {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
+                .child(country).child(admin1).child(placeID).child(chatID);
+        return ref;
+    }
+
+    public static DatabaseReference getPlaceInfoDatabaseReference(String country, String admin1,
+                                                                  String placeID, String yarnInfoKey)
+    {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
+                .child(country).child(admin1).child(placeID).child(yarnInfoKey);
+        return ref;
     }
 
 }

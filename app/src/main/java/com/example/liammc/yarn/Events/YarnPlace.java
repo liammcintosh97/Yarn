@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -20,6 +19,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
@@ -49,13 +49,13 @@ public class YarnPlace
     private Geocoder geocoder;
     private MapsActivity mapsActivity;
     public ChatCreator chatCreator;
-    private ChatFinder chatFinder;
+    private ChatUpdater chatUpdater;
 
     //Chat Data
     public HashMap<String, String>  placeMap;
+    public String placeType;
     public Address address;
     public LatLng latLng;
-    public String placeType;
     public List<Chat> chats;
 
     //Google
@@ -77,18 +77,17 @@ public class YarnPlace
     private Button createChatButton;
     private ScrollView chatScrollView;
 
-    public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap, String _placeType)
+    public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap)
     {
         this.mapsActivity = _mapsActivity;
         this.geocoder = new Geocoder(_mapsActivity
                 ,_mapsActivity.getResources().getConfiguration().locale);
 
         this.placeMap = _placeMap;
-        this.placeType = _placeType;
         this.map = _map;
 
         this.createMarker();
-        this.chatFinder = new ChatFinder("YarnPlace",mapsActivity.localUser.userID
+        this.chatUpdater = new ChatUpdater(LocalUser.getInstance().user.userID
                 ,this);
 
         this.parentViewGroup = _mapsActivity.findViewById(R.id.map);
@@ -105,8 +104,6 @@ public class YarnPlace
     private void createMarker()
     {
         MarkerOptions markerOptions = new MarkerOptions();
-
-        String placeName = placeMap.get("place_name");
 
         double lat = Double.parseDouble( placeMap.get("lat"));
         double lng = Double.parseDouble( placeMap.get("lng"));

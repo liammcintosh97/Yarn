@@ -12,7 +12,7 @@ import java.util.List;
 
 public class PlaceDataParser
 {
-    public List<HashMap<String, String>> parse(String jsonData)
+    public List<HashMap<String, String>> parse(String jsonData, String type)
     {
         JSONArray jsonArray = null;
         JSONObject jsonObject;
@@ -30,11 +30,11 @@ public class PlaceDataParser
             e.printStackTrace();
         }
 
-        if(jsonArray != null)return getJsonPlaces(jsonArray);
+        if(jsonArray != null)return getJsonPlaces(jsonArray,type);
         else return null;
     }
 
-    private List<HashMap<String, String>>getJsonPlaces(JSONArray jsonArray)
+    private List<HashMap<String, String>>getJsonPlaces(JSONArray jsonArray, String type)
     {
         int count = jsonArray.length();
         List<HashMap<String, String>> placelist = new ArrayList<>();
@@ -43,7 +43,7 @@ public class PlaceDataParser
         for(int i = 0; i<count;i++)
         {
             try {
-                placeMap = getJsonPlace((JSONObject) jsonArray.get(i));
+                placeMap = getJsonPlace((JSONObject) jsonArray.get(i),type);
                 placelist.add(placeMap);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -52,16 +52,13 @@ public class PlaceDataParser
         return placelist;
     }
 
-    private HashMap<String, String> getJsonPlace(JSONObject googlePlaceJson)
+    private HashMap<String, String> getJsonPlace(JSONObject googlePlaceJson, String type)
     {
         HashMap<String, String> googlePlaceMap = new HashMap<>();
         String id = "";
         String placeName = "--NA--";
-        //String address = "--NA--";
-        String vicinity= "--NA--";
         String latitude= "";
         String longitude="";
-        String reference="";
 
         Log.d("DataParser","jsonobject ="+googlePlaceJson.toString());
 
@@ -78,16 +75,11 @@ public class PlaceDataParser
             latitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
             longitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
-            reference = googlePlaceJson.getString("reference");
-
-            //address = buildAddress(googlePlaceJson);
-
             googlePlaceMap.put("id",id);
             googlePlaceMap.put("name", placeName);
-            //googlePlaceMap.put("address",address);
+            googlePlaceMap.put("type",type);
             googlePlaceMap.put("lat", latitude);
             googlePlaceMap.put("lng", longitude);
-            googlePlaceMap.put("reference", reference);
 
         }
         catch (JSONException e) {

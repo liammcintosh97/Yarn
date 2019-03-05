@@ -1,5 +1,6 @@
 package com.example.liammc.yarn.core;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
@@ -27,8 +28,8 @@ public class ChatRecorder
 
     private static String TAG = "ChatRecorder";
 
-    public HashMap<Long,ArrayList<Chat>> recordedChats;
-    public ArrayList<Chat> chatList;
+    public HashMap<Long,ArrayList<Chat>> recordedChats = new HashMap<>();
+    public ArrayList<Chat> chatList = new ArrayList<>();
     private Notifier notifier;
 
     /*

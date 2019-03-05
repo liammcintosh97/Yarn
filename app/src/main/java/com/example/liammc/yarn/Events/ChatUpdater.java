@@ -10,53 +10,98 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
 
-public class ChatFinder
+public class ChatUpdater
 {
-    final String CALLINGTAG;
+    final String TAG = "Chat Updater";
     final String localUserID;
     DatabaseReference chatDatabaseReference;
 
     private YarnPlace yarnPlace;
 
 
-    public ChatFinder(String callingTag, String localUserID,YarnPlace _yarnPlace)
+    public ChatUpdater(String localUserID, YarnPlace _yarnPlace)
     {
-        this.CALLINGTAG = callingTag;
         this.localUserID = localUserID;
-
         this.yarnPlace = _yarnPlace;
 
+        this.chatDatabaseReference = AddressTools.getPlaceDatabaseReference(
+                yarnPlace.address.getCountryName(),yarnPlace.address.getLocality(),
+                yarnPlace.placeMap.get("id"));
+
+        this.getChats();
         this.UpdateChatFinderAddress();
+    }
+
+    private void getChats()
+    {
+
+        if(chatDatabaseReference.getKey() != null) {
+
+            chatDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    if(dataSnapshot.hasChildren())
+                    {
+                        for (DataSnapshot child: dataSnapshot.getChildren()) {
+
+                            Log.d(TAG,child.toString());
+
+                            //The child isn't the info node
+                            if(!child.getKey().equals("Yarn_Place_Info"))
+                            {
+                                try
+                                {
+                                    if(!isActive(child) && !isHost(child))
+                                    {
+                                        addNewChat(yarnPlace.placeMap.get("id"),child.getKey());
+                                    }
+                                }
+                                catch(Exception e){
+                                    Log.d(TAG,"Not the correct Data");
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        Log.e(TAG,"Data Snapshot \"" + dataSnapshot.getKey() + "\" has no children");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
     }
 
     public void UpdateChatFinderAddress()
     {
-        chatDatabaseReference = AddressTools.getChatDatabaseReference(yarnPlace.placeMap.get("id"));
+        if(chatDatabaseReference.getKey() != null) {
 
-        if(chatDatabaseReference.getKey() != null)
-        {
             chatDatabaseReference.addChildEventListener(new ChildEventListener() {
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
                 {
-                    if(!exsistingChat(dataSnapshot.getKey()))
-                    {
-                        try
-                        {
-                            if(!isActive(dataSnapshot) && !isHost(dataSnapshot))
-                            {
-                                addNewChat(yarnPlace.placeMap.get("id"),dataSnapshot.getValue().toString());
-                            }
-                        }
-                        catch(Exception e){
-                            Log.d(CALLINGTAG,"Not the correct Data");
-                        }
+                    String key = dataSnapshot.getKey();
 
+                    if(!exsistingChat(key) || !key.equals("Yarn_Place_Info"))
+                    {
+                        try {
+                            if (!isActive(dataSnapshot) && !isHost(dataSnapshot)) {
+                                addNewChat(yarnPlace.placeMap.get("id"), dataSnapshot.getKey());
+                            }
+                        } catch (Exception e) {
+                            Log.d(TAG, "Not the correct Data");
+                        }
                     }
                     else{
-                        Log.d(CALLINGTAG,"This chat object is already in the system");
+                        Log.d(TAG,"This chat object is already in the system");
                     }
                 }
 
@@ -95,7 +140,7 @@ public class ChatFinder
             if(chatID.equals(yarnPlace.chats.get(i).chatID)) return;
         }
 
-        Chat newChat  = new Chat("ChatFinder",localUserID,chatPlaceID,chatID,yarnPlace.address);
+        Chat newChat  = new Chat("ChatUpdater",localUserID,chatPlaceID,chatID,yarnPlace.address);
 
         Notifier.getInstance().addChatSuggestion("Chat suggestion","A new chat was " +
                 "created at " + newChat.chatPlaceName + " on " + newChat.chatDate +
@@ -128,7 +173,6 @@ public class ChatFinder
         else{
             throw new Exception();
         }
-
     }
 
     private boolean isHost(DataSnapshot snapshot) throws Exception

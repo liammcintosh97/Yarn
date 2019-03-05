@@ -39,7 +39,10 @@ public class Chat //implements Parcelable
     }
     //endregion
 
-    private final DatabaseReference userDatabaseReference;
+    private final String PLACE_INFO_REF = "Yarn_Place_Info";
+    private final DatabaseReference chatRef;
+    private final DatabaseReference placeInfoRef;
+    private final DatabaseReference placeRef;
     private final String CALLINGTAG;
     private final String localUserID;
 
@@ -79,12 +82,12 @@ public class Chat //implements Parcelable
         this.localUserID = _localUserID;
         this.CALLINGTAG = callingTag;
 
-        //Intialize chat variables
+        //Initialize chat variables
         this.hostUser = new YarnUser("Chat",_hostUserID,YarnUser.UserType.LOCAL);
         this.chatPlaceID = _chatPlaceID;
         this.chatPlaceName = _chatPlaceName;
 
-        this.UpdateAddress(address);
+        this.initializeAddress(address);
         this.chatLatLng = _latLng;
 
         this.chatID = this.generateChatID();
@@ -95,8 +98,22 @@ public class Chat //implements Parcelable
 
         this.initializeChatState();
 
-        this.userDatabaseReference = AddressTools.getChatDatabaseReference(chatPlaceID);
-        this.updateDatabase();
+        //Initialize database references
+        this.chatRef = AddressTools.getChatDatabaseReference(
+                this.chatCountry,this.chatAdmin1,
+                chatPlaceID,this.chatID);
+
+        this.placeInfoRef = AddressTools.getPlaceInfoDatabaseReference(
+                this.chatCountry,this.chatAdmin1,
+                chatPlaceID,this.PLACE_INFO_REF);
+
+        this.placeRef = AddressTools.getPlaceDatabaseReference(
+                this.chatCountry,this.chatAdmin1,
+                chatPlaceID);
+
+        //Initialize database
+        this.initializeYarnPlaceDatabase();
+        this.initializeChatDatabase();
     }
 
     public Chat(String callingTag,String localUserID,String chatPlaceID, String _chatID, Address address)
@@ -104,220 +121,56 @@ public class Chat //implements Parcelable
         //This is the constructor for creating an instance of an exsisting chat
         this.CALLINGTAG = callingTag;
         this.localUserID = localUserID;
-
-        this.UpdateAddress(address);
-
-        this.userDatabaseReference = AddressTools.getChatDatabaseReference(chatPlaceID);
         this.chatID = _chatID;
-        //this.addDataListner("chatID");
-        this.addDataListener("place_name");
-        this.addDataListener("host");
-        this.addDataListener("guest");
-        this.addDataListener("formatted_address");
-        this.addDataListener("latLng");
-        this.addDataListener("country");
-        this.addDataListener("admin1");
-        this.addDataListener("admin2");
-        this.addDataListener("locality");
-        this.addDataListener("street");
-        this.addDataListener("postcode");
-        this.addDataListener("place_type");
-        this.addDataListener("time");
-        this.addDataListener("date");
-        this.addDataListener("length");
-        this.addDataListener("accepted");
-        this.addDataListener("active");
-        this.addDataListener("canceled");
+
+        this.initializeAddress(address);
+
+        //Initialize database references
+        this.chatRef = AddressTools.getChatDatabaseReference(
+                this.chatCountry,this.chatAdmin1,
+                chatPlaceID,this.chatID);
+
+        this.placeInfoRef = AddressTools.getPlaceInfoDatabaseReference(
+            this.chatCountry,this.chatAdmin1,
+            chatPlaceID, PLACE_INFO_REF);
+
+        this.placeRef = AddressTools.getPlaceDatabaseReference(
+                this.chatCountry,this.chatAdmin1,
+                chatPlaceID);
+
+        //Get Yarn place Info
+        this.getData(placeInfoRef,"place_name");
+        this.getData(placeInfoRef,"formatted_address");
+        this.getData(placeInfoRef,"latLng");
+        this.getData(placeInfoRef,"country");
+        this.getData(placeInfoRef,"admin1");
+        this.getData(placeInfoRef,"admin2");
+        this.getData(placeInfoRef,"locality");
+        this.getData(placeInfoRef,"street");
+        this.getData(placeInfoRef,"postcode");
+        this.getData(placeInfoRef,"place_type");
+
+        //Get Chat info
+        this.addDataListener(chatRef,"host");
+        this.addDataListener(chatRef,"guest");
+        this.addDataListener(chatRef,"time");
+        this.addDataListener(chatRef,"date");
+        this.addDataListener(chatRef,"length");
+        this.addDataListener(chatRef,"accepted");
+        this.addDataListener(chatRef,"active");
+        this.addDataListener(chatRef,"canceled");
     }
 
     //endregion Constructors
 
-    /*
-    //region Parcelable methods
-
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeString(localUserID);
-
-        out.writeString(hostUser.userID);
-        if(guestUser != null)out.writeString(guestUser.userID);
-        else out.writeString("");
-
-        out.writeString(chatID);
-        out.writeString(chatPlaceID);
-        out.writeString(chatPlaceName);
-        out.writeParcelable(chatAdressObject,flags);
-        out.writeParcelable(chatLatLng,flags)
-        out.writeString(chatCountry);
-        out.writeString(chatAdmin1);
-        out.writeString(chatAdmin2);
-        out.writeString(chatLocality);
-        out.writeString(chatStreet);
-        out.writeString(chatPostcode);
-
-        out.writeString(chatPlaceType);
-        out.writeString(chatDate);
-        out.writeString(chatTime);
-        out.writeString(chatLength);
-
-        out.writeByte((byte) (accepted ? 1 : 0));
-        out.writeByte((byte) (active ? 1 : 0));
-        out.writeByte((byte) (canceled ? 1 : 0));
-
-    }
-
-    public static final Parcelable.Creator<Chat> CREATOR
-            = new Parcelable.Creator<Chat>() {
-
-        public Chat createFromParcel(Parcel in) {
-            return new Chat(in);
-        }
-
-        public Chat[] newArray(int size) {
-            return new Chat[size];
-        }
-    };
-
-    private Chat(Parcel in) {
-
-        this.CALLINGTAG = "Parcel";
-        this.localUserID = in.readString();
-
-        //Read host from parcel
-        String hostUserID = in.readString();
-        if(hostUserID.equals(localUserID)){
-            this.hostUser = new YarnUser("Chat",hostUserID,YarnUser.UserType.LOCAL);
-        }
-        else{
-            this.hostUser = new YarnUser("Chat",hostUserID,YarnUser.UserType.NETWORK);
-        }
-
-        //read guest from parcel
-        String guestUserId = in.readString();
-        if(guestUserId.equals(localUserID)){
-            this.guestUser = new YarnUser("Chat",guestUserId,YarnUser.UserType.LOCAL);
-        }
-        else if(!guestUserId.equals("")){
-            this.guestUser = new YarnUser("Chat",guestUserId,YarnUser.UserType.NETWORK);
-        }
-        else this.guestUser = null;
-
-        this.chatID = in.readString();
-        this.chatPlaceID = in.readString();
-        this.chatPlaceName = in.readString();
-        this.chatAdressObject = in.readParcelable(Address.class.getClassLoader());
-        this.chatLatLng = in.readParcelable(LatLng.class.getClassLoader());
-        this.chatCountry = in.readString();
-        this.chatAdmin1 = in.readString();
-        this.chatAdmin2 = in.readString();
-        this.chatLocality = in.readString();
-        this.chatStreet = in.readString();
-        this.chatPostcode = in.readString();
-
-        this.chatPlaceType = in.readString();
-        this.chatDate = in.readString();
-        this.chatTime = in.readString();
-        this.chatLength = in.readString();
-
-        this.accepted = in.readByte() != 0;
-        this.active = in.readByte() != 0;
-        this.canceled = in.readByte() != 0;
-
-        this.userDatabaseReference = AddressTools.getChatDatabaseReference(this.chatPlaceID);
-
-        this.addDataListener("place_name");
-        this.addDataListener("host");
-        this.addDataListener("guest");
-        this.addDataListener("formatted_address");
-        this.addDataListener("latLng");
-        this.addDataListener("country");
-        this.addDataListener("admin1");
-        this.addDataListener("admin2");
-        this.addDataListener("locality");
-        this.addDataListener("street");
-        this.addDataListener("postcode");
-        this.addDataListener("place_type");
-        this.addDataListener("time");
-        this.addDataListener("date");
-        this.addDataListener("length");
-        this.addDataListener("accepted");
-        this.addDataListener("active");
-
-        this.notifier = Notifier.getInstance();
-    }
-
-    //endregion
-*/
     //region Initialization
 
-    private void initializeChatState()
-    {
-        //Initialize chat state
-        accepted = false;
-        active = false;
-        canceled = false;
-    }
-
-    private void updateDatabase()
-    {
-       //updateData("chatID",chatID);
-        updateData("place_name",chatPlaceName);
-       updateData("host",hostUser.userID);
-       updateData("guest","");
-       //updateData("placeID",chatPlaceID);
-       updateData("formatted_address",chatFormattedAddress);
-       updateData("latLng",chatLatLng);
-       updateData("country",chatCountry);
-       updateData("admin1",chatAdmin1);
-       updateData("admin2",chatAdmin2);
-       updateData("locality",chatLocality);
-       updateData("street",chatStreet);
-       updateData("postcode",chatPostcode);
-       updateData("place_type",chatPlaceType);
-       updateData("date",chatDate);
-       updateData("time",chatTime);
-       updateData("length",chatLength);
-       updateData("accepted",accepted);
-       updateData("active",active);
-       updateData("canceled",canceled);
-    }
-
-    //endregion
-
-    //region Public Local Methods
-
-    public void acceptChat(Context context, YarnUser guestUser)
-    {
-        accepted = true;
-        updateData("guest",guestUser.userID);
-        updateData("accepted",true);
-        updateData("active",active);
-
-        ChatRecorder.getInstance().recordChat(context,this);
-    }
-
-    public void cancelChat()
-    {
-        active = false;
-        canceled = true;
-
-        updateData("active",active);
-        updateData("canceled",canceled);
-    }
-
-    //endregion
-
-    //region Private Local Methods
-
-    private void UpdateAddress(Address address)
+    private void initializeAddress(Address address)
     {
         chatAdressObject = address;
         chatFormattedAddress = AddressTools.formatAddress(address);
 
-        String country = address.getCountryCode();
+        String country = address.getCountryName();
         String admin1 = address.getAdminArea();
         String admin2 = address.getSubAdminArea();
         String locality = address.getLocality();
@@ -344,12 +197,91 @@ public class Chat //implements Parcelable
 
     }
 
-    private void updateData(final String dataType, final Object dataValue)
+    private void initializeChatState()
     {
-       final DatabaseReference ref = userDatabaseReference.child(chatID).child(dataType);
+        //Initialize chat state
+        accepted = false;
+        active = false;
+        canceled = false;
+    }
+
+    private void initializeChatDatabase()
+    {
+       updateData(chatRef,"host",hostUser.userID);
+       updateData(chatRef,"guest","");
+       updateData(chatRef,"date",chatDate);
+       updateData(chatRef,"time",chatTime);
+       updateData(chatRef,"length",chatLength);
+       updateData(chatRef,"accepted",accepted);
+       updateData(chatRef,"active",active);
+       updateData(chatRef,"canceled",canceled);
+    }
+
+    private void initializeYarnPlaceDatabase()
+    {
+        //Check if the database has an info node for this place
+        placeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(!dataSnapshot.hasChild(PLACE_INFO_REF)){
+                    setData(placeInfoRef,"place_name",chatPlaceName);
+                    setData(placeInfoRef,"formatted_address",chatFormattedAddress);
+                    setData(placeInfoRef,"lat",chatLatLng.latitude);
+                    setData(placeInfoRef,"lng",chatLatLng.longitude);
+                    setData(placeInfoRef,"country",chatCountry);
+                    setData(placeInfoRef,"admin1",chatAdmin1);
+                    setData(placeInfoRef,"admin2",chatAdmin2);
+                    setData(placeInfoRef,"locality",chatLocality);
+                    setData(placeInfoRef,"street",chatStreet);
+                    setData(placeInfoRef,"postcode",chatPostcode);
+                    setData(placeInfoRef,"place_type",chatPlaceType);
+
+                    Log.d(CALLINGTAG,"Created the place info node");
+                }
+                else {
+                    Log.d(CALLINGTAG,"The place info node already exists");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+    //endregion
+
+    //region Public Local Methods
+
+    public void acceptChat(Context context, YarnUser guestUser)
+    {
+        accepted = true;
+        updateData(chatRef,"guest",guestUser.userID);
+        updateData(chatRef,"accepted",true);
+        updateData(chatRef,"active",active);
+
+        ChatRecorder.getInstance().recordChat(context,this);
+    }
+
+    public void cancelChat()
+    {
+        active = false;
+        canceled = true;
+
+        updateData(chatRef,"active",active);
+        updateData(chatRef,"canceled",canceled);
+    }
+
+    //endregion
+
+    //region Private Local Methods
+
+    private void setData(DatabaseReference ref,final String dataType, final Object dataValue)
+    {
+        DatabaseReference dataRef = ref.child(dataType);
 
         //Write to the User database user name
-        ref.setValue(dataValue)
+        dataRef.setValue(dataValue)
                 .addOnSuccessListener(new OnSuccessListener<Void>()
                 {
                     @Override
@@ -357,7 +289,6 @@ public class Chat //implements Parcelable
                     {
                         Log.d(CALLINGTAG,dataType +" write to database was a success :"
                                 + dataValue.toString());
-                        addDataListener(dataType);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener()
@@ -370,10 +301,34 @@ public class Chat //implements Parcelable
                 });
     }
 
-    private void addDataListener(final String dataType)
+    private void updateData(final DatabaseReference ref, final String dataType, final Object dataValue)
     {
-        DatabaseReference ref = userDatabaseReference.child(chatID).child(dataType);
+        final DatabaseReference dataRef = ref.child(dataType);
 
+        //Write to the User database user name
+        dataRef.setValue(dataValue)
+                .addOnSuccessListener(new OnSuccessListener<Void>()
+                {
+                    @Override
+                    public void onSuccess(Void aVoid)
+                    {
+                        Log.d(CALLINGTAG,dataType +" write to database was a success :"
+                                + dataValue.toString());
+                        addDataListener(dataRef,dataType);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener()
+                {
+                    @Override
+                    public void onFailure(@NonNull Exception e)
+                    {
+                        Log.d(CALLINGTAG,dataType +"write to database was a failure -" + e);
+                    }
+                });
+    }
+
+    private void addDataListener(final DatabaseReference ref,final String dataType)
+    {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
@@ -384,12 +339,33 @@ public class Chat //implements Parcelable
                             + snapshot.getValue().toString());
                 }
                 else Log.e(CALLINGTAG,"Fatal error when trying to update "
-                        + dataType + " from database");
+                        + dataType + " from database reference - " + ref.toString());
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
             {
                 Log.e(CALLINGTAG,"Unable to get " + dataType + "value from database");
+            }
+        });
+    }
+
+    private void getData(DatabaseReference ref,final String dataType) {
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+
+                if (translateDatabase(dataType, snapshot)) {
+                    Log.d(CALLINGTAG, "Updated " + dataType + " from database : "
+                            + snapshot.getValue().toString());
+                } else Log.e(CALLINGTAG, "Fatal error when trying to update "
+                        + dataType + " from database");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                Log.e(CALLINGTAG, "Unable to get " + dataType + "value from database");
             }
         });
     }
@@ -455,7 +431,8 @@ public class Chat //implements Parcelable
             //region Lat Lng
             case("latLng"):{
                 if(snapshot.getValue() != null){
-                     chatLatLng = (LatLng) snapshot.getValue();
+                     chatLatLng = new LatLng((double)snapshot.child("latitude").getValue(),
+                             (double)snapshot.child("longitude").getValue());
                     return true;
                 }else return false;
             }
