@@ -5,25 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.Log;
 
 import com.example.liammc.yarn.Notification;
 import com.example.liammc.yarn.core.ChatRecorder;
-import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.DateTools;
-import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
 
 public class Notifier
 {
@@ -138,13 +130,13 @@ public class Notifier
 
     public void listenToChat(final Context context,final Chat chat)
     {
-        chat.setListener(new Chat.ValueChangeListener() {
+        chat.setValueChangelistener(new Chat.ValueChangeListener() {
             @Override
             public void onAcceptedChange() {
 
-                if(chat.accepted) addNotification(context,"Chat Accepted","Your chat at "
-                         + chat.chatPlaceName + " on " + chat.chatDate + " at " + chat.chatTime
-                        + " was accepted");
+                if(chat.chatAccepted) addNotification(context,"Chat Accepted","Your chat at "
+                         + chat.yarnPlace.placeMap.get("name") + " on " + chat.chatDate + " at "
+                        + chat.chatTime + " was chatAccepted");
             }
 
             @Override
@@ -155,9 +147,9 @@ public class Notifier
             @Override
             public void onCanceledChange()
             {
-                if(chat.accepted) addNotification(context,"Chat Canceled","Your chat at "
-                        + chat.chatPlaceName + " on " + chat.chatDate + " at " + chat.chatTime
-                        + " was canceled");
+                if(chat.chatAccepted) addNotification(context,"Chat Canceled","Your chat at "
+                        + chat.yarnPlace.placeMap.get("name") + " on " + chat.chatDate + " at "
+                        + chat.chatTime + " was chatCanceled");
             }
         });
     }
@@ -174,8 +166,8 @@ public class Notifier
                 Chat chat = chatList.get(i);
 
                 Location chatLocation = new Location(LocationManager.GPS_PROVIDER);
-                chatLocation.setLatitude(chat.chatLatLng.latitude);
-                chatLocation.setLatitude(chat.chatLatLng.longitude);
+                chatLocation.setLatitude(chat.yarnPlace.latLng.latitude);
+                chatLocation.setLatitude(chat.yarnPlace.latLng.longitude);
 
                 if(chatLocation.distanceTo(location) < NOTIFICATION_PROXIMITY) nearbyChats++;
             }
@@ -208,7 +200,7 @@ public class Notifier
                     if(currentTime.equals(chatDate))
                     {
                         addNotification(context,"Upcoming Chat","You have a chat today at "
-                        + chat.chatPlaceName + " at " + chat.chatTime);
+                        + chat.yarnPlace.placeMap.get("name") + " at " + chat.chatTime);
                     }
                 }
             }

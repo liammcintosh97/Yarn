@@ -100,7 +100,7 @@ public class ChatUpdater
 
                     if(isAccepted(dataSnapshot))
                     {
-                        Log.d(TAG,"This chat has already been accepted");
+                        Log.d(TAG,"This chat has already been chatAccepted");
                         return;
                     }
 
@@ -142,14 +142,20 @@ public class ChatUpdater
             if(chatID.equals(yarnPlace.chats.get(i).chatID)) return;
         }
 
-        Chat Chat  = new Chat(chatPlaceID,chatID,yarnPlace.address);
+        Chat chat  = new Chat(yarnPlace, chatID, new Chat.ReadyListener() {
+            @Override
+            public void onReady(Chat chat) {
 
-        Notifier.getInstance().addChatSuggestion("Chat suggestion","A new chat was " +
-                "created at " + Chat.chatPlaceName + " on " + Chat.chatDate +
-                " at " + Chat.chatTime, Chat);
+                Notifier.getInstance().addChatSuggestion("Chat suggestion","A new chat was " +
+                        "created at " + chat.yarnPlace.placeMap.get("name") + " on " + chat.chatDate +
+                        " at " + chat.chatTime, chat);
 
-        yarnPlace.chats.add(Chat);
-        yarnPlace.addChatToScrollView(Chat);
+                yarnPlace.chats.add(chat);
+                yarnPlace.addChatToScrollView(chat);
+
+            }
+        });
+
     }
 
     private void removeChat(DataSnapshot dataSnapshot)
@@ -158,7 +164,12 @@ public class ChatUpdater
 
         for(int i = 0; i < yarnPlace.chats.size(); i ++)
         {
-            if(yarnPlace.chats.get(i).chatPlaceID.equals(removedChatPlaceID)){
+            Chat chat = yarnPlace.chats.get(i);
+            String chatID = chat.yarnPlace.placeMap.get("id");
+
+            if(chatID == null) continue;
+
+            if(chatID.equals(removedChatPlaceID)){
                 yarnPlace.chats.remove(i);
             }
         }

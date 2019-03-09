@@ -172,12 +172,14 @@ public class ChatCreator
         //Format time
         String time = hour + ":" + minute;
 
-        Chat chat = new Chat(localUserID,chatPlaceID, chatPlaceName, yarnPlace.address
-                ,yarnPlace.latLng, yarnPlace.placeType,date,time,duration);
+        Chat chat = new Chat(yarnPlace, localUserID, date, time, duration, new Chat.ReadyListener() {
+            @Override
+            public void onReady(Chat chat) {
 
-        ChatRecorder.getInstance().recordChat(mapsActivity,chat);
-
-        dissmissChatCreator();
+                ChatRecorder.getInstance().recordChat(mapsActivity,chat);
+                dissmissChatCreator();
+            }
+        });
     }
 
     //endregion

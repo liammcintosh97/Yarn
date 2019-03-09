@@ -327,8 +327,8 @@ public class ChatPlannerActivity extends AppCompatActivity{
             }
         });
 
-        String displayText = chat.chatPlaceName + "\n" + chat.chatDate + "\n" + chat.chatTime + "/n"
-                + chat.chatLength;
+        String displayText = chat.yarnPlace.placeMap.get("name") + "\n" + chat.chatDate + "\n"
+                + chat.chatTime + "/n" + chat.chatLength;
 
         TextView chatDetails = element.findViewById(R.id.chatDetails);
         chatDetails.setContentDescription(chat.chatID);

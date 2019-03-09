@@ -79,6 +79,7 @@ public class YarnPlace
     private Button createChatButton;
     private ScrollView chatScrollView;
 
+    //TODO get the place photo
     public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap)
     {
         this.mapsActivity = _mapsActivity;
@@ -134,7 +135,7 @@ public class YarnPlace
         //double width =  LinearLayout.LayoutParams.WRAP_CONTENT;
         //double height = LinearLayout.LayoutParams.WRAP_CONTENT;
 
-        window = new PopupWindow(yarnPlaceInfoWindow,(int)(width * 0.5), (int)(height * 0.40));
+        window = new PopupWindow(yarnPlaceInfoWindow,(int)(width * 0.7), (int)(height * 0.6));
         window.setAnimationStyle(R.style.popup_window_animation_phone);
         window.update();
         window.setClippingEnabled(true);
@@ -251,7 +252,7 @@ public class YarnPlace
 
         String displayText = chat.chatDate + " " + chat.chatTime;
 
-        element.setContentDescription(chat.chatPlaceID);
+        element.setContentDescription(chat.yarnPlace.placeMap.get("id"));
         TextView dateTime = element.findViewById(R.id.dateTime);
         dateTime.setText(displayText);
 
