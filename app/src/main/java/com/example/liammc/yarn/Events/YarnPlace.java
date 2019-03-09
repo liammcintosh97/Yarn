@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -31,6 +32,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class YarnPlace
     public String placeType;
     public Address address;
     public LatLng latLng;
-    public List<Chat> chats;
+    public List<Chat> chats= new ArrayList<>();
 
     //Google
     private GoogleMap map;
@@ -253,7 +255,8 @@ public class YarnPlace
         TextView dateTime = element.findViewById(R.id.dateTime);
         dateTime.setText(displayText);
 
-        chatScrollView.addView(element);
+        LinearLayout elements  = chatScrollView.findViewById(R.id.elements);
+        elements.addView(element);
     }
 
     public void removeChatFromScrollView(String removedChatID) {

@@ -18,6 +18,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:layout_weight="0"
         android:baselineAligned="false"
         android:text="@string/infoWindow_placeTitle_default"
         android:textAlignment="center"
@@ -32,7 +33,7 @@
         android:id="@+id/placePicture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.3"
+        android:layout_weight="1"
         android:contentDescription="@string/infoWindow_contentDiscription"
         android:padding="10dp"
         app:srcCompat="@android:color/background_dark" />
@@ -41,6 +42,7 @@
         android:id="@+id/chatsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_weight="0"
         android:gravity="center_vertical|center_horizontal"
         android:text="@string/infoWindow_chatTitle"
         android:textAlignment="center"
@@ -50,13 +52,20 @@
         android:id="@+id/chatScrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.2"
-        android:scrollbarStyle="outsideInset" />
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/elements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
 
     <LinearLayout
         android:id="@+id/buttonBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_weight="0"
         android:gravity="bottom"
         android:orientation="horizontal">
 

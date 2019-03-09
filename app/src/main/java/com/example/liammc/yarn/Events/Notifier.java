@@ -75,8 +75,8 @@ public class Notifier
     private static int NOTIFICATION_PROXIMITY = 1000;
     private static String CHANNEL_ID = "notifier";
 
-    public ArrayList<Notification> notifications;
-    public ArrayList<Notification> chatSuggestions;
+    public ArrayList<Notification> notifications = new ArrayList<>();
+    public ArrayList<Notification> chatSuggestions = new ArrayList<>();
     public static IntentFilter intentFilter;
 
     static {
@@ -103,7 +103,7 @@ public class Notifier
         // notificationId is a unique int for each notification that you must define
         notificationManager.notify(notification.id, mBuilder.build());
 
-        notificationListener.onNotificationAdded(notification);
+        if(notificationListener != null) notificationListener.onNotificationAdded(notification);
     }
 
     public void addChatSuggestion(String title, String message, Chat chat)
@@ -111,7 +111,7 @@ public class Notifier
         Notification notification = new Notification(title,message);
         chatSuggestions.add(notification);
 
-        suggestionListener.onSuggestionAdded(notification, chat);
+        if(suggestionListener != null) suggestionListener.onSuggestionAdded(notification, chat);
     }
 
     public void removeNotification(Notification notification)

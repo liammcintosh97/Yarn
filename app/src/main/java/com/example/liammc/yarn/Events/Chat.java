@@ -5,6 +5,7 @@ import android.location.Address;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 
 import com.example.liammc.yarn.core.ChatRecorder;
@@ -43,7 +44,7 @@ public class Chat //implements Parcelable
     private final DatabaseReference chatRef;
     private final DatabaseReference placeInfoRef;
     private final DatabaseReference placeRef;
-    private final String CALLINGTAG;
+    private  String TAG = "Chat" ;
     private final String localUserID;
 
     //public String chatID;
@@ -74,13 +75,12 @@ public class Chat //implements Parcelable
 
     //region Constructors
 
-    public Chat(String callingTag, String _localUserID, String _hostUserID, String _chatPlaceID,
+    public Chat(String _hostUserID, String _chatPlaceID,
                 String _chatPlaceName, Address address, LatLng _latLng, String _placeType, String _chatDate,
                 String _chatTime, String _chatLength)
     {
         //This is the constructor for creating an instance of a new chat
-        this.localUserID = _localUserID;
-        this.CALLINGTAG = callingTag;
+        this.localUserID = LocalUser.getInstance().user.userID;
 
         //Initialize chat variables
         this.hostUser = new YarnUser("Chat",_hostUserID,YarnUser.UserType.LOCAL);
@@ -91,6 +91,7 @@ public class Chat //implements Parcelable
         this.chatLatLng = _latLng;
 
         this.chatID = this.generateChatID();
+        this.TAG = TAG + " " + chatID;
         this.chatPlaceType = _placeType;
         this.chatDate = _chatDate;
         this.chatTime = _chatTime;
@@ -116,11 +117,11 @@ public class Chat //implements Parcelable
         this.initializeChatDatabase();
     }
 
-    public Chat(String callingTag,String localUserID,String chatPlaceID, String _chatID, Address address)
+    public Chat(String chatPlaceID, String _chatID, Address address)
     {
         //This is the constructor for creating an instance of an exsisting chat
-        this.CALLINGTAG = callingTag;
-        this.localUserID = localUserID;
+        this.TAG = TAG + " " + _chatID;
+        this.localUserID = LocalUser.getInstance().user.userID;
         this.chatID = _chatID;
 
         this.initializeAddress(address);
@@ -138,6 +139,7 @@ public class Chat //implements Parcelable
                 this.chatCountry,this.chatAdmin1,
                 chatPlaceID);
 
+        /*
         //Get Yarn place Info
         this.getData(placeInfoRef,"place_name");
         this.getData(placeInfoRef,"formatted_address");
@@ -149,6 +151,7 @@ public class Chat //implements Parcelable
         this.getData(placeInfoRef,"street");
         this.getData(placeInfoRef,"postcode");
         this.getData(placeInfoRef,"place_type");
+        */
 
         //Get Chat info
         this.addDataListener(chatRef,"host");
@@ -236,10 +239,10 @@ public class Chat //implements Parcelable
                     setData(placeInfoRef,"postcode",chatPostcode);
                     setData(placeInfoRef,"place_type",chatPlaceType);
 
-                    Log.d(CALLINGTAG,"Created the place info node");
+                    Log.d(TAG,"Created the place info node");
                 }
                 else {
-                    Log.d(CALLINGTAG,"The place info node already exists");
+                    Log.d(TAG,"The place info node already exists");
                 }
             }
 
@@ -287,7 +290,7 @@ public class Chat //implements Parcelable
                     @Override
                     public void onSuccess(Void aVoid)
                     {
-                        Log.d(CALLINGTAG,dataType +" write to database was a success :"
+                        Log.d(TAG,dataType +" write to database was a success :"
                                 + dataValue.toString());
                     }
                 })
@@ -296,7 +299,7 @@ public class Chat //implements Parcelable
                     @Override
                     public void onFailure(@NonNull Exception e)
                     {
-                        Log.d(CALLINGTAG,dataType +"write to database was a failure -" + e);
+                        Log.d(TAG,dataType +"write to database was a failure -" + e);
                     }
                 });
     }
@@ -312,7 +315,7 @@ public class Chat //implements Parcelable
                     @Override
                     public void onSuccess(Void aVoid)
                     {
-                        Log.d(CALLINGTAG,dataType +" write to database was a success :"
+                        Log.d(TAG,dataType +" write to database was a success :"
                                 + dataValue.toString());
                         addDataListener(dataRef,dataType);
                     }
@@ -322,7 +325,7 @@ public class Chat //implements Parcelable
                     @Override
                     public void onFailure(@NonNull Exception e)
                     {
-                        Log.d(CALLINGTAG,dataType +"write to database was a failure -" + e);
+                        Log.d(TAG,dataType +"write to database was a failure -" + e);
                     }
                 });
     }
@@ -335,20 +338,21 @@ public class Chat //implements Parcelable
             {
                 if(translateDatabase(dataType,snapshot))
                 {
-                    Log.d(CALLINGTAG,"Updated " + dataType + " from database : "
+                    Log.d(TAG,"Updated " + dataType + " from database : "
                             + snapshot.getValue().toString());
                 }
-                else Log.e(CALLINGTAG,"Fatal error when trying to update "
+                else Log.e(TAG,"Fatal error when trying to update "
                         + dataType + " from database reference - " + ref.toString());
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
             {
-                Log.e(CALLINGTAG,"Unable to get " + dataType + "value from database");
+                Log.e(TAG,"Unable to get " + dataType + "value from database");
             }
         });
     }
 
+    /*
     private void getData(DatabaseReference ref,final String dataType) {
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -368,7 +372,7 @@ public class Chat //implements Parcelable
                 Log.e(CALLINGTAG, "Unable to get " + dataType + "value from database");
             }
         });
-    }
+    }*/
 
     //endregion
 
@@ -384,6 +388,9 @@ public class Chat //implements Parcelable
         switch(dataType) {
             //region Place Name
             case ("place_name"): {
+
+                String placeName = snapshot.child("place_name")
+
                 if(snapshot.getValue() != null){
                     chatPlaceName = (String)snapshot.getValue();
                     return true;
@@ -393,11 +400,14 @@ public class Chat //implements Parcelable
             //region Host
             case ("host"): {
                 if(snapshot.getValue() != null){
-                    if (snapshot.getValue() == localUserID) {
-                        hostUser = new YarnUser("Chat", localUserID,
-                                YarnUser.UserType.LOCAL);
+
+                    String chatHostID =  (String)snapshot.child("host").getValue();
+
+                    if (chatHostID.equals(localUserID)) {
+                        hostUser = LocalUser.getInstance().user;
                     } else {
-                        hostUser = new YarnUser("Chat", (String) snapshot.getValue(),
+                        Log.d(TAG, String.valueOf( snapshot.getValue()));
+                        hostUser = new YarnUser("Chat", chatHostID,
                                 YarnUser.UserType.NETWORK);
                     }
                     return true;
@@ -407,11 +417,13 @@ public class Chat //implements Parcelable
             //region Guest
             case ("guest"): {
                 if(snapshot.getValue() != null){
-                    if (snapshot.getValue() == localUserID) {
-                        guestUser = new YarnUser("Chat", localUserID,
-                                YarnUser.UserType.LOCAL);
-                    } else if (!snapshot.getValue().equals("")) {
-                        guestUser = new YarnUser("Chat", (String) snapshot.getValue(),
+
+                    String chatGuestID =  (String)snapshot.child("guest").getValue();
+
+                    if (chatGuestID.equals(localUserID)) {
+                        guestUser = LocalUser.getInstance().user;
+                    } else if (!chatGuestID.equals("")) {
+                        guestUser = new YarnUser("Chat", chatGuestID,
                                 YarnUser.UserType.NETWORK);
                     } else {
                         guestUser = null;

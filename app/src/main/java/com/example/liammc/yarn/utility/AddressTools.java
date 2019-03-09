@@ -6,6 +6,7 @@ import android.location.Geocoder;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -68,6 +69,13 @@ public final class AddressTools
             Log.e("AddressTools","Unable to get addresses from location \n" + e.toString());
             return null;
         }
+    }
+
+    public static DatabaseReference getLocalityDatabaseReference(String country,String admin1)
+    {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
+                .child(country).child(admin1);
+        return ref;
     }
 
     public static DatabaseReference getPlaceDatabaseReference(String country,String admin1,

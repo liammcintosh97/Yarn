@@ -4,20 +4,18 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 
 
 public class ChatUpdater
 {
     final String TAG = "Chat Updater";
     final String localUserID;
-    DatabaseReference chatDatabaseReference;
+    DatabaseReference placeDatabaseReference;
 
     private YarnPlace yarnPlace;
 
@@ -27,20 +25,21 @@ public class ChatUpdater
         this.localUserID = localUserID;
         this.yarnPlace = _yarnPlace;
 
-        this.chatDatabaseReference = AddressTools.getPlaceDatabaseReference(
-                yarnPlace.address.getCountryName(),yarnPlace.address.getLocality(),
+
+        this.placeDatabaseReference = AddressTools.getPlaceDatabaseReference(
+                yarnPlace.address.getCountryName(),yarnPlace.address.getAdminArea(),
                 yarnPlace.placeMap.get("id"));
 
-        this.getChats();
-        this.UpdateChatFinderAddress();
+        //this.getChats();
+        this.setChatListener();
     }
 
+    /*
     private void getChats()
     {
+        if(placeDatabaseReference.getKey() != null) {
 
-        if(chatDatabaseReference.getKey() != null) {
-
-            chatDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            placeDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -48,21 +47,21 @@ public class ChatUpdater
                     {
                         for (DataSnapshot child: dataSnapshot.getChildren()) {
 
-                            Log.d(TAG,child.toString());
+                            String childKey =  child.getKey();
 
                             //The child isn't the info node
-                            if(!child.getKey().equals("Yarn_Place_Info"))
+                            if(!childKey.equals("Yarn_Place_Info"))
                             {
-                                try
+                                if(isActive(child))
                                 {
-                                    if(!isActive(child) && !isHost(child))
-                                    {
-                                        addNewChat(yarnPlace.placeMap.get("id"),child.getKey());
-                                    }
+                                    addChat(yarnPlace.placeMap.get("id"),child.getKey());
                                 }
-                                catch(Exception e){
+                                else{
                                     Log.d(TAG,"Not the correct Data");
                                 }
+                            }
+                            else{
+                                Log.d(TAG, "Not the correct Data");
                             }
                         }
                     }
@@ -77,32 +76,35 @@ public class ChatUpdater
                 }
             });
         }
+    }*/
 
-    }
-
-    public void UpdateChatFinderAddress()
+    public void setChatListener()
     {
-        if(chatDatabaseReference.getKey() != null) {
+        if(placeDatabaseReference.getKey() != null) {
 
-            chatDatabaseReference.addChildEventListener(new ChildEventListener() {
+            placeDatabaseReference.addChildEventListener(new ChildEventListener() {
                 @Override
                 public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s)
                 {
                     String key = dataSnapshot.getKey();
 
-                    if(!exsistingChat(key) || !key.equals("Yarn_Place_Info"))
-                    {
-                        try {
-                            if (!isActive(dataSnapshot) && !isHost(dataSnapshot)) {
-                                addNewChat(yarnPlace.placeMap.get("id"), dataSnapshot.getKey());
-                            }
-                        } catch (Exception e) {
-                            Log.d(TAG, "Not the correct Data");
-                        }
+                    if(key.equals("Yarn_Place_Info")) {
+                        Log.d(TAG,"Not a Chat");
+                        return;
                     }
-                    else{
+
+                    if(existingChat(key)){
                         Log.d(TAG,"This chat object is already in the system");
+                        return;
                     }
+
+                    if(isAccepted(dataSnapshot))
+                    {
+                        Log.d(TAG,"This chat has already been accepted");
+                        return;
+                    }
+
+                    addChat(yarnPlace.placeMap.get("id"), dataSnapshot.getKey());
                 }
 
                 @Override
@@ -133,21 +135,21 @@ public class ChatUpdater
     }
 
 
-    private void addNewChat(String chatPlaceID, String chatID)
+    private void addChat(String chatPlaceID, String chatID)
     {
         for(int i = 0 ; i < yarnPlace.chats.size(); i++)
         {
             if(chatID.equals(yarnPlace.chats.get(i).chatID)) return;
         }
 
-        Chat newChat  = new Chat("ChatUpdater",localUserID,chatPlaceID,chatID,yarnPlace.address);
+        Chat Chat  = new Chat(chatPlaceID,chatID,yarnPlace.address);
 
         Notifier.getInstance().addChatSuggestion("Chat suggestion","A new chat was " +
-                "created at " + newChat.chatPlaceName + " on " + newChat.chatDate +
-                " at " + newChat.chatTime, newChat);
+                "created at " + Chat.chatPlaceName + " on " + Chat.chatDate +
+                " at " + Chat.chatTime, Chat);
 
-        yarnPlace.chats.add(newChat);
-        yarnPlace.addChatToScrollView(newChat);
+        yarnPlace.chats.add(Chat);
+        yarnPlace.addChatToScrollView(Chat);
     }
 
     private void removeChat(DataSnapshot dataSnapshot)
@@ -164,31 +166,23 @@ public class ChatUpdater
         yarnPlace.removeChatFromScrollView(removedChatPlaceID);
     }
 
-    private boolean isActive(DataSnapshot snapshot) throws Exception
+    private boolean isAccepted(DataSnapshot chatSnapshot)
     {
-        if(snapshot.getKey().equals("accepted"))
-        {
-            return Boolean.valueOf(snapshot.getValue().toString());
-        }
-        else{
-            throw new Exception();
-        }
+        return Boolean.valueOf(chatSnapshot.child("accepted").getValue().toString());
     }
 
-    private boolean isHost(DataSnapshot snapshot) throws Exception
+    private boolean isHost(DataSnapshot snapshot)
     {
         String chatHostID = snapshot.child("host").getValue().toString();
 
-        if(snapshot.getKey().equals("host"))
+        if(chatHostID.equals(""))
         {
-            return localUserID.equals(chatHostID);
+            return false;
         }
-        else{
-            throw new Exception();
-        }
+        else return localUserID.equals(chatHostID);
     }
 
-    private boolean exsistingChat(String chatID)
+    private boolean existingChat(String chatID)
     {
         if(yarnPlace.chats != null)
         {

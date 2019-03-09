@@ -172,9 +172,8 @@ public class ChatCreator
         //Format time
         String time = hour + ":" + minute;
 
-        Chat chat = new Chat("ChatCreator",localUserID,localUserID,chatPlaceID,
-                chatPlaceName, yarnPlace.address,yarnPlace.latLng, yarnPlace.placeType,date
-                ,time,duration);
+        Chat chat = new Chat(localUserID,chatPlaceID, chatPlaceName, yarnPlace.address
+                ,yarnPlace.latLng, yarnPlace.placeType,date,time,duration);
 
         ChatRecorder.getInstance().recordChat(mapsActivity,chat);
 
