@@ -11,6 +11,7 @@ import com.example.liammc.yarn.utility.DateTools;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+//TODO get all the joined/hosted chats from the database
 public class ChatRecorder
 {
     //region singleton pattern

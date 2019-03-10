@@ -32,6 +32,7 @@ public class NearbyChatFinder {
 
     private FinderCallback listener;
 
+    //TODO get nearby chats as they are added to the database
     public NearbyChatFinder(int _searchRadius, FinderCallback _listener)
     {
         this.localUser = LocalUser.getInstance().user;

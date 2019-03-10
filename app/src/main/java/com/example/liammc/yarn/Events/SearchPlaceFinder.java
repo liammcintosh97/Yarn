@@ -63,6 +63,8 @@ public class SearchPlaceFinder {
 
         String correctType = translateTypes(place.getTypes());
 
+
+
         HashMap<String, String > placeMap = buildPlaceMap(place.getId(), place.getName(),correctType,
                 Double.toString(place.getLatLng().latitude),
                 Double.toString(place.getLatLng().longitude));

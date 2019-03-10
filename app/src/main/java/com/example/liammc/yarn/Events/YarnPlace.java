@@ -2,11 +2,14 @@ package com.example.liammc.yarn.Events;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,14 +28,26 @@ import com.example.liammc.yarn.core.ChatRecorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.PhotoMetadata;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPhotoRequest;
+import com.google.android.libraries.places.api.net.FetchPhotoResponse;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
+import com.google.android.libraries.places.api.net.FetchPlaceResponse;
+import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,21 +63,24 @@ public class YarnPlace
         private PlaceType(){}
     }
 
+    private String TAG = "Yarn Place";
     private Geocoder geocoder;
     private MapsActivity mapsActivity;
     public ChatCreator chatCreator;
     private ChatUpdater chatUpdater;
 
-    //Chat Data
+    //Place Data
     public HashMap<String, String>  placeMap;
     public String placeType;
     public Address address;
     public LatLng latLng;
+    public Bitmap placePhoto;
     public List<Chat> chats= new ArrayList<>();
 
     //Google
     private GoogleMap map;
     public Marker marker;
+    PlacesClient placesClient;
 
     //Window
     public PopupWindow window;
@@ -79,9 +97,9 @@ public class YarnPlace
     private Button createChatButton;
     private ScrollView chatScrollView;
 
-    //TODO get the place photo
     public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap)
     {
+        this.TAG += _placeMap.get("id");
         this.mapsActivity = _mapsActivity;
         this.geocoder = new Geocoder(_mapsActivity
                 ,_mapsActivity.getResources().getConfiguration().locale);
@@ -95,9 +113,10 @@ public class YarnPlace
 
         this.parentViewGroup = _mapsActivity.findViewById(R.id.map);
 
-
         this.chatCreator = new ChatCreator(_mapsActivity,parentViewGroup,
                 mapsActivity.localUser.userID);
+
+        this.initializePlaces();
         this.initializePopUp();
         this.initializeUI();
     }
@@ -132,15 +151,13 @@ public class YarnPlace
         double width = dm.widthPixels;
         double height = dm.heightPixels;
 
-        //double width =  LinearLayout.LayoutParams.WRAP_CONTENT;
-        //double height = LinearLayout.LayoutParams.WRAP_CONTENT;
-
-        window = new PopupWindow(yarnPlaceInfoWindow,(int)(width * 0.7), (int)(height * 0.6));
+        window = new PopupWindow(yarnPlaceInfoWindow,(int)(width * 0.6), (int)(height * 0.5));
         window.setAnimationStyle(R.style.popup_window_animation_phone);
         window.update();
         window.setClippingEnabled(true);
 
         CompatabiltyTools.setPopupElevation(window,5.0f);
+        getPlacePhoto();
     }
 
     private void initializeUI()
@@ -166,6 +183,70 @@ public class YarnPlace
         });
 
         placeNameTitle.setText(placeMap.get("name"));
+    }
+
+    private void initializePlaces(){
+        // Initialize Places.
+        Places.initialize(mapsActivity
+                 ,mapsActivity.getResources().getString(R.string.google_place_key));
+
+        // Create a new Places client instance.
+        placesClient = Places.createClient(mapsActivity);
+    }
+
+    private void getPlacePhoto(){
+
+        // Specify fields. Requests for photos must always have the PHOTO_METADATAS field.
+        List<Place.Field> fields = Arrays.asList(Place.Field.PHOTO_METADATAS);
+
+        // Get a Place object (this example uses fetchPlace(), but you can also use findCurrentPlace())
+        FetchPlaceRequest placeRequest = FetchPlaceRequest.builder(placeMap.get("id"), fields).build();
+
+        Log.d(TAG,"Getting place photo");
+        placesClient.fetchPlace(placeRequest).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
+            @Override
+            public void onSuccess(FetchPlaceResponse fetchPlaceResponse) {
+
+                Place place = fetchPlaceResponse.getPlace();
+
+                // Get the photo metadata.
+                PhotoMetadata photoMetadata = place.getPhotoMetadatas().get(0);
+
+                // Get the attribution text.
+                String attributions = photoMetadata.getAttributions();
+
+                // Create a FetchPhotoRequest.
+                FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
+                        .build();
+
+                placesClient.fetchPhoto(photoRequest).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
+                    @Override
+                    public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
+                        placePhoto = fetchPhotoResponse.getBitmap();
+                        ImageView imageView = yarnPlaceInfoWindow.findViewById(R.id.placePicture);
+                        imageView.setImageBitmap(placePhoto);
+
+                        Log.d(TAG,"Got Place photo");
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        if (e instanceof ApiException) {
+                            ApiException apiException = (ApiException) e;
+                            int statusCode = apiException.getStatusCode();
+                            // Handle error with given status code.
+                            Log.e(TAG, "Place not found: " + e.getMessage());
+                        }
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "Unable to fetch place: " + e.getMessage());
+            }
+        });
     }
 
     //endRegion
