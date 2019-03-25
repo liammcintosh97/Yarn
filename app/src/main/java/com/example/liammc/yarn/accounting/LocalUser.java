@@ -9,8 +9,8 @@ public class LocalUser {
 
     //private constructor to avoid client applications to use constructor
     private LocalUser(){
-        user = new YarnUser("LocalUser",
-                FirebaseAuth.getInstance().getCurrentUser().getUid()
+
+        this.user = new YarnUser(FirebaseAuth.getInstance().getCurrentUser().getUid()
                 ,YarnUser.UserType.LOCAL);
     }
 

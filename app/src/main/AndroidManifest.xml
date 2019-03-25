@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.liammc.yarn">
-
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -21,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".InitializationActivity"></activity>
         <activity android:name=".core.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -70,7 +70,7 @@
         <activity android:name=".authentication.CreateAccountActivity" />
         <activity android:name=".core.ChatPlannerActivity" />
         <activity android:name=".core.NotificationsActivity" />
-        <activity android:name=".core.AccountActivity"></activity>
+        <activity android:name=".core.AccountActivity" />
     </application>
 
 </manifest>

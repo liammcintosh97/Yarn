@@ -14,20 +14,13 @@
         android:id="@+id/placeTilte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_margin="10dp"
         android:layout_weight="0"
-        android:baselineAligned="false"
+        android:gravity="center_vertical|center_horizontal"
         android:text="@string/infoWindow_placeTitle_default"
         android:textAlignment="center"
         android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textStyle="bold" />
 
     <ImageView
         android:id="@+id/placePicture"
@@ -35,13 +28,16 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:contentDescription="@string/infoWindow_contentDiscription"
+        android:minWidth="400dp"
         android:padding="10dp"
+        android:weightSum="1"
         app:srcCompat="@android:color/background_dark" />
 
     <TextView
         android:id="@+id/chatsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:layout_weight="0"
         android:gravity="center_vertical|center_horizontal"
         android:text="@string/infoWindow_chatTitle"
@@ -54,7 +50,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp">
+        android:paddingRight="10dp"
+        android:weightSum="1">
 
         <LinearLayout
             android:id="@+id/elements"
@@ -71,6 +68,7 @@
         android:gravity="bottom"
         android:orientation="horizontal">
 
+
         <Button
             android:id="@+id/googleMapsButton"
             style="?android:attr/buttonBarButtonStyle"
@@ -79,7 +77,6 @@
             android:layout_weight="1"
             android:text="@string/infoWindow_googleMaps_Button"
             android:textSize="11sp" />
-
 
         <Button
             android:id="@+id/createChatButton"

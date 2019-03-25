@@ -71,7 +71,7 @@ public final class AddressTools
         }
     }
 
-    public static DatabaseReference getLocalityDatabaseReference(String country,String admin1)
+    public static DatabaseReference getAdminDatabaseReference(String country,String admin1)
     {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
                 .child(country).child(admin1);

@@ -1,14 +1,24 @@
 package com.example.liammc.yarn.Events;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.liammc.yarn.FinderCallback;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.utility.AddressTools;
+import com.example.liammc.yarn.utility.MathTools;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
 import com.google.firebase.functions.HttpsCallableResult;
@@ -29,6 +39,7 @@ public class NearbyChatFinder {
     private final YarnUser localUser;
     private int searchRadius;
     private FirebaseFunctions firebaseFunctions;
+    private DatabaseReference adminRef;
 
     private FinderCallback listener;
 
@@ -73,7 +84,6 @@ public class NearbyChatFinder {
                 }
                 //The task isn't a failure
                 else{
-
                     try{
                         JSONObject JSONResult = new JSONObject(task.getResult());
                         String status = JSONResult.getString("status");
@@ -92,6 +102,61 @@ public class NearbyChatFinder {
         });
     }
 
+    public void setNearbyChatsListener(final ArrayList<String> types){
+
+        adminRef = AddressTools.getAdminDatabaseReference(localUser.lastAddress.getCountryName()
+                ,localUser.lastAddress.getAdminArea());
+
+        adminRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                DataSnapshot placeInfo = dataSnapshot.child("Yarn_Place_Info");
+
+                double lat = (double)placeInfo.child("lat").getValue();
+                double lng = (double)placeInfo.child("lng").getValue();
+
+                String placeId = dataSnapshot.getKey();
+                String placeName = (String) placeInfo.child("place_name").getValue();
+                LatLng placeLatLng =  new LatLng(lat,lng);
+                String placeType =  (String) placeInfo.child("place_type").getValue();
+
+                //The distance is greater then
+                if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
+                        ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
+                        > searchRadius) return;
+
+                //The types don't match
+                if(!checkTypeEquality(placeType,types)) return;
+
+                HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
+                        ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
+
+                listener.onFoundPlace(placeMap);
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
     //endregion
 
     //region Private Methods
@@ -113,7 +178,7 @@ public class NearbyChatFinder {
                 String lat = JSONObject.getString("lat");
                 String lng = JSONObject.getString("lng");
 
-                HashMap<String,String> placeMap = buildPlaceMap(id,name,type,lat,lng);
+                HashMap<String,String> placeMap = YarnPlace.buildPlaceMap(id,name,type,lat,lng);
 
                 placeMaps.add(placeMap);
             }
@@ -152,16 +217,19 @@ public class NearbyChatFinder {
                 });
     }
 
-    private HashMap<String, String> buildPlaceMap(String id, String name,String type, String lat, String lng){
+    //endregion
 
-        HashMap<String, String > placeMap = new HashMap<>();
-        placeMap.put("id",id);
-        placeMap.put("name", name);
-        placeMap.put("type",type);
-        placeMap.put("lat", lat);
-        placeMap.put("lng", lng);
+    //region Utility
 
-        return placeMap;
+    private boolean checkTypeEquality(String placeType, ArrayList<String> types)
+    {
+        for(int i = 0; i < types.size(); i++)
+        {
+            if(types.get(i).equals(placeType)){
+                return true;
+            }
+        }
+        return false;
     }
 
     //endregion

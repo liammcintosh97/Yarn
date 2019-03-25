@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.liammc.yarn.InitializationActivity;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -62,7 +63,7 @@ public class IntroActivity extends FragmentActivity {
     {
         userUpdator.updateTermsAceptance(true);
 
-        Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
+        Intent myIntent = new Intent(getBaseContext(),   InitializationActivity.class);
         startActivity(myIntent);
     }
 

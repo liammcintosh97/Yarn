@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.liammc.yarn.InitializationActivity;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
-        if(isSignedIn()) goToMap();
+        if(isSignedIn()) GoToInitialization();
     }
 
 
@@ -56,12 +57,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(myIntent);
     }
 
-    private void goToMap()
-    {
-        Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
+    public void GoToInitialization(){
+        Intent myIntent = new Intent(getBaseContext(),   InitializationActivity.class);
         startActivity(myIntent);
     }
-
 
     //region Utility
 

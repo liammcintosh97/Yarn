@@ -7,8 +7,9 @@ import android.util.Log;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 
-import com.example.liammc.yarn.core.ChatRecorder;
+import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.utility.AddressTools;
+import com.example.liammc.yarn.utility.ReadyListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -16,6 +17,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Chat //implements Parcelable
@@ -40,23 +42,23 @@ public class Chat //implements Parcelable
 
     //region Ready Listener
 
-    private ReadyListener readyListener;
+    private ChatReadyListener readyListener;
 
-    public interface ReadyListener {
+    public interface ChatReadyListener {
         void onReady(Chat chat);
     }
 
-    public ReadyListener getReadyListener() {
+    public ChatReadyListener getReadyListener() {
         return readyListener;
     }
 
-    public void setReadyListener(ReadyListener readyListener) {
+    public void setReadyListener(ChatReadyListener readyListener) {
         this.readyListener = readyListener;
     }
 
     //endregion
 
-    private final String PLACE_INFO_REF = "Yarn_Place_Info";
+    public static final String PLACE_INFO_REF = "Yarn_Place_Info";
     private final DatabaseReference chatRef;
     private final DatabaseReference placeInfoRef;
     private final DatabaseReference placeRef;
@@ -80,21 +82,20 @@ public class Chat //implements Parcelable
 
     //region Constructors
 
-    public Chat(YarnPlace _place,String _hostUserID, String _chatDate, String _chatTime
-            , String _chatLength, ReadyListener _readyListener)
+    public Chat(YarnPlace _place,HashMap<String, String> chatMap, ChatReadyListener _readyListener)
     {
         //This is the constructor for creating an instance of a new chat
         this.localUserID = LocalUser.getInstance().user.userID;
 
         //Initialize chat variables
-        this.hostUser = new YarnUser("Chat",_hostUserID,YarnUser.UserType.LOCAL);
+        this.hostUser = new YarnUser(chatMap.get("host"),YarnUser.UserType.LOCAL);
 
         this.yarnPlace = _place;
         this.chatID = this.generateChatID();
         this.TAG = TAG + " " + chatID;
-        this.chatDate = _chatDate;
-        this.chatTime = _chatTime;
-        this.chatLength = _chatLength;
+        this.chatDate = chatMap.get("date");
+        this.chatTime = chatMap.get("time");
+        this.chatLength = chatMap.get("length");
 
         this.initializeChatState();
 
@@ -119,7 +120,7 @@ public class Chat //implements Parcelable
         this.readyListener = _readyListener;
     }
 
-    public Chat(YarnPlace _place, String _chatID, ReadyListener _readyListener)
+    public Chat(YarnPlace _place, String _chatID)
     {
         //This is the constructor for creating an instance of an exsisting chat
         this.TAG = TAG + " " + _chatID;
@@ -151,8 +152,6 @@ public class Chat //implements Parcelable
         this.addDataListener(chatRef,"active");
         this.addDataListener(chatRef,"canceled");
 
-        //Set ready listener
-        this.readyListener = _readyListener;
     }
 
     //endregion Constructors
@@ -196,7 +195,7 @@ public class Chat //implements Parcelable
         final String admin1 = yarnPlace.address.getAdminArea();
         final String admin2 = yarnPlace.address.getSubAdminArea();
         final String locality = yarnPlace.address.getLocality();
-        final String street = yarnPlace.address.toString();
+        final String street = yarnPlace.address.getAddressLine(0);
         final String postCode = yarnPlace.address.getPostalCode();
         final String type = yarnPlace.placeType;
 
@@ -241,7 +240,7 @@ public class Chat //implements Parcelable
         setData(chatRef,"chatAccepted",true);
         setData(chatRef,"chatActive", chatActive);
 
-        ChatRecorder.getInstance().recordChat(context,this);
+        Recorder.getInstance().recordChat(context,this);
     }
 
     public void cancelChat()
@@ -310,9 +309,31 @@ public class Chat //implements Parcelable
 
     //region Utility
 
+    public static HashMap<String, String> buildChatMap(String _hostUserID, String _chatDate, String _chatTime
+            , String _chatLength){
+
+        HashMap<String,String> chatMap = new HashMap<>();
+
+        chatMap.put("host",_hostUserID);
+        chatMap.put("date",_chatDate);
+        chatMap.put("time",_chatTime);
+        chatMap.put("length",_chatLength);
+
+        return chatMap;
+    }
+
+    public boolean checkForUserInChat(String userID){
+
+        if(guestUser == null){
+            return hostUser.userID.equals(userID);
+        }
+
+        else return guestUser.userID.equals(userID) || hostUser.userID.equals(userID);
+    }
+
     private void checkReady(){
 
-        if(hostUser != null &&
+        boolean ready = (hostUser != null &&
                 guestReady &&
                 chatID != null &&
                 chatDate != null &&
@@ -320,9 +341,10 @@ public class Chat //implements Parcelable
                 chatLength != null &&
                 chatAccepted != null &&
                 chatActive != null &&
-                chatCanceled != null){
+                chatCanceled != null);
 
-            if(readyListener != null) readyListener.onReady(this);
+        if(readyListener != null && ready){
+            readyListener.onReady(this);
         }
     }
 
@@ -344,7 +366,7 @@ public class Chat //implements Parcelable
                     hostUser = LocalUser.getInstance().user;
                 } else {
                     Log.d(TAG, String.valueOf( snapshot.getValue()));
-                    hostUser = new YarnUser("Chat", chatHostID,
+                    hostUser = new YarnUser( chatHostID,
                             YarnUser.UserType.NETWORK);
                 }
                 return true;
@@ -353,18 +375,18 @@ public class Chat //implements Parcelable
             //region Guest
             case ("guest"): {
 
+                guestReady = true;
                 String chatGuestID =  (String)snapshot.child("guest").getValue();
                 if(chatGuestID == null) return false;
 
                 if (chatGuestID.equals(localUserID)) {
                     guestUser = LocalUser.getInstance().user;
                 } else if (!chatGuestID.equals("")) {
-                    guestUser = new YarnUser("Chat", chatGuestID,
+                    guestUser = new YarnUser( chatGuestID,
                             YarnUser.UserType.NETWORK);
                 } else {
                     guestUser = null;
                 }
-                guestReady = true;
                 return true;
             }
             //endregion

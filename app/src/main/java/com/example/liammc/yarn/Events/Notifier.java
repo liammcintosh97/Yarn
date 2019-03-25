@@ -10,7 +10,8 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.example.liammc.yarn.Notification;
-import com.example.liammc.yarn.core.ChatRecorder;
+import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.utility.DateTools;
 
 import java.util.ArrayList;
@@ -79,6 +80,8 @@ public class Notifier
     }
 
     //region Public Methods
+
+
     public void addNotification(Context context,String title, String message)
     {
         Notification notification = new Notification(title,message);
@@ -157,7 +160,7 @@ public class Notifier
     public void onLocationChanged(Context context, Location location)
     {
         int nearbyChats = 0;
-        ArrayList<Chat> chatList = ChatRecorder.getInstance().chatList;
+        ArrayList<Chat> chatList = Recorder.getInstance().chatList;
 
         if(chatList != null){
 
@@ -190,7 +193,7 @@ public class Notifier
             if (action.equals(Intent.ACTION_DATE_CHANGED)){
 
                 Date currentTime = Calendar.getInstance().getTime();
-                ArrayList<Chat> chatList = ChatRecorder.getInstance().chatList;
+                ArrayList<Chat> chatList = Recorder.getInstance().chatList;
 
                 for(int i  = 0 ; i < chatList.size(); i++)
                 {

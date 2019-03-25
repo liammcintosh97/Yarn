@@ -1,6 +1,7 @@
 package com.example.liammc.yarn.Events;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -24,10 +25,11 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.core.ChatRecorder;
+import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
+import com.example.liammc.yarn.utility.ReadyListener;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
@@ -53,6 +55,19 @@ import java.util.List;
 
 public class YarnPlace
 {
+    //region Ready Listener
+
+    private ReadyListener readyListener;
+
+    public ReadyListener getReadyListener() {
+        return readyListener;
+    }
+
+    public void setReadyListener(ReadyListener readyListener) {
+        this.readyListener = readyListener;
+    }
+    //endregion
+
     public final class PlaceType
     {
         public static final String BAR = "bar";
@@ -64,10 +79,8 @@ public class YarnPlace
     }
 
     private String TAG = "Yarn Place";
-    private Geocoder geocoder;
-    private MapsActivity mapsActivity;
     public ChatCreator chatCreator;
-    private ChatUpdater chatUpdater;
+    public ChatUpdater chatUpdater;
 
     //Place Data
     public HashMap<String, String>  placeMap;
@@ -75,10 +88,9 @@ public class YarnPlace
     public Address address;
     public LatLng latLng;
     public Bitmap placePhoto;
-    public List<Chat> chats= new ArrayList<>();
+    public ArrayList<Chat> chats= new ArrayList<>();
 
     //Google
-    private GoogleMap map;
     public Marker marker;
     PlacesClient placesClient;
 
@@ -97,34 +109,52 @@ public class YarnPlace
     private Button createChatButton;
     private ScrollView chatScrollView;
 
-    public YarnPlace(MapsActivity _mapsActivity, GoogleMap _map, HashMap<String, String> _placeMap)
+    //Misc
+    private boolean chatUpdaterReady = false;
+
+    public YarnPlace(HashMap<String, String> _placeMap)
     {
-        this.TAG += _placeMap.get("id");
-        this.mapsActivity = _mapsActivity;
-        this.geocoder = new Geocoder(_mapsActivity
-                ,_mapsActivity.getResources().getConfiguration().locale);
-
+        this.TAG += (" " + _placeMap.get("id"));
         this.placeMap = _placeMap;
-        this.map = _map;
-
-        this.createMarker();
-        this.chatUpdater = new ChatUpdater(LocalUser.getInstance().user.userID
-                ,this);
-
-        this.parentViewGroup = _mapsActivity.findViewById(R.id.map);
-
-        this.chatCreator = new ChatCreator(_mapsActivity,parentViewGroup,
-                mapsActivity.localUser.userID);
-
-        this.initializePlaces();
-        this.initializePopUp();
-        this.initializeUI();
+        this.placeType = _placeMap.get("type");
     }
 
     //region Initialisation
 
-    private void createMarker()
-    {
+    public void init(Context context,Geocoder geocoder){
+
+        initializePlaces(context);
+        getPlacePhoto();
+        getPlaceAddress(context,geocoder);
+    }
+
+    public void initChatUpdater(Context context){
+
+        chatUpdater = new ChatUpdater(LocalUser.getInstance().user.userID
+                , this, new ReadyListener() {
+            @Override
+            public void onReady() {
+                chatUpdaterReady = true;
+                if(checkReady())readyListener.onReady();
+            }
+        });
+        chatUpdater.getJoinedChats(context);
+    }
+
+    public void initOnMap(MapsActivity mapsActivity, GoogleMap map){
+
+
+        parentViewGroup = mapsActivity.findViewById(R.id.map);
+
+        chatCreator = new ChatCreator(mapsActivity,parentViewGroup,
+                LocalUser.getInstance().user.userID);
+
+        createMarker(map);
+        initializePopUp(mapsActivity);
+        initializeUI(mapsActivity);
+    }
+
+    private void createMarker(GoogleMap map) {
         MarkerOptions markerOptions = new MarkerOptions();
 
         double lat = Double.parseDouble( placeMap.get("lat"));
@@ -135,11 +165,9 @@ public class YarnPlace
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
 
         marker = map.addMarker(markerOptions);
-        address = AddressTools.getAddressFromLocation(geocoder,latLng);
     }
 
-    private void initializePopUp()
-    {
+    private void initializePopUp(MapsActivity mapsActivity) {
         // Initialize a new instance of LayoutInflater service
         LayoutInflater inflater = mapsActivity.getLayoutInflater();
         yarnPlaceInfoWindow = inflater.inflate(R.layout.info_window,null);
@@ -157,11 +185,9 @@ public class YarnPlace
         window.setClippingEnabled(true);
 
         CompatabiltyTools.setPopupElevation(window,5.0f);
-        getPlacePhoto();
     }
 
-    private void initializeUI()
-    {
+    private void initializeUI(final MapsActivity mapsActivity) {
         placeNameTitle = yarnPlaceInfoWindow.findViewById(R.id.placeTilte);
         placePicture = yarnPlaceInfoWindow.findViewById(R.id.placePicture);
         googleMapsButton = yarnPlaceInfoWindow.findViewById(R.id.googleMapsButton);
@@ -172,7 +198,7 @@ public class YarnPlace
         googleMapsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnGoogleMapsPressed();
+                OnGoogleMapsPressed(mapsActivity);
             }
         });
         createChatButton.setOnClickListener(new View.OnClickListener() {
@@ -185,13 +211,13 @@ public class YarnPlace
         placeNameTitle.setText(placeMap.get("name"));
     }
 
-    private void initializePlaces(){
+    private void initializePlaces(Context context){
         // Initialize Places.
-        Places.initialize(mapsActivity
-                 ,mapsActivity.getResources().getString(R.string.google_place_key));
+        Places.initialize(context
+                 ,context.getResources().getString(R.string.google_place_key));
 
         // Create a new Places client instance.
-        placesClient = Places.createClient(mapsActivity);
+        placesClient = Places.createClient(context);
     }
 
     private void getPlacePhoto(){
@@ -202,12 +228,11 @@ public class YarnPlace
         // Get a Place object (this example uses fetchPlace(), but you can also use findCurrentPlace())
         FetchPlaceRequest placeRequest = FetchPlaceRequest.builder(placeMap.get("id"), fields).build();
 
-        Log.d(TAG,"Getting place photo");
         placesClient.fetchPlace(placeRequest).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
             @Override
             public void onSuccess(FetchPlaceResponse fetchPlaceResponse) {
 
-                Place place = fetchPlaceResponse.getPlace();
+                final Place place = fetchPlaceResponse.getPlace();
 
                 // Get the photo metadata.
                 PhotoMetadata photoMetadata = place.getPhotoMetadatas().get(0);
@@ -222,11 +247,15 @@ public class YarnPlace
                 placesClient.fetchPhoto(photoRequest).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {
                     @Override
                     public void onSuccess(FetchPhotoResponse fetchPhotoResponse) {
-                        placePhoto = fetchPhotoResponse.getBitmap();
-                        ImageView imageView = yarnPlaceInfoWindow.findViewById(R.id.placePicture);
-                        imageView.setImageBitmap(placePhoto);
+                        Bitmap b  = fetchPhotoResponse.getBitmap();
 
-                        Log.d(TAG,"Got Place photo");
+                        placePhoto = Bitmap.createScaledBitmap(b,
+                                (int)(b.getWidth() * 0.40),
+                                (int)(b.getHeight() * 0.40),true);
+
+                        if(checkReady()) readyListener.onReady();
+
+                        Log.d(TAG," Got Place photo");
 
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -249,7 +278,34 @@ public class YarnPlace
         });
     }
 
-    //endRegion
+    private void getPlaceAddress(final Context context,final Geocoder geocoder){
+
+        // Specify fields. Requests for photos must always have the PHOTO_METADATAS field.
+        List<Place.Field> fields = Arrays.asList(Place.Field.LAT_LNG);
+
+        // Get a Place object (this example uses fetchPlace(), but you can also use findCurrentPlace())
+        FetchPlaceRequest placeRequest = FetchPlaceRequest.builder(placeMap.get("id"), fields).build();
+
+        placesClient.fetchPlace(placeRequest).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
+            @Override
+            public void onSuccess(FetchPlaceResponse fetchPlaceResponse) {
+                address = AddressTools.getAddressFromLocation(geocoder
+                        ,fetchPlaceResponse.getPlace().getLatLng());
+
+                initChatUpdater(context);
+
+                if(checkReady())readyListener.onReady();
+                Log.d(TAG,"Got Place address");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "Unable to fetch place: " + e.getMessage());
+            }
+        });
+    }
+
+    //endregion
 
     //region Button Methods
 
@@ -258,24 +314,28 @@ public class YarnPlace
         chatCreator.showChatCreator(this);
     }
 
-    private void OnGoogleMapsPressed()
-    {
+    private void OnGoogleMapsPressed(MapsActivity mapsActivity) {
         String map = "http://maps.google.co.in/maps?q=" + address.toString();
 
         Intent mapsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(map));
         mapsActivity.startActivity(mapsIntent);
     }
 
-    private void OnJoinChatPressed(Chat chat)
-    {
-        chat.acceptChat(mapsActivity,mapsActivity.localUser);
-        ChatRecorder.getInstance().recordChat(mapsActivity,chat);
+    private void OnJoinChatPressed(Context context,Chat chat) {
+        chat.acceptChat(context,LocalUser.getInstance().user);
+        Recorder.getInstance().recordChat(context,chat);
     }
     //endregion
 
-    //region Public Local Methods
+    //region Public  Methods
 
-    public boolean showInfoWindow() {
+    public boolean showInfoWindow(MapsActivity mapsActivity, GoogleMap map) {
+
+        addChatsToScrollView(mapsActivity,chats);
+
+        ImageView imageView = yarnPlaceInfoWindow.findViewById(R.id.placePicture);
+        imageView.setImageBitmap(placePhoto);
+
         Display display = mapsActivity.getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
@@ -287,12 +347,12 @@ public class YarnPlace
         if (!window.isShowing()) {
             window.showAtLocation(parentViewGroup, Gravity.NO_GRAVITY, 0, 0);
         }
-        updatePopup();
+        updatePopup(map);
 
         return true;
     }
 
-    public boolean updatePopup() {
+    public boolean updatePopup(GoogleMap map) {
 
         if (marker != null && window != null) {
             // marker is visible
@@ -318,8 +378,15 @@ public class YarnPlace
         if(window != null && window.isShowing()) window.dismiss();
     }
 
-    public void addChatToScrollView(final Chat chat) {
-        LayoutInflater inflater = (LayoutInflater) mapsActivity
+    public void addChatsToScrollView(final Context context,ArrayList<Chat> chats){
+
+        for (Chat chat: chats) {
+            addChatToScrollView(context, chat);
+        }
+    }
+
+    public void addChatToScrollView(final Context context, final Chat chat) {
+        LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         View element = inflater.inflate(R.layout.info_window_scroll_view_element,
                 parentViewGroup,false);
@@ -327,7 +394,7 @@ public class YarnPlace
         element.findViewById(R.id.joinChatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                OnJoinChatPressed(chat);
+                OnJoinChatPressed(context,chat);
             }
         });
 
@@ -351,6 +418,38 @@ public class YarnPlace
                 chatScrollView.removeViewAt(i);
             }
         }
+    }
+
+    //endregion
+
+    //region utility
+
+    public static HashMap<String, String> buildPlaceMap(String id, String name,String type,
+                                                        String lat, String lng){
+
+        HashMap<String, String > placeMap = new HashMap<>();
+        placeMap.put("id",id);
+        placeMap.put("name", name);
+        placeMap.put("type",type);
+        placeMap.put("lat", lat);
+        placeMap.put("lng", lng);
+
+        return placeMap;
+    }
+    public boolean checkReady(){
+
+        return readyListener != null && chatUpdaterReady && placePhoto != null && address != null;
+    }
+
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof YarnPlace)) {
+            return false;
+        }
+        YarnPlace cc = (YarnPlace)o;
+        return cc.placeMap.get("id").equals(this.placeMap.get("id"));
     }
 
     //endregion

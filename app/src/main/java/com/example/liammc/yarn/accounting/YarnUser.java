@@ -1,6 +1,7 @@
 package com.example.liammc.yarn.accounting;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Address;
@@ -13,12 +14,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.example.liammc.yarn.Events.Notifier;
 import com.example.liammc.yarn.utility.AddressTools;
+import com.example.liammc.yarn.utility.ReadyListener;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,8 +37,29 @@ import java.util.Locale;
 
 public class YarnUser implements LocationSource, LocationListener
 {
+    //region Ready Listener
+
+    private ReadyListener readyListener;
+
+    public ReadyListener getReadyListener() {
+        return readyListener;
+    }
+
+    public void setReadyListener(ReadyListener readyListener) {
+        this.readyListener = readyListener;
+    }
     //endregion
-    private final String CALLINGTAG;
+
+    //region Location Received Listener
+
+    public interface LocationRecievedListener{
+        void onLocationRecieved(LatLng latLng);
+    }
+
+    //endregion
+
+    //endregion
+    private final String TAG = "YarnUser";
     public enum UserType{LOCAL,NETWORK}
 
     //Local User Location;
@@ -48,14 +74,15 @@ public class YarnUser implements LocationSource, LocationListener
     //Firebase
     private final StorageReference userStorageReferance;
     private final DatabaseReference userDatabaseReference;
+    private FirebaseAuth userAuth;
 
     //User info
     public String userID;
     public String userName;
     public Bitmap profilePicture;
     public String email;
-    public double rating;
-    public boolean termsAcceptance;
+    public Double rating = null;
+    public Boolean termsAcceptance = null;
     private UserType userType;
 
     //User Location
@@ -63,11 +90,9 @@ public class YarnUser implements LocationSource, LocationListener
     public LatLng lastLatLng;
     public Address lastAddress;
 
-    public YarnUser(String callingTag, String _userID, UserType type)
+    public YarnUser(String _userID, UserType type)
     {
         this.userType = type;
-
-        this.CALLINGTAG = callingTag;
 
         this.userStorageReferance = FirebaseStorage.getInstance().getReference().child("Users");
         this.userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -75,11 +100,10 @@ public class YarnUser implements LocationSource, LocationListener
         this.userID = _userID;
         this.getUserName();
         this.getUserProfilePicture();
-        this.getEmail();
         this.getUserRating();
         this.getUserTermAcceptance();
-
     }
+
 
     @Override
     public void deactivate(){
@@ -93,16 +117,16 @@ public class YarnUser implements LocationSource, LocationListener
     public void activate(OnLocationChangedListener _listener){
 
         listner = _listener;
-        Log.d(CALLINGTAG,"The Listener has been activated");
+        Log.d(TAG,"The Listener has been activated");
 
         try {
             if (provider != null) {
                 locationManager.requestLocationUpdates(provider, minTime, minDistance, this);
             } else {
-                Log.d(CALLINGTAG,"No providers at this time");
+                Log.d(TAG,"No providers at this time");
             }
         }catch (SecurityException e){
-            Log.e(CALLINGTAG,e.toString());
+            Log.e(TAG,e.toString());
         }
 
     }
@@ -115,14 +139,19 @@ public class YarnUser implements LocationSource, LocationListener
             listner.onLocationChanged(location);
         }
 
-
         lastLocation = location;
         lastLatLng = new LatLng(lastLocation.getLatitude()
                 ,lastLocation.getLongitude());
         lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
         //TODO make the notifier work with the new location structure
         //Notifier.getInstance().onLocationChanged(context, location);
-        Log.d(CALLINGTAG, "Got local user's location");
+        Log.d(TAG, "Got local user's location");
+
+
+        if(checkReady()){
+            readyListener.onReady();
+            readyListener = null;
+        }
     }
 
     @Override
@@ -139,12 +168,17 @@ public class YarnUser implements LocationSource, LocationListener
 
     //region User Setup
 
+    public void setAuth(FirebaseAuth auth){
+        userAuth = auth;
+
+        getEmail(userAuth);
+    }
 
     public void setUpUserLocation(Activity callingActivity)
     {
         geocoder = new Geocoder(callingActivity, Locale.getDefault());
 
-        locationManager = (LocationManager) callingActivity.getSystemService(callingActivity.LOCATION_SERVICE);
+        locationManager = (LocationManager) callingActivity.getSystemService(Activity.LOCATION_SERVICE);
 
         // Specify Location Provider criteria
         criteria = new Criteria();
@@ -156,9 +190,8 @@ public class YarnUser implements LocationSource, LocationListener
         criteria.setCostAllowed(true);
 
         locationManager = (LocationManager) callingActivity
-                .getSystemService(callingActivity.LOCATION_SERVICE);
+                .getSystemService(Activity.LOCATION_SERVICE);
         provider = locationManager.getBestProvider(criteria, true);
-
     }
 
     //endregion
@@ -173,11 +206,17 @@ public class YarnUser implements LocationSource, LocationListener
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
                 userName = (String) snapshot.getValue();
+                Log.d(TAG,"Got username");
+
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
             {
-                Log.e(CALLINGTAG,"Unable to get value from database");
+                Log.e(TAG,"Unable to get value from database");
             }
         });
     }
@@ -197,22 +236,37 @@ public class YarnUser implements LocationSource, LocationListener
                 if(bitmap != null)
                 {
                     profilePicture = bitmap;
+                    Log.d(TAG,"Got profile picture");
+
+                    if(checkReady()){
+                        readyListener.onReady();
+                        readyListener = null;
+                    }
                 }
                 else
                 {
-                    Log.d(CALLINGTAG,"Unable to decode byte array");
+                    Log.d(TAG,"Unable to decode byte array");
                 }
+
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Log.d(CALLINGTAG,"Failed to download profile picture");
+                Log.d(TAG,"Failed to download profile picture");
             }
         });
     }
 
-    private void getEmail()
+    private void getEmail(FirebaseAuth auth)
     {
+        email = auth.getCurrentUser().getEmail();
+        Log.d(TAG,"Got email");
+
+        if(checkReady()){
+            readyListener.onReady();
+            readyListener = null;
+        }
+        /*
         userDatabaseReference
                 .child(userID)
                 .child("email").addValueEventListener(new ValueEventListener() {
@@ -220,13 +274,19 @@ public class YarnUser implements LocationSource, LocationListener
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
                 email = (String) snapshot.getValue();
+                Log.d(TAG,"Got email");
+
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
             {
-                Log.e(CALLINGTAG,"Unable to get value from database");
+                Log.e(TAG,"Unable to get value from database");
             }
-        });
+        });*/
     }
 
     private void getUserRating()
@@ -239,17 +299,30 @@ public class YarnUser implements LocationSource, LocationListener
                     {
                         try {
                             rating = (double) snapshot.getValue();
+                            Log.d(TAG,"Got user rating");
+
+                            if(checkReady()){
+                                readyListener.onReady();
+                                readyListener = null;
+                            }
                         }
                         catch (ClassCastException e)
                         {
                             Long l = (long)snapshot.getValue();
                             rating = l.doubleValue();
+
+                            Log.d(TAG,"Got user rating");
+
+                            if(checkReady()){
+                                readyListener.onReady();
+                                readyListener = null;
+                            }
                         }
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError)
                     {
-                        Log.e(CALLINGTAG,"Unable to get value from database");
+                        Log.e(TAG,"Unable to get value from database");
                     }
                 });
     }
@@ -263,13 +336,77 @@ public class YarnUser implements LocationSource, LocationListener
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
                  termsAcceptance = (boolean)snapshot.getValue();
+                Log.d(TAG,"Got terms acceptance");
+
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError)
             {
-                Log.e(CALLINGTAG,"Unable to get value from database");
+                Log.e(TAG,"Unable to get value from database");
             }
         });
+    }
+
+    public void getUserLocation(Activity activity,
+                                 FusedLocationProviderClient mFusedLocationProviderClient,
+                                 final LocationRecievedListener listener) {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+        try {
+
+            Task locationResult = mFusedLocationProviderClient.getLastLocation();
+            locationResult.addOnCompleteListener(activity,new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.
+                        lastLocation =(Location)task.getResult();
+                        LatLng latLng = new LatLng(lastLocation.getLatitude(),
+                                lastLocation.getLongitude());
+
+                        lastLatLng = latLng;
+                        lastAddress = AddressTools.getAddressFromLocation(geocoder,latLng);
+                        Log.d(TAG,"Got the user's current location");
+
+                        if(listener != null) listener.onLocationRecieved(latLng);
+
+                        if(checkReady()){
+                            readyListener.onReady();
+                            readyListener = null;
+                        }
+                    } else {
+                        Log.d(TAG, "Current location is null");
+                        Log.e(TAG, "Exception: %s", task.getException());
+                    }
+                }
+            });
+
+        } catch(SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+
+    //endregion
+
+    //region Utility
+
+    private boolean checkReady(){
+
+        boolean ready = readyListener != null &&
+                        profilePicture != null &&
+                        lastLocation != null &&
+                        userName != null &&
+                        email != null &&
+                        rating != null &&
+                        termsAcceptance != null;
+
+        return ready;
     }
 
     //endregion

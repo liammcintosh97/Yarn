@@ -98,6 +98,7 @@
         app:layout_constraintVertical_bias="1.0">
 
         <LinearLayout
+            android:id="@+id/elements"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />

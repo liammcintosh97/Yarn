@@ -1,9 +1,6 @@
 package com.example.liammc.yarn.Events;
 
-import android.app.Activity;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.FragmentManager;
-import android.text.Layout;
 import android.view.Gravity;
 
 import android.view.LayoutInflater;
@@ -14,7 +11,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.core.ChatRecorder;
+import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
@@ -22,6 +19,7 @@ import com.example.liammc.yarn.time.TimeDialog;
 import com.example.liammc.yarn.utility.CompatabiltyTools;
 import com.example.liammc.yarn.utility.DateTools;
 
+import java.util.HashMap;
 import java.util.Locale;
 
 
@@ -172,11 +170,16 @@ public class ChatCreator
         //Format time
         String time = hour + ":" + minute;
 
-        Chat chat = new Chat(yarnPlace, localUserID, date, time, duration, new Chat.ReadyListener() {
+        yarnPlace.chatUpdater.removeChatListener();
+
+        HashMap<String,String> chatMap = Chat.buildChatMap(localUserID,date,time,duration);
+
+        new Chat(yarnPlace, chatMap, new Chat.ChatReadyListener(){
             @Override
             public void onReady(Chat chat) {
 
-                ChatRecorder.getInstance().recordChat(mapsActivity,chat);
+                Recorder.getInstance().recordChat(mapsActivity,chat);
+                yarnPlace.chatUpdater.addChatListener();
                 dissmissChatCreator();
             }
         });

@@ -66,20 +66,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Google Services
     GoogleMap mMap;
-    Geocoder geocoder;
     PlacesClient placesClient;
     FusedLocationProviderClient mFusedLocationProviderClient;
     NearbyPlaceFinder nearbyPlaceFinder;
     NearbyChatFinder nearbyChatFinder;
     SearchPlaceFinder searchPlaceFinder;
+    Geocoder geocoder;
 
     //Map Data
     public YarnUser localUser;
-    List<YarnPlace> yarnPlaces = new ArrayList<YarnPlace>();
+    //List<YarnPlace> yarnPlaces = new ArrayList<YarnPlace>();
 
     //User Interaction
     YarnPlace touchedYarnPlace;
     Notifier notifier;
+    Recorder recorder;
 
     //UI
     CheckBox barCheckBox;
@@ -91,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     CircleOptions circleOptions;
 
     //Chat Planner
-    //public ChatRecorder chatRecorder;
+    //public Recorder recorder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,12 +107,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        setUpNearByChatFinder();
-        setUpNearByPlaceFinder();
-        setUpSearchPlaceFinder();
+        recorder = Recorder.getInstance();
 
-        notifier = Notifier.getInstance();
-        registerReceiver(notifier.timeChangeReceiver,notifier.intentFilter);
+        geocoder = new Geocoder(this,Locale.getDefault());
     }
 
     @Override
@@ -120,13 +118,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
-        localUser = LocalUser.getInstance().user;
+        for (YarnPlace place:recorder.recordedYarnPlaces) {
+            place.initOnMap(this,mMap);
+        }
 
+        setUpNearByChatFinder();
+        setUpNearByPlaceFinder();
+        setUpSearchPlaceFinder();
+
+        initializeLocalUser();
         initializeMapServices();
         initializeMapUI();
 
         onFocusOnUserPressed(null);
-        onRefreshButtonPressed(null);
+        updateCircle();
     }
 
     @Override
@@ -155,21 +160,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //region SetUp
 
     private void initializeMapServices() {
-        initializeUserLocation();
         setMarkerListener();
         setCameraMoveListener();
         setMapClickListener();
     }
 
-    private void initializeUserLocation() {
+    private void initializeLocalUser() {
+
+        localUser = LocalUser.getInstance().user;
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-
-            //final Context context = this;
-            geocoder = new Geocoder(this, Locale.getDefault());
-
-            localUser.setUpUserLocation(this);
-
             mMap.setLocationSource(localUser);
             mMap.setMyLocationEnabled(true);
         }
@@ -185,13 +186,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
 
-                Log.d(TAG,placeMaps.toString());
+                Log.d(TAG,"Found Places with Chats - " + placeMaps.toString());
                 addYarnPlaces(placeMaps);
             }
 
             @Override
             public void onFoundPlace(HashMap<String, String> placeMap){
 
+                Log.d(TAG,"Found Place with Chats - " + placeMap.toString());
+                addYarnPlace(placeMap);
             }
 
             @Override
@@ -228,7 +231,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void setUpSearchPlaceFinder(){
 
-        final Activity activity =  this;
+        final MapsActivity mapsActivity =  this;
 
         if (!Places.isInitialized()) {
             Places.initialize(getApplicationContext(), getResources()
@@ -253,22 +256,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 YarnPlace yarnPlace = addYarnPlace(placeMap);
 
                 focusOnLatLng(yarnPlace.latLng);
-                yarnPlace.showInfoWindow();
+                yarnPlace.showInfoWindow(mapsActivity,mMap);
             }
 
             @Override
             public void onNoPlacesFound(String message) {
-                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+                Toast.makeText(mapsActivity,message,Toast.LENGTH_LONG).show();
             }
         });
     }
-
 
     //endregion
 
     //region Map Listeners
 
     private void setMarkerListener() {
+
+        final MapsActivity mapsActivity = this;
+
         mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
 
             @Override
@@ -284,12 +289,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
 
-                touchedYarnPlace = searchMarkerInList(yarnPlaces,marker);
+                touchedYarnPlace = searchMarkerInList(recorder.recordedYarnPlaces,marker);
 
                 if(touchedYarnPlace != null)
                 {
                     focusOnLatLng(marker.getPosition());
-                    touchedYarnPlace.showInfoWindow();
+                    touchedYarnPlace.showInfoWindow(mapsActivity,mMap);
                     Log.d(TAG,"Found the correct Yarn place from marker click");
                 }
                 else{
@@ -301,13 +306,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void setCameraMoveListener() {
+
         mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {
 
                 if(touchedYarnPlace != null)
                 {
-                    if(!touchedYarnPlace.updatePopup()) touchedYarnPlace = null;
+                    if(!touchedYarnPlace.updatePopup(mMap)) touchedYarnPlace = null;
                 }
             }
         });
@@ -420,7 +426,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-
     //endregion
 
     //endregion
@@ -441,12 +446,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(nightClubCheckBox.isChecked()) types.add(YarnPlace.PlaceType.NIGHT_CLUB);
 
             nearbyChatFinder.getNearbyChats(types);
+            nearbyChatFinder.setNearbyChatsListener(types);
             Log.d(TAG,"Getting near by chats");
         }
     }
 
     public void onFocusOnUserPressed(View view) {
-        getUserLocation();
+        localUser.getUserLocation(this, mFusedLocationProviderClient, new YarnUser.LocationRecievedListener() {
+            @Override
+            public void onLocationRecieved(LatLng latLng) {
+                focusOnLatLng(latLng);
+            }
+        });
     }
 
     public void onChatPlannerPressed(View view) {
@@ -455,7 +466,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
         /*
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
-        intent.putExtra("recordedChats",chatRecorder.recordedChats);
+        intent.putExtra("recordedYarnPlaces",recorder.recordedYarnPlaces);
         startActivityForResult(intent,CHAT_PLANNER_CODE);*/
     }
 
@@ -475,38 +486,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region Private methods
 
-    private void getUserLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-
-            Task locationResult = mFusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(this, new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    if (task.isSuccessful()) {
-                        // Set the map's camera position to the current location of the device.
-                        localUser.lastLocation =(Location)task.getResult();
-                        LatLng latLng = new LatLng(localUser.lastLocation.getLatitude(),
-                                localUser.lastLocation.getLongitude());
-
-                        localUser.lastLatLng = latLng;
-                        focusOnLatLng(latLng);
-                        Log.d(TAG,"Got the user's current location");
-                    } else {
-                        Log.d(TAG, "Current location is null");
-                        Log.e(TAG, "Exception: %s", task.getException());
-                    }
-                }
-            });
-
-        } catch(SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
     private void focusOnLatLng(LatLng latLng) {
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
 
@@ -518,17 +497,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
+    private YarnPlace createYarnPlace(HashMap<String,String> placeMap)
+    {
+        YarnPlace yarnPlace = new YarnPlace(placeMap);
+        yarnPlace.init(this,geocoder);
+        yarnPlace.initOnMap(this,mMap);
+        recorder.recordYarnPlace(yarnPlace);
+
+        return yarnPlace;
+    }
+
     private void addYarnPlaces(List<HashMap<String,String>> placeMaps){
 
-        final MapsActivity mapsActivity = this;
-
         //There are no yarn places so add them all
-        if(yarnPlaces.size() == 0)
+        if(recorder.recordedYarnPlaces.size() == 0)
         {
             for(HashMap<String,String> placeMap : placeMaps)
             {
-                YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
-                yarnPlaces.add(yarnPlace);
+                createYarnPlace(placeMap);
             }
         }
         //There are some yarn places so add the ones we need
@@ -538,7 +524,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 boolean equal = false;
                 //Look for equal Yarn Places
-                for(YarnPlace place: yarnPlaces){
+                for(YarnPlace place: recorder.recordedYarnPlaces){
 
                     if(place.placeMap.get("id").equals(placeMap.get(("id")))){
                         equal = true;
@@ -546,38 +532,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
                 if(!equal){
-                    YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
-                    yarnPlaces.add(yarnPlace);
+                    createYarnPlace(placeMap);
                 }
             }
         }
     }
 
-    private YarnPlace addYarnPlace(HashMap<String,String> placeMap){
+    public YarnPlace addYarnPlace(HashMap<String,String> placeMap){
 
         final MapsActivity mapsActivity = this;
 
         //There are no yarn places so add them all
-        if(yarnPlaces.size() == 0)
+        if(recorder.recordedYarnPlaces.size() == 0)
         {
-            YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
-            yarnPlaces.add(yarnPlace);
-            return yarnPlace;
+            return createYarnPlace(placeMap);
         }
         //There are some yarn places so add the ones we need
         else{
 
             //Look for equal Yarn Places
-            for(YarnPlace place: yarnPlaces){
+            for(YarnPlace place: recorder.recordedYarnPlaces){
 
                 if(place.placeMap.get("id").equals(placeMap.get(("id")))){
                     return place;
                 }
             }
 
-            YarnPlace yarnPlace = new YarnPlace(mapsActivity,mMap,placeMap);
-            yarnPlaces.add(yarnPlace);
-            return yarnPlace;
+            return createYarnPlace(placeMap);
         }
     }
 
