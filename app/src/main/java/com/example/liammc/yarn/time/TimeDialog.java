@@ -8,9 +8,9 @@ import android.text.format.DateFormat;
 import android.widget.TimePicker;
 import java.util.Calendar;
 
-
 public  class TimeDialog extends DialogFragment
         implements TimePickerDialog.OnTimeSetListener {
+    /*This dialog class is used for picking a date*/
 
     public int hour;
     public int minute;
@@ -27,12 +27,17 @@ public  class TimeDialog extends DialogFragment
                 DateFormat.is24HourFormat(getActivity()));
     }
 
-    public void onTimeSet(TimePicker view, int hourOfDay, int _minute)
-    {
+    //region Public Methods
+
+    public void onTimeSet(TimePicker view, int hourOfDay, int _minute) {
+        /*Sets the internal variables when the time is set by the firebaseUser*/
+
         hour = hourOfDay;
         minute = _minute;
 
     }
+
+    //endregion
 
 }
 

@@ -7,42 +7,40 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.core.MapsActivity;
+import com.google.firebase.auth.AuthCredential;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
-public class Authenticator
-{
-    final Activity callingActivity;
+public class Authenticator {
+    /*The Authenticator is used to log in the firebaseUser and sign them up through Firebase*/
+
     final FirebaseAuth mAuth;
-    final String CALLINGTAG;
+    final String TAG = "Authenticator";
 
     //Constructor
-    Authenticator(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _mCurrentUser)
-    {
-        this.callingActivity = _callingActivity;
-        this.CALLINGTAG = _callingActivity.getLocalClassName();
+    Authenticator(FirebaseAuth _mAuth) { this.mAuth = _mAuth; }
 
-        this.mAuth = _mAuth;
-    }
+    //region Public Methods
+    void signUp(final Activity activity, String email, String password) {
+        /*This method signs up the firebaseUser to Firebase with an email and password*/
 
-    void signUp(String email, String password)
-    {
         mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(callingActivity, new OnCompleteListener<AuthResult>() {
+                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(CALLINGTAG, "createUserWithEmail:success");
-                            goToAccountSetup();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(CALLINGTAG, "createUserWithEmail:failure", task.getException());
+                        /*Runs when the task is complete*/
 
-                            Toast.makeText(callingActivity, "Authentication failed.",
+                        if (task.isSuccessful()) {
+                           /*Sign up is successful so go to account set up*/
+                            Log.d(TAG, "createUserWithEmail:success");
+                            goToAccountSetup(activity);
+                        } else {
+                            //Sign up failed so notify the firebaseUser
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+
+                            Toast.makeText(activity, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -50,39 +48,71 @@ public class Authenticator
 
     }
 
-    void login(String email, String password)
-    {
+    void login(final Activity activity, String email, String password) {
+        /*This method logs in the firebaseUser to Firebase with an email and password*/
+
         mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(callingActivity, new OnCompleteListener<AuthResult>() {
+                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(CALLINGTAG, "signInWithEmail:success");
+                        /*Runs when the sign in is complete*/
 
-                            goToMap();
+                        if (task.isSuccessful()) {
+                            //Log in was successful so go to the Map
+                            Log.d(TAG, "signInWithEmail:success");
+
+                            goToMap(activity);
                         } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(CALLINGTAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(callingActivity, "Authentication failed.",
+                            //Log in failed so notify the firebaseUser
+                            Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            Toast.makeText(activity, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
-    //region Utility
-    public void goToAccountSetup()
-    {
-        Intent myIntent = new Intent(callingActivity.getBaseContext(),   CreateAccountActivity.class);
-        callingActivity.startActivity(myIntent);
+    //endregion
+
+    //region Protected Methods
+
+    protected void externalAuth(final Activity activity,AuthCredential credential) {
+
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in firebaseUser's information
+                            Log.d(TAG, "authenticator:success");
+
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew) goToAccountSetup(activity);
+                            else goToMap(activity);
+
+                        } else {
+                            // If sign in fails, display a message to the firebaseUser.
+                            Log.w(TAG, "authenticator:failure", task.getException());
+
+                            Toast.makeText(activity, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
-    public void goToMap()
-    {
-        Intent myIntent = new Intent(callingActivity.getBaseContext(), MapsActivity.class);
-        callingActivity.startActivity(myIntent);
+    protected void goToAccountSetup(Activity activity) {
+        //Takes the firebaseUser to the Account Set Up activity
+
+        Intent myIntent = new Intent(activity.getBaseContext(),   CreateAccountActivity.class);
+        activity.startActivity(myIntent);
     }
 
+    protected void goToMap(Activity activity) {
+        //Takes the firebaseUser to the Map activity
+
+        Intent myIntent = new Intent(activity.getBaseContext(), MapsActivity.class);
+        activity.startActivity(myIntent);
+    }
     //endregion
 }

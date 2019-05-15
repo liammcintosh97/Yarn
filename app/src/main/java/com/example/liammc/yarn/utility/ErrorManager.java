@@ -1,21 +1,17 @@
 package com.example.liammc.yarn.utility;
 
-import android.util.Log;
-
 import java.io.IOException;
 
 public final class ErrorManager {
+    /*This class is used for managing firebaseUser input errors*/
 
     private static String TAG = "ErrorManager";
 
-    //Default constructor
-    private ErrorManager()
-    {
+    public static void validatePassword(String password, String passwordConfirm) throws IOException {
+        /*This method validates the firebaseUser's passed passwords by comparing its characters with the
+        invalid Chars string, checking if they aren't empty and they match each other
+         */
 
-    }
-
-    public static void validatePassword(String password, String passwordConfirm) throws IOException
-    {
         String invalidChars = " ,<.>/?;:'[{]}|!@#$%^&*()_+=\\\"`~";
 
         //Password isn't empty
@@ -40,8 +36,10 @@ public final class ErrorManager {
         }
     }
 
-    public static void validateEmail(String email) throws IOException
-    {
+    public static void validateEmail(String email) throws IOException {
+        /*This method checks if the passed string is a valid email by checking that it isn't empty
+        * and has a "@" and a ".com"*/
+
         String at = "@";
         String dotCom = ".com";
 
@@ -55,8 +53,11 @@ public final class ErrorManager {
         }
     }
 
-    public static void validatePhoneNumber(String phoneNumber) throws IOException
-    {
+    public static void validatePhoneNumber(String phoneNumber) throws IOException {
+        /*This method checks if the passed string is a valid phone number by checking that it isn't
+        empty, is numeric and has 9 numbers
+         */
+
         if(phoneNumber == null || phoneNumber.equals(""))
         {
             throw new IOException("Please enter a phone number");
@@ -71,18 +72,24 @@ public final class ErrorManager {
         }
     }
 
-    public static void validatePhoneCode(String code) throws IOException
-    {
+    public static void validatePhoneCode(String code) throws IOException {
+        /*Checks if the passed string is a phone code by checking if it isn't empty and is numeric*/
+
         if(code == null || code.equals(""))
         {
             throw new IOException("Please Enter a Code");
         }
+        else if(!checkStringNumeric(code))
+        {
+            throw new IOException("Phone code can only be numeric");
+        }
     }
 
-    //region Utility
-    private static boolean checkStringNumeric(String toCheck)
-    {
-        Log.d(TAG,toCheck);
+    //region Private Methods
+    private static boolean checkStringNumeric(String toCheck) {
+        /*Checks if the passed string is numeric by looping over the string and seeing if it doesn't
+        trigger a parseInt exception
+         */
 
         try
         {
@@ -95,8 +102,12 @@ public final class ErrorManager {
         }
     }
 
-    private static boolean checkStringForChars(String toCheck, String against)
-    {
+    private static boolean checkStringForChars(String toCheck, String against) {
+        /*Checks if the toCheck string contains any character in the against string. It goes through
+        each character of the toCheck string and then loops over the against string to see if there
+        is an equality
+         */
+
         for(int i = 0; i< toCheck.length();i++)
         {
             for(int j = 0; j<against.length();j++)

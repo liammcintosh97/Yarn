@@ -1,10 +1,11 @@
-package com.example.liammc.yarn.Events;
+package com.example.liammc.yarn.finders;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.example.liammc.yarn.FinderCallback;
+import com.example.liammc.yarn.interfaces.FinderCallback;
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.utility.AddressTools;
@@ -17,12 +18,9 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
 import com.google.firebase.functions.HttpsCallableResult;
-import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,33 +32,77 @@ import java.util.List;
 import java.util.Map;
 
 public class NearbyChatFinder {
+    /*This class is required when the firebaseUser needs to find nearby chats to their location*/
 
     private final String TAG = "NearbyChatFinder";
-    private final YarnUser localUser;
+    private final LocalUser localUser;
     private int searchRadius;
     private FirebaseFunctions firebaseFunctions;
     private DatabaseReference adminRef;
-
     private FinderCallback listener;
 
-    //TODO get nearby chats as they are added to the database
-    public NearbyChatFinder(int _searchRadius, FinderCallback _listener)
-    {
-        this.localUser = LocalUser.getInstance().user;
+    public NearbyChatFinder(int _searchRadius, FinderCallback _listener) {
+        this.localUser = LocalUser.getInstance();
         this.searchRadius = _searchRadius;
         this.listener =  _listener;
 
         this.firebaseFunctions = FirebaseFunctions.getInstance();
     }
 
-    //region Public Methods
+    //region Init
+    /*This region contains all the initializations methods required by the Nearby Chat Finder*/
+
+    public void initNearbyChatsListener(final ArrayList<String> types){
+        /*Initializes the Nearby Chat Listener. This method listens to changes in the database on
+        * an admin area level eg(Victoria). If there are any children added,changed,removed,moved
+        * or canceled the application will adjust to changes*/
+
+        adminRef = AddressTools.getAdminDatabaseReference(localUser.lastAddress.getCountryName()
+                ,localUser.lastAddress.getAdminArea());
+
+        adminRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                parseFoundChat(dataSnapshot,types);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                parseFoundChat(dataSnapshot,types);
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    //endregion
+
+    //region Getters and Setters
 
     public void setSearchRadius(int radius){
         searchRadius = radius;
     }
 
-    public void getNearbyChats(ArrayList<String> types)
-    {
+    //endregion
+
+    //region Public Methods
+
+    public void getNearbyChats(ArrayList<String> types) {
+        /*Gets the nearby chats to the firebaseUser*/
+
         requestNearbyChats(types).addOnCompleteListener(new OnCompleteListener<String>() {
             @Override
             public void onComplete(@NonNull Task<String> task) {
@@ -82,13 +124,19 @@ public class NearbyChatFinder {
                     listener.onNoPlacesFound("Error finding chats");
                     return;
                 }
-                //The task isn't a failure
+                //The task is successful
                 else{
                     try{
+                        //Gets the results from the JSON object
                         JSONObject JSONResult = new JSONObject(task.getResult());
                         String status = JSONResult.getString("status");
 
-                        if(!status.equals("success")) listener.onNoPlacesFound(status);
+                        Log.d(TAG,status);
+
+                        //return the result to listener
+                        if(!status.equals("success")){
+                            listener.onNoPlacesFound(status);
+                        }
                         else{
                             List<HashMap<String,String>> placeMaps = parse(JSONResult);
                             listener.onFoundPlaces(null,placeMaps);
@@ -102,66 +150,12 @@ public class NearbyChatFinder {
         });
     }
 
-    public void setNearbyChatsListener(final ArrayList<String> types){
-
-        adminRef = AddressTools.getAdminDatabaseReference(localUser.lastAddress.getCountryName()
-                ,localUser.lastAddress.getAdminArea());
-
-        adminRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                DataSnapshot placeInfo = dataSnapshot.child("Yarn_Place_Info");
-
-                double lat = (double)placeInfo.child("lat").getValue();
-                double lng = (double)placeInfo.child("lng").getValue();
-
-                String placeId = dataSnapshot.getKey();
-                String placeName = (String) placeInfo.child("place_name").getValue();
-                LatLng placeLatLng =  new LatLng(lat,lng);
-                String placeType =  (String) placeInfo.child("place_type").getValue();
-
-                //The distance is greater then
-                if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
-                        ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
-                        > searchRadius) return;
-
-                //The types don't match
-                if(!checkTypeEquality(placeType,types)) return;
-
-                HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
-                        ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
-
-                listener.onFoundPlace(placeMap);
-
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
     //endregion
 
     //region Private Methods
 
     private List<HashMap<String,String>> parse(JSONObject resultJSON){
+        /*Parses the JSON data result into a List of HashMaps that is readable by the application*/
 
         List<HashMap<String,String>> placeMaps = new ArrayList<>();
 
@@ -191,20 +185,43 @@ public class NearbyChatFinder {
         return placeMaps;
     }
 
-    private Task<String> requestNearbyChats(ArrayList<String> types)
-    {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("country", localUser.lastAddress.getCountryName());
-        parameters.put("state", localUser.lastAddress.getAdminArea());
-        parameters.put("types", types);
-        parameters.put("search_radius", searchRadius);
-        parameters.put("lat", localUser.lastLatLng.latitude);
-        parameters.put("lng", localUser.lastLatLng.longitude);
+    private void parseFoundChat(DataSnapshot dataSnapshot,final ArrayList<String> types){
+        /*Takes the data snapshot and returns a place map to the firebaseUser if it is within their radius*/
+
+        DataSnapshot placeInfo = dataSnapshot.child("Yarn_Place_Info");
+
+        double lat = (double)placeInfo.child("lat").getValue();
+        double lng = (double)placeInfo.child("lng").getValue();
+
+        String placeId = dataSnapshot.getKey();
+        String placeName = (String) placeInfo.child("place_name").getValue();
+        LatLng placeLatLng =  new LatLng(lat,lng);
+        String placeType =  (String) placeInfo.child("place_type").getValue();
+
+        //The distance is greater then
+        if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
+                ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
+                > searchRadius) return;
+
+        //The types don't match
+        if(!checkTypeEquality(placeType,types)) return;
+
+        /*If it's within the radius and matches the firebaseUser's chosen types return the place map to the
+        listener*/
+        HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
+                ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
+
+        listener.onFoundPlace(placeMap);
+
+    }
+
+    private Task<String> requestNearbyChats(ArrayList<String> types) {
+        /*Calls the Firebase cloud function for getting nearby chats*/
 
         Log.d(TAG,"Getting nearby chats");
         return firebaseFunctions
                 .getHttpsCallable("getNearbyChats")
-                .call(parameters)
+                .call(buildParameters(types))
                 .continueWith(new Continuation<HttpsCallableResult, String>() {
                     @Override
                     public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
@@ -217,12 +234,9 @@ public class NearbyChatFinder {
                 });
     }
 
-    //endregion
+    private boolean checkTypeEquality(String placeType, ArrayList<String> types) {
+        /*Checks if one of the types in the list matches the passed type*/
 
-    //region Utility
-
-    private boolean checkTypeEquality(String placeType, ArrayList<String> types)
-    {
         for(int i = 0; i < types.size(); i++)
         {
             if(types.get(i).equals(placeType)){
@@ -230,6 +244,20 @@ public class NearbyChatFinder {
             }
         }
         return false;
+    }
+
+    private Map<String, Object> buildParameters(ArrayList<String> types){
+        /*Builds and returns parameters used in the Nearby Chats request*/
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("country", localUser.lastAddress.getCountryName());
+        parameters.put("state", localUser.lastAddress.getAdminArea());
+        parameters.put("types", types);
+        parameters.put("search_radius", searchRadius);
+        parameters.put("lat", localUser.lastLatLng.latitude);
+        parameters.put("lng", localUser.lastLatLng.longitude);
+
+        return parameters;
     }
 
     //endregion

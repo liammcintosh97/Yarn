@@ -1,10 +1,8 @@
 package com.example.liammc.yarn.authentication;
 
-
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -14,14 +12,15 @@ import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
 import java.util.concurrent.TimeUnit;
 
-public class PhoneAuth extends Authenticator
-{
+public class PhoneAuth extends Authenticator {
+    /*This class is used for logging users into Firebase through a Phone.*/
+
+    private String TAG = "PhoneAuth";
     public PhoneAuthWindow window;
 
     private PhoneAuthProvider mPhoneAuth;
@@ -30,110 +29,107 @@ public class PhoneAuth extends Authenticator
     private PhoneAuthProvider.ForceResendingToken mResendToken;
 
 
-    PhoneAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
-    {
-        super(_callingActivity,_mAuth, _currentUser);
-        this.SetUpPhoneAuth();
+    PhoneAuth(Activity _callingActivity, FirebaseAuth _mAuth) {
+        super(_mAuth);
+        this.initPhoneAuth(_callingActivity);
     }
 
-    private void SetUpPhoneAuth()
-    {
+    //region Init
+
+    private void initPhoneAuth(final Activity activity) {
+        /*This Method initializes the Phone Authentication*/
+
+        //Get the client
         mPhoneAuth = PhoneAuthProvider.getInstance();
 
+        //Initialize the callbacks
         mPhoneCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             @Override
             public void onVerificationCompleted(PhoneAuthCredential credential) {
+                /*Runs when the phone verification is successful. So proceed to log the firebaseUser into
+                Firebase */
 
-                Log.d(CALLINGTAG, "onVerificationCompleted:" + credential);
-
-                firebaseAuthPhone(credential);
+                Log.d(TAG, "onVerificationCompleted:" + credential);
+                externalAuth(activity,credential);
             }
 
             @Override
             public void onVerificationFailed(FirebaseException e) {
+                /*Runs when the phone verification fails. So proceed to alert the firebaseUser to the error */
 
-                Log.w(CALLINGTAG, "onVerificationFailed", e);
-
-                Toast.makeText(callingActivity, "Phone Verification Failed",
+                Toast.makeText(activity, "Phone Verification Failed",
                         Toast.LENGTH_SHORT).show();
 
+                //Internally log the error message
+                Log.e(TAG, "onVerificationFailed", e);
                 if (e instanceof FirebaseAuthInvalidCredentialsException)
                 {
-                    Log.v(CALLINGTAG,e.getMessage());
+                    Log.e(TAG,e.getMessage());
                 } else if (e instanceof FirebaseTooManyRequestsException)
                 {
-                    Log.v(CALLINGTAG,e.getMessage());
+                    Log.e(TAG,e.getMessage());
                 }
             }
 
             @Override
             public void onCodeSent(String verificationId,
                                    PhoneAuthProvider.ForceResendingToken token) {
+                /*Runs when the users request for a verification code to be sent. So the application
+                 * must show some UI to input the code into */
 
-                Log.d(CALLINGTAG, "onCodeSent:" + verificationId);
+                Log.d(TAG, "onCodeSent:" + verificationId);
 
                 mVerificationId = verificationId;
                 mResendToken = token;
 
-                window.ShowVerifyPhoneUI();
-                window.ShowResendPhoneUI();
+                window.ShowVerify();
+                window.ShowResend();
             }
         };
     }
 
-    void verify(String number)
-    {
-        mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, callingActivity, mPhoneCallbacks);
+    //endregion
+
+    //region Public Methods
+
+    @Override
+    public void goToAccountSetup(Activity activity) {
+        /*This overriding method goes to account Setup but also dismisses the Phone Authentication
+        window*/
+        window.dismissPhoneAuth();
+        super.goToAccountSetup(activity);
     }
 
-    void resend(String number)
-    {
-        mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, callingActivity, mPhoneCallbacks,mResendToken);
+    @Override
+    public void goToMap(Activity activity) {
+        /*This overriding method goes to account Setup but also dismisses the Phone Authentication
+        window*/
+        window.dismissPhoneAuth();
+        super.goToMap(activity);
     }
 
-    void signIn(String code)
-    {
+    //endregion
+
+    //region Package Private Methods
+
+    void verify(Activity activity,String number) {
+       /*Initiates the verification of the passed phone number*/
+        mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, activity, mPhoneCallbacks);
+    }
+
+    void resend(Activity activity,String number) {
+       /*Resend the verification phone number to the passed phone number*/
+        mPhoneAuth.verifyPhoneNumber(number, 60, TimeUnit.SECONDS, activity, mPhoneCallbacks,mResendToken);
+    }
+
+    void signIn(Activity activity,String code) {
+       /*Gets the sign in credentials from the passed phone verification code. Then proceeds to
+       process that credential*/
+
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId,code);
-        firebaseAuthPhone(credential);
+        externalAuth(activity, credential);
     }
 
-    private void firebaseAuthPhone(PhoneAuthCredential credential)
-    {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(callingActivity, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(CALLINGTAG, "signInWithCredential:success");
-
-                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if(isNew) goToAccountSetup();
-                            else goToMap();
-
-                        } else {
-                            // Sign in failed, display a message and update the UI
-                            Log.w(CALLINGTAG, "signInWithCredential:failure", task.getException());
-                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-
-                                Toast.makeText(callingActivity, "Invalid Credentials",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }
-                });
-    }
-
-    public void goToAccountSetup()
-    {
-        window.dissmissPhoneAuth();
-        super.goToAccountSetup();
-    }
-
-    public void goToMap()
-    {
-        window.dissmissPhoneAuth();
-        super.goToMap();
-    }
+    //endregion
 }

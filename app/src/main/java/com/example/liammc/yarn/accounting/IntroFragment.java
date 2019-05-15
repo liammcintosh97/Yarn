@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import com.example.liammc.yarn.R;
 
 public class IntroFragment extends Fragment {
+    /*This fragment is used as apart of the IntroActivity. Its used to show the user how Yarn
+    * functions as a service*/
 
     public IntroFragment() {
         // Required empty public constructor

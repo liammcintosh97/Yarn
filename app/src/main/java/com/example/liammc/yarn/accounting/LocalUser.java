@@ -1,23 +1,270 @@
 package com.example.liammc.yarn.accounting;
 
-import com.google.firebase.auth.FirebaseAuth;
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Criteria;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
-public class LocalUser {
+import com.example.liammc.yarn.utility.AddressTools;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.LocationSource;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Locale;
+
+public class LocalUser extends YarnUser implements LocationSource, LocationListener {
+    /*This class is used to describe a local Yarn User. The local firebaseUser is the firebaseUser that is interacting
+    with the application. Local User extends YarnUser and functions in the same way with some
+    exceptions and functionality. The LocalUser class allows the application to update the firebaseUser on
+    Firebase and also track their location*/
 
     //region singleton pattern
     private static final LocalUser instance = new LocalUser();
 
     //private constructor to avoid client applications to use constructor
-    private LocalUser(){
-
-        this.user = new YarnUser(FirebaseAuth.getInstance().getCurrentUser().getUid()
-                ,YarnUser.UserType.LOCAL);
-    }
+    private LocalUser(){}
 
     public static LocalUser getInstance(){
         return instance;
     }
+
     //endregion
 
-    public YarnUser user;
+    //region Location Received Listener
+    /*This location listener is used from alert external objects to when the firebaseUser has changed
+    location*/
+
+    public interface locationReceivedListener {
+        void onLocationReceived(LatLng latLng);
+    }
+
+    //endregion
+
+    private final String TAG = "Local User";
+
+    //Local User Location;
+    OnLocationChangedListener locationChangedListener;
+    Geocoder geocoder;
+    LocationManager locationManager;
+    String provider;
+    Criteria criteria;
+    private final int minTime = 10000;
+    private final int minDistance = 100;
+
+    //User Location
+    public Location lastLocation;
+    public LatLng lastLatLng;
+    public Address lastAddress;
+
+    //Firebase
+    public FirebaseAuth firebaseAuth;
+    public FirebaseUser firebaseUser;
+
+    public UserUpdator updator;
+
+    //region Init
+    public void initUserLocation(Activity activity) {
+        /*Initialises the firebaseUser location services so that the application can track them*/
+
+        geocoder = new Geocoder(activity, Locale.getDefault());
+
+        locationManager = (LocationManager) activity.getSystemService(Activity.LOCATION_SERVICE);
+
+        // Specify Location Provider criteria
+        criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setAltitudeRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setSpeedRequired(false);
+        criteria.setCostAllowed(true);
+
+        locationManager = (LocationManager) activity
+                .getSystemService(Activity.LOCATION_SERVICE);
+        provider = locationManager.getBestProvider(criteria, true);
+    }
+
+    public void initUserAuth(FirebaseAuth auth){
+        /*Initializes the firebaseUser's auth and then gets their email from Firebase*/
+
+        firebaseAuth = auth;
+        firebaseUser = auth.getCurrentUser();
+        getEmail(firebaseAuth);
+
+        updator = new UserUpdator(this);
+    }
+    //endregion
+
+    //region Location Source
+    /*Location source is used by Google Maps to describe an object to track*/
+    @Override
+    public void activate(OnLocationChangedListener _listener){
+        /*This method must be run when the application needs to activate the location source and
+        there for begin to track it*/
+
+        locationChangedListener = _listener;
+        Log.d(TAG,"The Listener has been activated");
+
+        //Request location updates from the device so that the firebaseUser can be tracked
+        try {
+            if (provider != null) {
+                locationManager.requestLocationUpdates(provider, minTime, minDistance, this);
+            } else {
+                Log.d(TAG,"No providers at this time");
+            }
+        }catch (SecurityException e){
+            Log.e(TAG,e.toString());
+        }
+
+    }
+
+    @Override
+    public void deactivate(){
+        /*Deactivate the location source, stop the location updates and remove the listener*/
+        locationManager.removeUpdates(this);
+        locationChangedListener = null;
+    }
+
+    //endregion
+
+    //region Location Listener
+    /*This location listener is used to alert the firebaseUser object internally to when the person using
+    the device has moved location*/
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        /*Runs when the firebaseUser changes location*/
+
+
+        if (locationChangedListener != null) {
+            locationChangedListener.onLocationChanged(location);
+        }
+
+        //Update the firebaseUser location variables
+        lastLocation = location;
+        lastLatLng = new LatLng(lastLocation.getLatitude()
+                ,lastLocation.getLongitude());
+        lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
+
+        //TODO make the notifier work with the new location structure
+        //Notifier.getInstance().onLocationChanged(context, location);
+        Log.d(TAG, "Got local firebaseUser's location");
+
+        //Check if the firebaseUser is ready after getting their location
+        if(checkReady()){
+            readyListener.onReady();
+            readyListener = null;
+        }
+    }
+
+    //endregion
+
+    //region Public Methods
+
+    public void getUserLocation(Activity activity,
+                                FusedLocationProviderClient mFusedLocationProviderClient,
+                                final locationReceivedListener listener) {
+      /*This method is used to manually get the most accurate location at the time*/
+
+        try {
+            //Get the location result
+            Task locationResult = mFusedLocationProviderClient.getLastLocation();
+
+            locationResult.addOnCompleteListener(activity,new OnCompleteListener() {
+                @Override
+                public void onComplete(@NonNull Task task) {
+                    //Runs when the application has finished getting the location result
+
+                    if (task.isSuccessful()) {
+                        //Getting the location result was successful
+
+                        //Get the lat lng from the result
+                        Location location =(Location)task.getResult();
+                        LatLng latLng = new LatLng(location.getLatitude(),
+                                location.getLongitude());
+
+                        //Pass it to the listeners to handle the results
+                        if(listener != null) listener.onLocationReceived(latLng);
+                        onLocationChanged(location);
+
+                    } else {
+                        //Getting the location was unsuccessful so log the error
+                        Log.d(TAG, "Current location is null");
+                        Log.e(TAG, "Exception: %s", task.getException());
+                    }
+                }
+            });
+
+        } catch(SecurityException e)  {
+            //There was an exception when trying to get the location result so log it
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+    //endregion
+
+    //region Private Methods
+
+    private void getEmail(FirebaseAuth auth) {
+        /*Gets the firebaseUser's email from Firebase authentication service*/
+
+        email = auth.getCurrentUser().getEmail();
+        Log.d(TAG,"Got email");
+
+        //Check if the firebaseUser is ready after getting the email
+        if(checkReady()){
+            readyListener.onReady();
+            readyListener = null;
+        }
+    }
+
+
+    private boolean checkReady(){
+        /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a
+        picture, name, location, email, rating and terms acceptance
+         */
+
+        boolean ready = readyListener != null &&
+                profilePicture != null &&
+                userName != null &&
+                lastLocation != null &&
+                email != null &&
+                rating != null &&
+                termsAcceptance != null;
+
+        return ready;
+    }
+
+    //endregion
 }

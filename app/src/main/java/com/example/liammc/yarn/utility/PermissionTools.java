@@ -8,8 +8,12 @@ import android.support.v4.content.ContextCompat;
 
 public final class PermissionTools
 {
+    /*This class is used for any permission related processes*/
+
     public static void requestPermissions(Activity activity, int PERMISSION_REQUEST_CODE )
     {
+        /*Requests the permissions required for the application to run*/
+
         String[] permissionRequests = new String[]
                 {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE ,

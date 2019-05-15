@@ -1,28 +1,13 @@
 package com.example.liammc.yarn.accounting;
 
-import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Address;
-import android.location.Criteria;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.example.liammc.yarn.utility.AddressTools;
-import com.example.liammc.yarn.utility.ReadyListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,14 +17,15 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.util.Locale;
 
+public class YarnUser {
+    /*This class defines a firebaseUser within the application*/
 
-public class YarnUser implements LocationSource, LocationListener
-{
     //region Ready Listener
+    /*This listener is used to alert the application when an instance of the class is ready for
+    interaction*/
 
-    private ReadyListener readyListener;
+    protected ReadyListener readyListener;
 
     public ReadyListener getReadyListener() {
         return readyListener;
@@ -50,31 +36,12 @@ public class YarnUser implements LocationSource, LocationListener
     }
     //endregion
 
-    //region Location Received Listener
-
-    public interface LocationRecievedListener{
-        void onLocationRecieved(LatLng latLng);
-    }
-
-    //endregion
-
     //endregion
     private final String TAG = "YarnUser";
-    public enum UserType{LOCAL,NETWORK}
-
-    //Local User Location;
-    OnLocationChangedListener listner;
-    Geocoder geocoder;
-    LocationManager locationManager;
-    String provider;
-    Criteria criteria;
-    private final int minTime = 10000;     // minimum time interval between location updates, in milliseconds
-    private final int minDistance = 100;
 
     //Firebase
-    private final StorageReference userStorageReferance;
-    private final DatabaseReference userDatabaseReference;
-    private FirebaseAuth userAuth;
+    protected StorageReference userStorageReference;
+    protected DatabaseReference userDatabaseReference;
 
     //User info
     public String userID;
@@ -83,236 +50,143 @@ public class YarnUser implements LocationSource, LocationListener
     public String email;
     public Double rating = null;
     public Boolean termsAcceptance = null;
-    private UserType userType;
 
-    //User Location
-    public Location lastLocation;
-    public LatLng lastLatLng;
-    public Address lastAddress;
-
-    public YarnUser(String _userID, UserType type)
-    {
-        this.userType = type;
-
-        this.userStorageReferance = FirebaseStorage.getInstance().getReference().child("Users");
-        this.userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
-
-        this.userID = _userID;
-        this.getUserName();
-        this.getUserProfilePicture();
-        this.getUserRating();
-        this.getUserTermAcceptance();
+    //region Constructors
+    public YarnUser(){
+        initDatabaseReferences();
     }
 
-
-    @Override
-    public void deactivate(){
-
-        locationManager.removeUpdates(this);
-
-        listner = null;
+    public YarnUser(String _userID) {
+        initDatabaseReferences();
+        initUser(_userID);
     }
-
-    @Override
-    public void activate(OnLocationChangedListener _listener){
-
-        listner = _listener;
-        Log.d(TAG,"The Listener has been activated");
-
-        try {
-            if (provider != null) {
-                locationManager.requestLocationUpdates(provider, minTime, minDistance, this);
-            } else {
-                Log.d(TAG,"No providers at this time");
-            }
-        }catch (SecurityException e){
-            Log.e(TAG,e.toString());
-        }
-
-    }
-
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        if (listner != null) {
-            listner.onLocationChanged(location);
-        }
-
-        lastLocation = location;
-        lastLatLng = new LatLng(lastLocation.getLatitude()
-                ,lastLocation.getLongitude());
-        lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
-        //TODO make the notifier work with the new location structure
-        //Notifier.getInstance().onLocationChanged(context, location);
-        Log.d(TAG, "Got local user's location");
-
-
-        if(checkReady()){
-            readyListener.onReady();
-            readyListener = null;
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-    }
-
-    //region User Setup
-
-    public void setAuth(FirebaseAuth auth){
-        userAuth = auth;
-
-        getEmail(userAuth);
-    }
-
-    public void setUpUserLocation(Activity callingActivity)
-    {
-        geocoder = new Geocoder(callingActivity, Locale.getDefault());
-
-        locationManager = (LocationManager) callingActivity.getSystemService(Activity.LOCATION_SERVICE);
-
-        // Specify Location Provider criteria
-        criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
-        criteria.setAltitudeRequired(false);
-        criteria.setBearingRequired(false);
-        criteria.setSpeedRequired(false);
-        criteria.setCostAllowed(true);
-
-        locationManager = (LocationManager) callingActivity
-                .getSystemService(Activity.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(criteria, true);
-    }
-
     //endregion
 
-    //region Get User Data
-    private void getUserName()
-    {
+    //region Init
+    public void initUser(String _userID){
+        /*Initializes the firebaseUser's information by getting it from Firebase*/
+
+        userID = _userID;
+        getUserName();
+        getUserProfilePicture();
+        getUserRating();
+        getUserTermAcceptance();
+    }
+
+    private void initDatabaseReferences(){
+        /*Initialize the database references*/
+
+        userStorageReference = FirebaseStorage.getInstance().getReference().child("Users");
+        userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+    }
+    //endregion
+
+    //region Private Methods
+
+    private void getUserName() {
+        /*Gets the firebaseUser's name by attaching a listener to the userDatabase reference. Location is
+        * Users/[userID]/userName*/
+
         userDatabaseReference
                 .child(userID)
                 .child("userName").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                /*Runs when the data at this location changes. Also runs the first time the listener
+                is added*/
+
+                //Get the data
                 userName = (String) snapshot.getValue();
                 Log.d(TAG,"Got username");
 
+                //Check if the firebaseUser is ready after getting the username
                 if(checkReady()){
                     readyListener.onReady();
                     readyListener = null;
                 }
             }
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-                Log.e(TAG,"Unable to get value from database");
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //There was an error so log it.
+                Log.e(TAG,"Unable to get value from database - " + databaseError.getMessage());
             }
         });
     }
 
-    private void getUserProfilePicture()
-    {
+    private void getUserProfilePicture() {
+        /*Gets the firebaseUser's profile picture by getting the bytes from the firebaseUser storage reference.
+        Location is Users/[userID]/profilePicture*/
+
         final long ONE_MEGABYTE = 1024 * 1024;
-        userStorageReferance
+
+        userStorageReference
                 .child(userID)
                 .child("profilePicture")
                 .getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
             @Override
-            public void onSuccess(byte[] bytes)
-            {
+            public void onSuccess(byte[] bytes) {
+                /*When the application has received all the bytes from storage this method is run*/
+
+                //Decode the downloaded bytes into a Bitmap
                 Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
-                if(bitmap != null)
-                {
+                if(bitmap != null) {
                     profilePicture = bitmap;
                     Log.d(TAG,"Got profile picture");
 
+                    //Check if the firebaseUser is ready after getting the profile picture
                     if(checkReady()){
                         readyListener.onReady();
                         readyListener = null;
                     }
                 }
-                else
-                {
+                else {
+                    //There was an exception when trying to decode the bytes into a bitmap
                     Log.d(TAG,"Unable to decode byte array");
                 }
-
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Log.d(TAG,"Failed to download profile picture");
+                /*This runs if the application fails to download the bytes so log the error*/
+                Log.d(TAG,"Failed to download profile picture - " + exception.getMessage());
             }
         });
     }
 
-    private void getEmail(FirebaseAuth auth)
-    {
-        email = auth.getCurrentUser().getEmail();
-        Log.d(TAG,"Got email");
+    private void getUserRating() {
+        /*Gets the firebaseUser's ratting by attaching a listener to the userDatabase reference. Location is
+         * Users/[userID]/rating*/
 
-        if(checkReady()){
-            readyListener.onReady();
-            readyListener = null;
-        }
-        /*
-        userDatabaseReference
-                .child(userID)
-                .child("email").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
-                email = (String) snapshot.getValue();
-                Log.d(TAG,"Got email");
-
-                if(checkReady()){
-                    readyListener.onReady();
-                    readyListener = null;
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
-                Log.e(TAG,"Unable to get value from database");
-            }
-        });*/
-    }
-
-    private void getUserRating()
-    {
         userDatabaseReference
                 .child(userID)
                 .child("rating").addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot)
-                    {
-                        try {
-                            rating = (double) snapshot.getValue();
-                            Log.d(TAG,"Got user rating");
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        /*Runs when the data at this location changes. Also runs the first time the
+                        listener is added*/
 
+                        /*Get the data. The rating can either be a long or a double so the application
+                        must cast either or*/
+                        try {
+                            //Try to cast the rating into a double
+                            rating = (double) snapshot.getValue();
+                            Log.d(TAG,"Got firebaseUser rating");
+
+                            //Check if the firebaseUser is ready after getting the username
                             if(checkReady()){
                                 readyListener.onReady();
                                 readyListener = null;
                             }
                         }
-                        catch (ClassCastException e)
-                        {
+                        catch (ClassCastException e) {
+                            /*Their was an exception when casting to a double so try and cast to a
+                            long*/
                             Long l = (long)snapshot.getValue();
                             rating = l.doubleValue();
+                            Log.d(TAG,"Got firebaseUser rating");
 
-                            Log.d(TAG,"Got user rating");
-
+                            //Check if the firebaseUser is ready after getting the username
                             if(checkReady()){
                                 readyListener.onReady();
                                 readyListener = null;
@@ -320,89 +194,50 @@ public class YarnUser implements LocationSource, LocationListener
                         }
                     }
                     @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError)
-                    {
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        //There was an error so log it.
                         Log.e(TAG,"Unable to get value from database");
                     }
                 });
     }
 
-    private void getUserTermAcceptance()
-    {
+    private void getUserTermAcceptance() {
+        /*Gets the firebaseUser's term acceptance by attaching a listener to the userDatabase reference.
+        Location is Users/[userID]/TermsAcceptance*/
+
         userDatabaseReference
                 .child(userID)
                 .child("TermsAcceptance").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                /*Runs when the data at this location changes. Also runs the first time the listener
+                is added*/
+
+                //Get the data
                  termsAcceptance = (boolean)snapshot.getValue();
                 Log.d(TAG,"Got terms acceptance");
 
+                //Check if the firebaseUser is ready after getting the username
                 if(checkReady()){
                     readyListener.onReady();
                     readyListener = null;
                 }
             }
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //There was an error so log it.
                 Log.e(TAG,"Unable to get value from database");
             }
         });
     }
 
-    public void getUserLocation(Activity activity,
-                                 FusedLocationProviderClient mFusedLocationProviderClient,
-                                 final LocationRecievedListener listener) {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-
-            Task locationResult = mFusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(activity,new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    if (task.isSuccessful()) {
-                        // Set the map's camera position to the current location of the device.
-                        lastLocation =(Location)task.getResult();
-                        LatLng latLng = new LatLng(lastLocation.getLatitude(),
-                                lastLocation.getLongitude());
-
-                        lastLatLng = latLng;
-                        lastAddress = AddressTools.getAddressFromLocation(geocoder,latLng);
-                        Log.d(TAG,"Got the user's current location");
-
-                        if(listener != null) listener.onLocationRecieved(latLng);
-
-                        if(checkReady()){
-                            readyListener.onReady();
-                            readyListener = null;
-                        }
-                    } else {
-                        Log.d(TAG, "Current location is null");
-                        Log.e(TAG, "Exception: %s", task.getException());
-                    }
-                }
-            });
-
-        } catch(SecurityException e)  {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    //endregion
-
-    //region Utility
-
     private boolean checkReady(){
+        /*Checks is the firebaseUser is ready. The firebaseUser is considered ready when they have a picture, name,
+          rating and terms acceptance*/
 
         boolean ready = readyListener != null &&
                         profilePicture != null &&
-                        lastLocation != null &&
                         userName != null &&
-                        email != null &&
                         rating != null &&
                         termsAcceptance != null;
 

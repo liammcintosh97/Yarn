@@ -9,13 +9,16 @@ import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.example.liammc.yarn.Events.Notifier;
-import com.example.liammc.yarn.Notification;
+import com.example.liammc.yarn.notifications.Notifier;
+import com.example.liammc.yarn.notifications.Notification;
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 
 public class NotificationsActivity extends AppCompatActivity {
+    /*This Activity is the used for displaying internal notifications to the firebaseUser*/
 
     Notifier notifier;
+    TimeChangeReceiver timeChangeReceiver;
 
     //UI
     private ViewGroup main;
@@ -27,30 +30,33 @@ public class NotificationsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
 
-        setUpUI();
-        setNotifier();
+        initUI();
+        initNotifier();
+        initTimeChangeReceiver();
 
-        registerReceiver(notifier.timeChangeReceiver, notifier.intentFilter);
+        registerReceiver(timeChangeReceiver.receiver, TimeChangeReceiver.intentFilter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(notifier.timeChangeReceiver);
+        unregisterReceiver(timeChangeReceiver.receiver);
     }
 
 
-    //region Set UP
+    //region Init
 
-    private void setUpUI()
-    {
+    private void initUI() {
+        /*Initializes the UI for the activity*/
+
         notificationsScrollView = findViewById(R.id.notificationsScrollView);
         defaultText = findViewById(R.id.defaultText);
         main = findViewById(R.id.main);
     }
 
-    private void setNotifier()
-    {
+    private void initNotifier() {
+        /*Initializes the Notifier for the activity*/
+
         notifier = Notifier.getInstance();
 
         notifier.setNotificationListener(new Notifier.NotificationListener() {
@@ -61,12 +67,18 @@ public class NotificationsActivity extends AppCompatActivity {
         });
     }
 
+    private void initTimeChangeReceiver() {
+        /*Initializes the Time Change Receiver*/
+
+        timeChangeReceiver = new TimeChangeReceiver();
+    }
     //endregion
 
     //region Button Methods
 
-    public void onRemoveNotificationPressed(View view, Notification notification)
-    {
+    public void onRemoveNotificationPressed(View view, Notification notification) {
+        /*Removes the notification from the scroll and the notifier*/
+
         notificationsScrollView.removeView(view);
 
         if(notificationsScrollView.getChildCount() == 0)
@@ -79,29 +91,39 @@ public class NotificationsActivity extends AppCompatActivity {
 
     //endregion
 
-    //region Local Private Methods
+    //region Private Methods
 
-    private void addNotificationToScrollView(final Notification notification)
-    {
+    private void addNotificationToScrollView(final Notification notification) {
+        /*Adds the notification to the scroll view*/
+
+        //Inflate the notification
         LayoutInflater inflater = (LayoutInflater)
                 getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-
-        final View element = inflater.inflate(R.layout.notfication_element,
+        final View notificationElement = inflater.inflate(R.layout.notfication_element,
                 main,false);
 
-        element.findViewById(R.id.closeNotification).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onRemoveNotificationPressed(element,notification);
-            }
-        });
+        //Set button
+        setButtonListener(notificationElement,notification);
 
-        TextView message = element.findViewById(R.id.message);
+        //Set Text
+        TextView message = notificationElement.findViewById(R.id.message);
         message.setText(notification.message);
 
-        notificationsScrollView.addView(element);
-
+        //Add to scroll view
+        notificationsScrollView.addView(notificationElement);
         defaultText.setVisibility(View.INVISIBLE);
+    }
+
+    private void setButtonListener(final View notificationElement,final Notification notification){
+        /*Sets the onClick listener*/
+
+        notificationElement.findViewById(R.id.closeNotification)
+                .setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onRemoveNotificationPressed(notificationElement,notification);
+            }
+        });
     }
 
     //endregion

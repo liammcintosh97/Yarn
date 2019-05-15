@@ -1,8 +1,8 @@
-package com.example.liammc.yarn.Events;
+package com.example.liammc.yarn.finders;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.liammc.yarn.FinderCallback;
+import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 
@@ -17,32 +17,39 @@ import java.util.HashMap;
 import java.util.List;
 
 public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
+    /*This class is used when the firebaseUser wants to find near by places for possible or existing chats*/
 
     private final String TAG = "NearbyPlaceFinder";
     private final String TYPE_IDENTIFIER = " type = ";
 
     private String nextPageToken;
-    private final YarnUser localUser;
+    private final LocalUser localUser;
     private final String googlePlaceKey;
     private int searchRadius;
     private FinderCallback listener;
 
 
     public NearbyPlaceFinder(String _googlePlaceKey, int _searchRadius
-            , FinderCallback _listener)
-    {
-        this.localUser = LocalUser.getInstance().user;
+            , FinderCallback _listener) {
+
+        this.localUser = LocalUser.getInstance();
         this.googlePlaceKey = _googlePlaceKey;
         this.searchRadius = _searchRadius;
         this.listener = _listener;
     }
 
+    //region Async Methods
+    /*This region holds the methods that come from extending AsyncTask*/
+
     @Override
     protected String doInBackground(Object... objects){
+        /*This is want runs during the async task execution*/
 
+        //Get the url and place type from the results
         String url = (String)objects[0];
         String placeType = (String)objects[1];
 
+        //Download the data from the url and get the next page token
         try {
             StringBuilder data = new StringBuilder(Downloader.readUrl(url));
             nextPageToken = getNextPageToken(data.toString());
@@ -58,44 +65,49 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
 
     @Override
     protected void onPostExecute(String s){
+        /*This is want runs after the task has been completed*/
 
+        //get the type from the returned string
         String type =  extractType(s);
 
+        //Parse the returned string into a readable format
         PlaceDataParser parser = new PlaceDataParser();
-
         List<HashMap<String, String>> nearbyPlaceList = parser.parse(s,type);
 
-        Log.d("nearbyplacesdata","called parse method");
-
+        //Return the result to the listener
         if(nearbyPlaceList != null) {
             listener.onFoundPlaces(nextPageToken,nearbyPlaceList);
         }
         else listener.onNoPlacesFound("No places were found");
     }
+    //endregion
 
-    //region Public Methods
+    //region Getters and Setters
 
-    public void setSearchRadius(int radius){
-        searchRadius = radius;
-    }
-
-    public void getPlacesNextPage(String nextPageToken) {
-        this.execute(buildDataTransferObjectNextPage(nextPageToken));
-    }
-
-    public void getNearbyPlaces(String type) {
-        this.execute(buildDataTransferObject(type));
-    }
-
+    public void setSearchRadius(int radius){ searchRadius = radius; }
 
     //endregion
 
-    //region Utility
+    //region Public Methods
 
-    private Object[] buildDataTransferObject(String placeType) {
+    public void getPlacesNextPage(String nextPageToken) {
+        /*Gets the nearby places on the next page of the results */
+        execute(buildNextPageTransfer(nextPageToken));
+    }
+
+    public void getNearbyPlaces(String type) {
+        /*Gets the nearby places*/
+       execute(buildTransfer(type));
+    }
+
+    //endregion
+
+    //region Private methods
+
+    private Object[] buildTransfer(String placeType) {
         //Build the data transfer object
         Object dataTransfer[] = new Object[2];
-        dataTransfer[0] = getPlaceRequestUrl(searchRadius, localUser.lastLocation.getLatitude(),
+        dataTransfer[0] = buildRequestUrl(searchRadius, localUser.lastLocation.getLatitude(),
                 localUser.lastLocation.getLongitude(),placeType);
         dataTransfer[1] = placeType;
 
@@ -103,15 +115,18 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
         return dataTransfer;
     }
 
-    private Object[] buildDataTransferObjectNextPage(String nextPageToken) {
-        //Build the data transfer object
+    private Object[] buildNextPageTransfer(String nextPageToken) {
+        //Builds the next page data transfer object
+
         Object dataTransfer[] = new Object[1];
-        dataTransfer[0] = getNextPageRequestURL(nextPageToken);
+        dataTransfer[0] = buildPageRequestURL(nextPageToken);
 
         return dataTransfer;
     }
 
-    private String getPlaceRequestUrl(int radius, double latitude , double longitude , String nearbyPlace) {
+    private String buildRequestUrl(int radius, double latitude , double longitude , String nearbyPlace) {
+        /*Builds the required URL string for the request*/
+
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
         googlePlaceUrl.append("&radius="+radius);
@@ -119,12 +134,12 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
         googlePlaceUrl.append("&fields=name,place_id,geometry,reference");
         googlePlaceUrl.append("&key="+googlePlaceKey);
 
-        Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
-
         return googlePlaceUrl.toString();
     }
 
-    private String getNextPageRequestURL(String token) {
+    private String buildPageRequestURL(String token) {
+        /*Get the next page URL from the returned JSON object*/
+
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("key="+googlePlaceKey);
         googlePlaceUrl.append("&pagetoken="+token);
@@ -135,6 +150,7 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
     }
 
     private String getNextPageToken(String jsonData) {
+        /*Get the next page token from the returned JSON object*/
         JSONObject jsonObject;
 
         try {
@@ -150,8 +166,9 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
         }
     }
 
-    private String extractType(String result)
-    {
+    private String extractType(String result) {
+        //Gets the type from the returned results string
+
         String type = "";
         String subString =  result.substring(result.indexOf(TYPE_IDENTIFIER));
 

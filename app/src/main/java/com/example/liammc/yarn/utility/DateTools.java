@@ -1,22 +1,22 @@
 package com.example.liammc.yarn.utility;
 
-import android.app.Activity;
-import android.util.Log;
 
+import android.util.Log;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
-
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public final class DateTools
 {
-    public static Long dateStringToMilli(String dateString)
-    {
+    /*This class is used for formatting dates and times*/
+
+    public static Long dateStringToMilli(String dateString) {
+        /*Converts a date string into a milli. It first parses the string into a SimpleDateFormat
+        * to see if its a valid date. If it doesn't trigger an exception its a valid date and then
+        * gets the milli time*/
+
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
             Date date = sdf.parse(dateString);
@@ -31,8 +31,10 @@ public final class DateTools
         }
     }
 
-    public static Date dateStringToDateObject(String dateString)
-    {
+    public static Date stringToDate(String dateString) {
+        /*Converts a date string into a date object. It first parses the string into a SimpleDateFormat
+         * to see if its a valid date then returns the date object*/
+
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
             Date date = sdf.parse(dateString);
@@ -47,8 +49,9 @@ public final class DateTools
         }
     }
 
-    public static String millisToDurationString(Locale locale,long millis)
-    {
+    public static String millisToDurationString(Locale locale,long millis) {
+        /*Converts a milliseconds long into a Duration string*/
+
         try {
             String duration = String.format(locale, "%02d:%02d:%02d",
                     TimeUnit.MILLISECONDS.toHours(millis),

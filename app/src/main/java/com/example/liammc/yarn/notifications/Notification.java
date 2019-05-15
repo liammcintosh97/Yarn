@@ -1,10 +1,13 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.notifications;
 
 
 import java.util.Random;
 
 public class Notification
 {
+    /*This is the notification class. Objects of this class are used throughout the application for
+    displaying messages to the firebaseUser */
+
     public String title;
     public String message;
     public boolean seen;

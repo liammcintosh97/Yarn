@@ -2,6 +2,8 @@ package com.example.liammc.yarn.networking;
 
 import android.util.Log;
 
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,16 +12,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class PlaceDataParser
-{
-    public List<HashMap<String, String>> parse(String jsonData, String type)
-    {
+public class PlaceDataParser {
+    /*This class is used for passing Place JSON data and then returning a list of placeMaps*/
+
+    public List<HashMap<String, String>> parse(String jsonData, String type) {
+        /*This method is used when we need to parse some JSONData and return a List of PlaceMaps*/
+
         JSONArray jsonArray = null;
         JSONObject jsonObject;
 
         Log.d("json data", jsonData);
 
         try {
+            //Read the JSON data and get it's results
             jsonObject = new JSONObject(jsonData);
             if(!jsonObject.getString("status").equals("ZERO_RESULTS")){
                 jsonArray = jsonObject.getJSONArray("results");
@@ -30,61 +35,70 @@ public class PlaceDataParser
             e.printStackTrace();
         }
 
+        //Get the Places from the JSONArray and return the results
         if(jsonArray != null)return getJsonPlaces(jsonArray,type);
         else return null;
     }
 
-    private List<HashMap<String, String>>getJsonPlaces(JSONArray jsonArray, String type)
-    {
-        int count = jsonArray.length();
-        List<HashMap<String, String>> placelist = new ArrayList<>();
-        HashMap<String, String> placeMap = null;
+    private List<HashMap<String, String>>getJsonPlaces(JSONArray jsonArray, String type) {
+        /*This method gets all the Place Maps from the JSONArray containing the Place data*/
 
-        for(int i = 0; i<count;i++)
+        List<HashMap<String, String>> placelist = new ArrayList<>();
+
+        //Loop over the JSON array and extract the data
+        for(int i = 0; i<jsonArray.length();i++)
         {
             try {
-                placeMap = getJsonPlace((JSONObject) jsonArray.get(i),type);
+                //Get the Object at the index
+                JSONObject jsonObject =(JSONObject) jsonArray.get(i);
+
+                //Extract the data and put it in the result list
+                HashMap<String, String> placeMap = getJsonPlace(jsonObject,type);
                 placelist.add(placeMap);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+
         return placelist;
     }
 
-    private HashMap<String, String> getJsonPlace(JSONObject googlePlaceJson, String type)
-    {
+    private HashMap<String, String> getJsonPlace(JSONObject googlePlaceJson, String type) {
+        /*This method build a Place Map from a JSON object containing the data*/
+
+        /*Create a new Google Place Map*/
         HashMap<String, String> googlePlaceMap = new HashMap<>();
         String id = "";
-        String placeName = "--NA--";
-        String latitude= "";
-        String longitude="";
+        String name = "--NA--";
+        String lat= "";
+        String lng="";
 
         Log.d("DataParser","jsonobject ="+googlePlaceJson.toString());
 
         try {
-
+            //Check if the name isn't null
             if (!googlePlaceJson.isNull("name")) {
-                placeName = googlePlaceJson.getString("name");
+                name = googlePlaceJson.getString("name");
             }
+            //Check if the place ID isn't null
             if(!googlePlaceJson.isNull("place_id"))
             {
                 id = googlePlaceJson.getString("place_id");
             }
 
-            latitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
-            longitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lng");
+            //Gets the Latitude and Longitude
+            lat = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
+            lng = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lng");
 
-            googlePlaceMap.put("id",id);
-            googlePlaceMap.put("name", placeName);
-            googlePlaceMap.put("type",type);
-            googlePlaceMap.put("lat", latitude);
-            googlePlaceMap.put("lng", longitude);
-
+            //Builds the Place Map
+            googlePlaceMap = YarnPlace.buildPlaceMap(id,name,type,lat,lng);
         }
         catch (JSONException e) {
             e.printStackTrace();
         }
+
+        //return the result
         return googlePlaceMap;
     }
 

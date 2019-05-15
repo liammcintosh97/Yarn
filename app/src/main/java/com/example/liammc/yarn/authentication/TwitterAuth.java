@@ -17,76 +17,55 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 
-class TwitterAuth extends Authenticator
-{
+class TwitterAuth extends Authenticator {
+    private final String TAG = "TwitterAuth";
 
-   TwitterAuthClient mTwitterAuthClient;
+    TwitterAuthClient mTwitterAuthClient;
 
     //Constructor
-    TwitterAuth(Activity _callingActivity, FirebaseAuth _mAuth, FirebaseUser _currentUser)
-    {
-        super(_callingActivity,_mAuth, _currentUser);
-        this.SetUpTwitterAuth();
+    TwitterAuth(FirebaseAuth _mAuth) {
+        super(_mAuth);
+        this.mTwitterAuthClient = new TwitterAuthClient();
     }
 
-    void login()
-    {
-        mTwitterAuthClient.authorize(callingActivity, new com.twitter.sdk.android.core.Callback<TwitterSession>() {
+    //region Package Private Methods
+
+    void login(final Activity activity) {
+        /*Takes the firebaseUser into Twitter login*/
+
+        mTwitterAuthClient.authorize(activity, new com.twitter.sdk.android.core.Callback<TwitterSession>() {
 
             @Override
             public void success(Result<TwitterSession> twitterSessionResult) {
-                Log.d(CALLINGTAG, "twitterLogin:success" + twitterSessionResult);
-                handleSignInTwitterResult(twitterSessionResult.data);
+                /*The twitter login was successful*/
+                Log.d(TAG, "twitterLogin:success" + twitterSessionResult);
+                handleSignInTwitterResult(activity,twitterSessionResult.data);
             }
 
             @Override
             public void failure(TwitterException e) {
-                Log.w(CALLINGTAG, "twitterLogin:failure", e);
-
-                Toast.makeText(callingActivity, "Twitter sign in Failed",
+                /*The twitter login was a failure*/
+                Log.w(TAG, "twitterLogin:failure", e);
+                Toast.makeText(activity, "Twitter sign in Failed",
                         Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void SetUpTwitterAuth()
-    {
-        mTwitterAuthClient = new TwitterAuthClient();
-    }
+    //endregion
 
-    private void handleSignInTwitterResult(TwitterSession session)
-    {
-        Log.d(CALLINGTAG, "handleTwitterSession:" + session);
+    //region Private Methods
+    private void handleSignInTwitterResult(Activity activity,TwitterSession session) {
+        //Handles the twitter sign in
 
+        Log.d(TAG, "handleTwitterSession:" + session);
+
+        //Get the Twitter credential
         AuthCredential credential = TwitterAuthProvider.getCredential(
                 session.getAuthToken().token,
                 session.getAuthToken().secret);
 
-        firebaseAuthTwitter(credential);
+        externalAuth(activity,credential);
     }
-
-    private void firebaseAuthTwitter(AuthCredential credential)
-    {
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(callingActivity, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(CALLINGTAG, "signInWithCredential:success");
-
-                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if(isNew) goToAccountSetup();
-                            else goToMap();
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(CALLINGTAG, "signInWithCredential:failure", task.getException());
-
-                            Toast.makeText(callingActivity, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
+    //endregion
 }

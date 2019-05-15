@@ -1,9 +1,8 @@
-package com.example.liammc.yarn.Events;
+package com.example.liammc.yarn.finders;
 
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
-import com.example.liammc.yarn.FinderCallback;
-import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.interfaces.FinderCallback;
+import com.example.liammc.yarn.yarnPlace.PlaceType;
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.google.android.gms.common.api.Status;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.TypeFilter;
@@ -15,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class SearchPlaceFinder {
+    /*This class determines the functionality of the google place search bar*/
 
     private final String TAG = "SearchPlaceFinder";
     public FinderCallback listener;
@@ -22,13 +22,14 @@ public class SearchPlaceFinder {
 
     public SearchPlaceFinder(AutocompleteSupportFragment _searchBar,String country, FinderCallback _listener) {
         this.listener = _listener;
-        this.setUpSearchBar(_searchBar,country);
+        this.init(_searchBar,country);
     }
 
-    //region Private methods
+    //region init
 
-    private void setUpSearchBar(AutocompleteSupportFragment _searchBar,String country)
-    {
+    private void init(AutocompleteSupportFragment _searchBar, String country) {
+        /*Initializes the search bar*/
+
         // Initialize the AutocompleteSupportFragment.
         searchBar = _searchBar;
 
@@ -39,11 +40,17 @@ public class SearchPlaceFinder {
         searchBar.setCountry(country);
         searchBar.setTypeFilter(TypeFilter.ESTABLISHMENT);
 
+        initSelectionListener();
+    }
+
+    private void initSelectionListener(){
+        /*Initializes the search bar selection listener*/
+
         searchBar.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
 
-                HashMap<String,String> placeMap = processPlaceSearch(place);
+                HashMap<String,String> placeMap = parsePlaceSearch(place);
                 if(placeMap == null) listener.onNoPlacesFound("Sorry you can't create a chat here");
                 else listener.onFoundPlace(placeMap);
             }
@@ -57,24 +64,29 @@ public class SearchPlaceFinder {
 
     //endregion
 
-    //region Utility
+    //region Private Methods
 
-    private HashMap<String,String> processPlaceSearch(Place place){
+    private HashMap<String,String> parsePlaceSearch(Place place){
+
+        /*This method processes the selections and parses it into data that's readable by the
+        application
+         */
 
         String correctType = translateTypes(place.getTypes());
+        if(correctType == null) return null;
 
-
-
-        HashMap<String, String > placeMap = buildPlaceMap(place.getId(), place.getName(),correctType,
-                Double.toString(place.getLatLng().latitude),
+        //Build the place map
+        HashMap<String, String > placeMap = YarnPlace.buildPlaceMap(place.getId(), place.getName()
+                ,correctType, Double.toString(place.getLatLng().latitude),
                 Double.toString(place.getLatLng().longitude));
 
-        if(correctType != null) return placeMap;
-        else return null;
+        return placeMap;
     }
 
     private String translateTypes(List<Place.Type> types) {
-        Log.d(TAG,types.toString());
+        /*This method translates the types from the place into a single type that's recognised by
+        the application
+         */
 
         String correctType = null;
 
@@ -82,27 +94,27 @@ public class SearchPlaceFinder {
             for (int i = 0; i < types.size(); i++) {
 
                 if(types.get(i).toString()
-                        .equals(YarnPlace.PlaceType.CAFE.toUpperCase()))
+                        .equals(PlaceType.CAFE.toUpperCase()))
                 {
-                    correctType = YarnPlace.PlaceType.CAFE;
+                    correctType = PlaceType.CAFE;
                     break;
                 }
                 else if(types.get(i).toString()
-                        .equals(YarnPlace.PlaceType.BAR.toUpperCase()))
+                        .equals(PlaceType.BAR.toUpperCase()))
                 {
-                    correctType = YarnPlace.PlaceType.BAR;
+                    correctType = PlaceType.BAR;
                     break;
                 }
                 else if(types.get(i).toString()
-                        .equals(YarnPlace.PlaceType.RESTAURANT.toUpperCase()))
+                        .equals(PlaceType.RESTAURANT.toUpperCase()))
                 {
-                    correctType = YarnPlace.PlaceType.RESTAURANT;
+                    correctType = PlaceType.RESTAURANT;
                     break;
                 }
                 else if(types.get(i).toString()
-                        .equals(YarnPlace.PlaceType.NIGHT_CLUB.toUpperCase()))
+                        .equals(PlaceType.NIGHT_CLUB.toUpperCase()))
                 {
-                    correctType = YarnPlace.PlaceType.NIGHT_CLUB;
+                    correctType = PlaceType.NIGHT_CLUB;
                     break;
                 }
                 else correctType = null;
@@ -110,18 +122,6 @@ public class SearchPlaceFinder {
         }
 
         return correctType;
-    }
-
-    private HashMap<String, String> buildPlaceMap(String id, String name,String type, String lat, String lng){
-
-        HashMap<String, String > placeMap = new HashMap<>();
-        placeMap.put("id",id);
-        placeMap.put("name", name);
-        placeMap.put("type",type);
-        placeMap.put("lat", lat);
-        placeMap.put("lng", lng);
-
-        return placeMap;
     }
 
     //endregion

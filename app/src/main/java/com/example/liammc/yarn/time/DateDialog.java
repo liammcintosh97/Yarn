@@ -10,6 +10,7 @@ import java.util.Calendar;
 
 public class DateDialog extends DialogFragment
         implements DatePickerDialog.OnDateSetListener {
+    /*This dialog class is used for picking a Date*/
 
     public int year;
     public int month;
@@ -27,12 +28,17 @@ public class DateDialog extends DialogFragment
         return new DatePickerDialog(getActivity(), this, year, month, day);
     }
 
-    public void onDateSet(DatePicker view, int _year, int _month, int _day)
-    {
+    //region Public Methods
+
+    public void onDateSet(DatePicker view, int _year, int _month, int _day) {
+        /*This method is called when the firebaseUser sets the date. It sets the internal year, month and
+        day variables
+         */
         year = _year;
         month = _month;
         day = _day;
     }
+    //endregion
 
 }
 

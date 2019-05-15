@@ -10,6 +10,8 @@ import com.example.liammc.yarn.R;
 
 
 public class TermsFragment extends Fragment {
+    /*This fragment is used as apart of the IntroActivity. Its used to show the terms and conditions
+    * of Yarn*/
 
     public TermsFragment() {
         // Required empty public constructor

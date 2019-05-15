@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.liammc.yarn.R;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -21,52 +20,47 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
-class GoogleAuth extends Authenticator
-{
-    GoogleSignInOptions gso;
-    GoogleSignInClient mGoogleSignInClient;
+class GoogleAuth extends Authenticator {
+    /*This class is used for logging users into Firebase through Google. If they do this for the
+    first time a new Firebase account is created. Every other login after that is to that previously
+    made Firebase Account unless its removed
+     */
 
-    private GoogleApiClient mGoogleApiClient;
-    private final int resultCode;
-    private final FragmentActivity fragAct;
+    //Google
+    private GoogleApiClient apiClient;
+    private GoogleSignInOptions gso;
+    private GoogleSignInClient signInClient;
+
+    private final String TAG = "GoogleAuth";
 
     //Constructor
-    GoogleAuth(Activity _callingActivity, FragmentActivity _fragAct, FirebaseAuth _mAuth, FirebaseUser _currentUser,int _resultCode)
-    {
-        super(_callingActivity,_mAuth, _currentUser);
-        this.resultCode = _resultCode;
-        this.fragAct = _fragAct;
-        this.SetUpGoogleAuth();
+    GoogleAuth(Activity activity, FirebaseAuth _mAuth) {
+        super(_mAuth);
+        this.InitGoogleAuth(activity);
     }
 
-    void login()
-    {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        callingActivity.startActivityForResult(signInIntent, resultCode);
-    }
+    //region Init
 
-    private void SetUpGoogleAuth()
-    {
+    private void InitGoogleAuth(final Activity activity) {
+        /*This method initializes the Google Authentication*/
+
         // Configure Google Sign In
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(callingActivity.getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
         // Build a GoogleSignInClient with the options specified by gso.
-        mGoogleSignInClient = GoogleSignIn.getClient(callingActivity, gso);
+        signInClient = GoogleSignIn.getClient(activity, gso);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(callingActivity)
-                .enableAutoManage(fragAct, new GoogleApiClient.OnConnectionFailedListener() {
+        apiClient = new GoogleApiClient.Builder(activity)
+                .enableAutoManage((FragmentActivity) activity, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult)
-                    {
-                        Log.d(CALLINGTAG,"Failed to connect to Google- " + connectionResult) ;
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Log.d(TAG,"Failed to connect to Google- " + connectionResult) ;
 
-                        Toast.makeText(callingActivity, "Failed to connect to Google",
+                        Toast.makeText(activity, "Failed to connect to Google",
                                 Toast.LENGTH_SHORT).show();
                     }
                 } )
@@ -74,48 +68,43 @@ class GoogleAuth extends Authenticator
                 .build();
     }
 
-    void handleSignInGoogleResult(Task<GoogleSignInAccount> completedTask)
-    {
+    //endregion
+
+    //region Public Methods
+
+    public void login(Activity activity) {
+        /*This method takes the firebaseUser to the Google login activity so that it's results can be
+        processed
+         */
+
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(apiClient);
+        activity.startActivityForResult(signInIntent, AuthActivity.GO_SIGN_IN);
+    }
+
+    //endregion
+
+    //region Private Methods
+
+    void handleResult(Activity activity, Task<GoogleSignInAccount> completedTask) {
+        /*This method Handles the Google Sign in result*/
+
         try {
+            /*If the account sign in is successful then proceed to log into Firebase*/
+
+            //Get the account and credential
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            if(account != null)firebaseAuthGoogle(account);
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+
+            if(account != null)externalAuth(activity,credential);
 
         } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w(CALLINGTAG, "signInResult:failed code=" + e.getStatusCode());
+            /*If there was an exception to the Google sign in process alert the firebaseUser*/
+            Log.w(TAG, "signInResult:failed code=" + e.getStatusCode());
 
-            Toast.makeText(callingActivity, "Google sign in Failed",
+            Toast.makeText(activity, "Google sign in Failed",
                     Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void firebaseAuthGoogle(GoogleSignInAccount acct)
-    {
-        Log.d(CALLINGTAG, "firebaseAuthWithGoogle:" + acct.getId());
-
-        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(callingActivity, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(CALLINGTAG, "signInWithCredential:success");
-
-                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if(isNew) goToAccountSetup();
-                            else goToMap();
-
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(CALLINGTAG, "signInWithCredential:failure", task.getException());
-
-                            Toast.makeText(callingActivity, "Authentication failed ",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-    }
+    //endregion
 }

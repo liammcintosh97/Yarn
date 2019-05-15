@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.interfaces;
 
 import java.util.HashMap;
 import java.util.List;

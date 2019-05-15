@@ -2,8 +2,12 @@ package com.example.liammc.yarn.utility;
 
 public final class MathTools {
 
+    /*This class is used for any complex mathematical calculations*/
+
     public static double latLngDistance (double lat_a, double lng_a, double lat_b, double lng_b )
     {
+        /*Calculates the distance between two LatLngs*/
+
         double earthRadius = 3958.75;
         double latDiff = Math.toRadians(lat_b-lat_a);
         double lngDiff = Math.toRadians(lng_b-lng_a);

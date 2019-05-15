@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Geocoder;
-import android.location.Location;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -18,18 +16,24 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import com.example.liammc.yarn.Events.NearbyChatFinder;
-import com.example.liammc.yarn.Events.NearbyPlaceFinder;
-import com.example.liammc.yarn.Events.Notifier;
-import com.example.liammc.yarn.Events.SearchPlaceFinder;
-import com.example.liammc.yarn.Events.YarnPlace;
-import com.example.liammc.yarn.FinderCallback;
+import com.example.liammc.yarn.chats.Chat;
+import com.example.liammc.yarn.finders.NearbyChatFinder;
+import com.example.liammc.yarn.finders.NearbyPlaceFinder;
+import com.example.liammc.yarn.notifications.Notifier;
+import com.example.liammc.yarn.finders.SearchPlaceFinder;
+import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
+import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.utility.PermissionTools;
+import com.example.liammc.yarn.yarnPlace.PlaceType;
+import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,8 +47,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 
@@ -57,9 +59,10 @@ import java.util.Locale;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 {
+    /*This is main Activity in the whole application and where the firebaseUser will spend most of their
+    time. Here the firebaseUser will be searching and interacting with Yarn Places, using the map and
+    transitioning to different parts of the application */
 
-    //private final int CHAT_PLANNER_CODE = 1;
-    //private final int NOTIFICATION_ACTIVITY_CODE = 2;
     private  final int PERMISSION_REQUEST_CODE = 1;
     private final int SEARCH_RADIUS = 1000;
     private final String TAG = "MapsActivity";
@@ -68,14 +71,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     GoogleMap mMap;
     PlacesClient placesClient;
     FusedLocationProviderClient mFusedLocationProviderClient;
+    Geocoder geocoder;
+
+    //Finders
     NearbyPlaceFinder nearbyPlaceFinder;
     NearbyChatFinder nearbyChatFinder;
     SearchPlaceFinder searchPlaceFinder;
-    Geocoder geocoder;
 
     //Map Data
-    public YarnUser localUser;
-    //List<YarnPlace> yarnPlaces = new ArrayList<YarnPlace>();
+    public LocalUser localUser;
 
     //User Interaction
     YarnPlace touchedYarnPlace;
@@ -87,60 +91,71 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     CheckBox cafeCheckBox;
     CheckBox restaurantCheckBox;
     CheckBox nightClubCheckBox;
-
     Circle circle;
-    CircleOptions circleOptions;
 
-    //Chat Planner
-    //public Recorder recorder;
+    //Receivers
+    TimeChangeReceiver timeChangeReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /*This is run when the activity is created*/
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //mGeoDataClient = Places.getGeoDataClient(this);
-        //mPlaceDetectionClient = Places.getPlaceDetectionClient(this);
+        //Initialize some internal variables needed for certain processes
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
         recorder = Recorder.getInstance();
-
         geocoder = new Geocoder(this,Locale.getDefault());
+        timeChangeReceiver = new TimeChangeReceiver();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        /*This is run when the google map is ready for firebaseUser interaction*/
         mMap = googleMap;
 
+        //Request permissions from the firebaseUser if needed
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
+        //Initialize all the recorded yarn places on the map
         for (YarnPlace place:recorder.recordedYarnPlaces) {
             place.initOnMap(this,mMap);
         }
 
-        setUpNearByChatFinder();
-        setUpNearByPlaceFinder();
-        setUpSearchPlaceFinder();
+        //Initialize Finders
+        initUpNearByChatFinder();
+        initUpNearByPlaceFinder();
+        initUpSearchPlaceFinder();
 
-        initializeLocalUser();
-        initializeMapServices();
-        initializeMapUI();
+        //Initialize the firebaseUser and the Map UI
+        initLocalUser();
+        initMapUI();
 
+        //Initialize the Map Listeners and services
+        initMapListeners();
+        initMapServices();
+
+        //Focus on the firebaseUser and show the radius circle on the map
         onFocusOnUserPressed(null);
         updateCircle();
     }
 
     @Override
     public void onBackPressed() {
+        /*This is run when the firebaseUser presses back on their device. If the chat creator is showing
+        * dismiss that, if the Yarn Place Info Window is showing dismiss that but if only the
+        * map is showing go to the account activity*/
+
         if(touchedYarnPlace != null)
         {
             if(touchedYarnPlace.chatCreator.window.isShowing())
             {
-                touchedYarnPlace.chatCreator.dissmissChatCreator();
+                touchedYarnPlace.chatCreator.dismiss();
             }
             else{
                 touchedYarnPlace.dismissInfoWindow();
@@ -153,21 +168,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onDestroy() {
+        /*This is run when the Activity is destroyed. Before it is though this method deregisters
+        the TimeChangeReceiver
+         */
+
+        unregisterReceiver(timeChangeReceiver.receiver);
         super.onDestroy();
-        unregisterReceiver(notifier.timeChangeReceiver);
     }
 
-    //region SetUp
+    //region Init
 
-    private void initializeMapServices() {
-        setMarkerListener();
-        setCameraMoveListener();
-        setMapClickListener();
+    private void initMapListeners() {
+        /*This method initializes all the needed map listeners*/
+
+        initMarkerListener();
+        initCameraMoveListener();
+        initMapClickListener();
     }
 
-    private void initializeLocalUser() {
+    private void initLocalUser() {
+        /*This method initializes the Local firebaseUser*/
 
-        localUser = LocalUser.getInstance().user;
+        localUser = LocalUser.getInstance();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -176,15 +198,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    private void initMapServices(){
+
+        //Initialize the Places API
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getResources()
+                    .getString(R.string.google_place_android_key));
+        }
+    }
+
     //region Finders
 
-    private void setUpNearByChatFinder(){
+    private void initUpNearByChatFinder(){
+        /*Initializes the Near By Chat Finder*/
 
         final Activity activity =  this;
 
         nearbyChatFinder = new NearbyChatFinder(SEARCH_RADIUS, new FinderCallback() {
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
+                /*This is called when the Nearby Chat Finder finds some places with chats*/
 
                 Log.d(TAG,"Found Places with Chats - " + placeMaps.toString());
                 addYarnPlaces(placeMaps);
@@ -192,6 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFoundPlace(HashMap<String, String> placeMap){
+                /*This is called when the Nearby Chat Finder finds a place with chats*/
 
                 Log.d(TAG,"Found Place with Chats - " + placeMap.toString());
                 addYarnPlace(placeMap);
@@ -199,12 +233,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onNoPlacesFound(String message) {
+                /*This is called when the Nearby Chat Finder doesn't find any places*/
                 Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void setUpNearByPlaceFinder() {
+    private void initUpNearByPlaceFinder() {
+        /*Initializes the Nearby By Place Finder*/
 
         final Activity activity =  this;
 
@@ -212,6 +248,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 getResources().getString(R.string.google_place_key), SEARCH_RADIUS, new FinderCallback() {
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
+                /*This is called when the Nearby Place Finder finds some places */
 
                 addYarnPlaces(placeMaps);
                 if(nextPageToken!= null) nearbyPlaceFinder.getPlacesNextPage(nextPageToken);
@@ -219,28 +256,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFoundPlace(HashMap<String, String> placeMap){
-
+                /*This is called when the Nearby Place Finder finds a place */
             }
 
             @Override
             public void onNoPlacesFound(String message) {
+                /*This is called when the Nearby Place Finder doesn't find any places */
                 Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void setUpSearchPlaceFinder(){
+    private void initUpSearchPlaceFinder(){
+        /*Initializes the Search Place Finder*/
 
         final MapsActivity mapsActivity =  this;
 
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), getResources()
-                    .getString(R.string.google_place_android_key));
-        }
         // Initialize the AutocompleteSupportFragment.
         AutocompleteSupportFragment searchBar = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
+        //Get the country
         String country = getResources().getConfiguration().locale.getCountry();
 
         searchPlaceFinder = new SearchPlaceFinder(searchBar,country, new FinderCallback() {
@@ -252,11 +288,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFoundPlace(HashMap<String, String> placeMap){
+                /*Called when the finder finds a place*/
 
-                YarnPlace yarnPlace = addYarnPlace(placeMap);
+                //Add it to the map
+                final YarnPlace yarnPlace = addYarnPlace(placeMap);
 
-                focusOnLatLng(yarnPlace.latLng);
-                yarnPlace.showInfoWindow(mapsActivity,mMap);
+                //Once the Yarn Place is ready focus on it and show the Info Window
+                if(yarnPlace.checkReady())
+                {
+                    focusOnLatLng(yarnPlace.marker.getPosition());
+                    touchedYarnPlace = yarnPlace;
+                    yarnPlace.showInfoWindow(mapsActivity,mMap);
+                }
+                else{
+                    yarnPlace.setReadyListener(new ReadyListener() {
+                        @Override
+                        public void onReady() {
+                            focusOnLatLng(yarnPlace.marker.getPosition());
+                            touchedYarnPlace = yarnPlace;
+                            yarnPlace.showInfoWindow(mapsActivity,mMap);
+                        }
+                    });
+                }
             }
 
             @Override
@@ -270,16 +323,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region Map Listeners
 
-    private void setMarkerListener() {
+    private void initMarkerListener() {
+        /*Initializes the Map Marker Listener*/
 
         final MapsActivity mapsActivity = this;
 
         mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
 
             @Override
-            public boolean onMarkerClick(Marker marker)
-            {
-                //The user has already touched a yarn place so we need to dismiss it
+            public boolean onMarkerClick(Marker marker) {
+                /*Runs when the firebaseUser clicks on a marker*/
+
+                //The firebaseUser has already touched a yarn place so we need to dismiss it
                 if(touchedYarnPlace != null)
                 {
                     if(touchedYarnPlace.window.isShowing())
@@ -289,8 +344,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
 
+                //Search for the marker to in the list to find the one the firebaseUser has touched
                 touchedYarnPlace = searchMarkerInList(recorder.recordedYarnPlaces,marker);
 
+                //Focus on the Yarn Place and show the info window
                 if(touchedYarnPlace != null)
                 {
                     focusOnLatLng(marker.getPosition());
@@ -305,25 +362,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void setCameraMoveListener() {
+    private void initCameraMoveListener() {
+        /*Initializes the Camera Move listener*/
 
         mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {
+                /*Runs when the camera moves*/
 
+                /*If the firebaseUser has touched a Yarn Place the application must update it's info window
+                position*/
                 if(touchedYarnPlace != null)
                 {
-                    if(!touchedYarnPlace.updatePopup(mMap)) touchedYarnPlace = null;
+                    if(!touchedYarnPlace.updateWindowPosition(mMap)) touchedYarnPlace = null;
                 }
             }
         });
     }
 
-    private void setMapClickListener() {
+    private void initMapClickListener() {
+       /*Initializes the Map click listener*/
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng){
+                /*Runs when the firebaseUser clicks on the map*/
 
+                //If a Yarn Place Info Window is showing then dismiss it
                 if(touchedYarnPlace != null && touchedYarnPlace.window.isShowing())
                 {
                     touchedYarnPlace.dismissInfoWindow();
@@ -337,7 +402,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region UI
 
-    private void initializeMapUI() {
+    private void initMapUI() {
+        /*Initialize the Map UI*/
+
         UiSettings uiSettings = mMap.getUiSettings();
 
         uiSettings.setCompassEnabled(false);
@@ -345,12 +412,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         uiSettings.setMyLocationButtonEnabled(false);
         uiSettings.setZoomControlsEnabled(false);
 
-        applyMapStyle();
+        initMapStyle();
 
-        setCheckBoxes();
+        initCheckBoxes();
     }
 
-    private void applyMapStyle() {
+    private void initMapStyle() {
+        /*Initialize the Map style*/
+
         try {
             // Customise the styling of the base map using a JSON object defined
             // in a raw resource file.
@@ -366,7 +435,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void setCheckBoxes() {
+    private void initCheckBoxes() {
+        /*Initializes the Check Boxes*/
+
         //Get button references
         barCheckBox = findViewById(R.id.barCheckBox);
         cafeCheckBox = findViewById(R.id.cafeCheckBox);
@@ -433,34 +504,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //region Button Methods
 
     public void onRefreshButtonPressed(View view) {
+        /*This method is run when the firebaseUser presses the refresh button*/
 
         if(localUser.lastLocation != null)
         {
             updateCircle();
 
+            //Get all the selected types
             ArrayList<String> types = new ArrayList<>();
+            if(barCheckBox.isChecked()) types.add(PlaceType.BAR);
+            if(cafeCheckBox.isChecked()) types.add(PlaceType.CAFE);
+            if(restaurantCheckBox.isChecked()) types.add(PlaceType.RESTAURANT);
+            if(nightClubCheckBox.isChecked()) types.add(PlaceType.NIGHT_CLUB);
 
-            if(barCheckBox.isChecked()) types.add(YarnPlace.PlaceType.BAR);
-            if(cafeCheckBox.isChecked()) types.add(YarnPlace.PlaceType.CAFE);
-            if(restaurantCheckBox.isChecked()) types.add(YarnPlace.PlaceType.RESTAURANT);
-            if(nightClubCheckBox.isChecked()) types.add(YarnPlace.PlaceType.NIGHT_CLUB);
-
+            //Get the chats with the selected types
             nearbyChatFinder.getNearbyChats(types);
-            nearbyChatFinder.setNearbyChatsListener(types);
+            nearbyChatFinder.initNearbyChatsListener(types);
             Log.d(TAG,"Getting near by chats");
         }
     }
 
     public void onFocusOnUserPressed(View view) {
-        localUser.getUserLocation(this, mFusedLocationProviderClient, new YarnUser.LocationRecievedListener() {
+        /*Focus the camera on the firebaseUser*/
+
+        localUser.getUserLocation(this, mFusedLocationProviderClient, new LocalUser.locationReceivedListener() {
             @Override
-            public void onLocationRecieved(LatLng latLng) {
+            public void onLocationReceived(LatLng latLng) {
                 focusOnLatLng(latLng);
             }
         });
     }
 
     public void onChatPlannerPressed(View view) {
+        /*This method goes to the Chat Planner activity when they press the Chat Planner Button*/
+
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
@@ -471,12 +548,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void onNotificationsPressed(View view) {
+        /*This method goes to the Notification activity when the firebaseUser presses the notification button*/
+
         Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.down_to_up,R.anim.up_to_down);
     }
 
     public void onAccountPressed(View view) {
+        /*This method goes to the Account Activity when the firebaseUser presses the Account Button*/
+
         Intent intent = new Intent(getBaseContext(), AccountActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.left_to_right,R.anim.right_to_left);
@@ -484,30 +565,55 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //endregion
 
-    //region Private methods
+    //region Public Methods
 
-    private void focusOnLatLng(LatLng latLng) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
+    public Marker createMarker(Double lat, Double lng) {
+        /*This method creates a marker at the given location*/
 
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(latLng)
-                .zoom(15)
-                .tilt(40)
-                .build();
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        //Set the marker options
+        MarkerOptions markerOptions = new MarkerOptions();
+        LatLng latLng = new LatLng( lat, lng);
+        markerOptions.position(latLng);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+        //Add the marker to the map and return it
+        return mMap.addMarker(markerOptions);
     }
 
-    private YarnPlace createYarnPlace(HashMap<String,String> placeMap)
-    {
-        YarnPlace yarnPlace = new YarnPlace(placeMap);
-        yarnPlace.init(this,geocoder);
-        yarnPlace.initOnMap(this,mMap);
-        recorder.recordYarnPlace(yarnPlace);
+    public YarnPlace addYarnPlace(HashMap<String,String> placeMap){
+        /*Create a Yarn Place Object from the passed placeMap and then adds it to the map and system.
+        * This only happens if there isn't a YarnPlace of this description already present. So this
+        * method also checks if the passed placeMap's ID isn't present in the list of recorded
+        * Yarn Places*/
 
-        return yarnPlace;
+        final MapsActivity mapsActivity = this;
+
+        //There are no yarn places so add them all
+        if(recorder.recordedYarnPlaces.size() == 0)
+        {
+            return createYarnPlace(placeMap);
+        }
+        //There are some yarn places so add the ones we need
+        else{
+
+            //Look for equal Yarn Places
+            for(YarnPlace place: recorder.recordedYarnPlaces){
+
+                if(place.placeMap.get("id").equals(placeMap.get(("id")))){
+                    return place;
+                }
+            }
+
+            return createYarnPlace(placeMap);
+        }
     }
 
-    private void addYarnPlaces(List<HashMap<String,String>> placeMaps){
+    public void addYarnPlaces(List<HashMap<String,String>> placeMaps){
+        /*Creates all the yarn places from the passed List of placeMap and then adds them to the map
+        and system. This only happens if there isn't a YarnPlace of it's description already present.
+        So this method also checks if the passed placeMap's ID isn't present in the list of recorded
+        Yarn Places*/
+
 
         //There are no yarn places so add them all
         if(recorder.recordedYarnPlaces.size() == 0)
@@ -538,35 +644,61 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public YarnPlace addYarnPlace(HashMap<String,String> placeMap){
+    //endregion
+
+    //region Private methods
+
+    private void focusOnLatLng(LatLng latLng) {
+        /*Focuses the camera on a LatLng position*/
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(latLng)
+                .zoom(15)
+                .tilt(40)
+                .build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+    }
+
+    private YarnPlace createYarnPlace(HashMap<String,String> placeMap) {
+        /*Creates a new yarn Place Instance*/
 
         final MapsActivity mapsActivity = this;
 
-        //There are no yarn places so add them all
-        if(recorder.recordedYarnPlaces.size() == 0)
-        {
-            return createYarnPlace(placeMap);
-        }
-        //There are some yarn places so add the ones we need
-        else{
+        //Create the instance and then initialize it
+        final YarnPlace yarnPlace = new YarnPlace(placeMap);
+        yarnPlace.init(this,geocoder);
 
-            //Look for equal Yarn Places
-            for(YarnPlace place: recorder.recordedYarnPlaces){
+        yarnPlace.setReadyListener(new ReadyListener() {
+            @Override
+            public void onReady() {
+                /*Once the newly created yarn place is created show it on the map, record it and
+                set the chat Value Change listener so that the application knows when those chats
+                change under that Yarn Place*/
 
-                if(place.placeMap.get("id").equals(placeMap.get(("id")))){
-                    return place;
+                yarnPlace.initOnMap(mapsActivity,mMap);
+                recorder.recordYarnPlace(yarnPlace);
+
+                ArrayList<Chat> chats = yarnPlace.getChats();
+
+                if(chats != null || chats.size() > 0)
+                {
+                    for (Chat c :chats) {
+                        c.updator.addValueChangeListener(mapsActivity);
+                    }
                 }
             }
+        });
 
-            return createYarnPlace(placeMap);
-        }
+
+        return yarnPlace;
     }
 
-    //endregion
-
-    //region Utility
-
     private YarnPlace searchMarkerInList(List<YarnPlace> yarnPlaces, Marker toSearch) {
+        /*Loops over the passed List of Yarn PLaces and then checks for the equality against the
+         * passed marker instance and the marker instance in the Yarn Place. If there is a match
+         * that Yarn Place is returned*/
 
         //Loop through all places to find marker equality
         if( yarnPlaces != null) {
@@ -578,6 +710,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void updateCircle(){
+        /*Updates the circle on the Map*/
 
         if(circle != null )circle.remove();
 

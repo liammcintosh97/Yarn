@@ -15,10 +15,13 @@ import java.util.List;
 
 public final class AddressTools
 {
+    /*This class is used for building and formatting addresses both street and database*/
+
     public static Address buildAddress(Context callingContext, String country, String admin1,
                                        String admin2, String locality, String street,
-                                       String postcode)
-    {
+                                       String postcode) {
+        /*Builds an address object using the passed strings*/
+
         Address address = new Address(callingContext.getResources().getConfiguration().locale);
 
         address.setCountryCode(country);
@@ -31,8 +34,9 @@ public final class AddressTools
         return address;
     }
 
-    public static String formatAddress(Address address)
-    {
+    public static String formatAddress(Address address) {
+        /*returns a formatted string from an address object*/
+
         String country;
         String admin1;
         String admin2;
@@ -51,8 +55,9 @@ public final class AddressTools
                 " " + postcode;
     }
 
-    public static Address getAddressFromLocation(Geocoder geocoder, LatLng latLng)
-    {
+    public static Address getAddressFromLocation(Geocoder geocoder, LatLng latLng) {
+        /*Returns an address object from a LatLng*/
+
         List<Address> addresses;
 
         try{
@@ -71,32 +76,36 @@ public final class AddressTools
         }
     }
 
-    public static DatabaseReference getAdminDatabaseReference(String country,String admin1)
-    {
+    public static DatabaseReference getAdminDatabaseReference(String country,String admin1) {
+        /*Returns a DatabaseReference at the admin1 level*/
+
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
                 .child(country).child(admin1);
         return ref;
     }
 
     public static DatabaseReference getPlaceDatabaseReference(String country,String admin1,
-                                                             String placeID)
-    {
+                                                             String placeID) {
+        /*Returns a DatabaseReference at the place level*/
+
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
                 .child(country).child(admin1).child(placeID);
         return ref;
     }
 
     public static DatabaseReference getChatDatabaseReference(String country,String admin1,
-                                                             String placeID, String chatID)
-    {
+                                                             String placeID, String chatID) {
+        /*Returns a DatabaseReference at the chat level*/
+
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
                 .child(country).child(admin1).child(placeID).child(chatID);
         return ref;
     }
 
     public static DatabaseReference getPlaceInfoDatabaseReference(String country, String admin1,
-                                                                  String placeID, String yarnInfoKey)
-    {
+                                                                  String placeID, String yarnInfoKey) {
+        /*Returns a DatabaseReference at the Yarn Place Info level*/
+
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Chats")
                 .child(country).child(admin1).child(placeID).child(yarnInfoKey);
         return ref;
