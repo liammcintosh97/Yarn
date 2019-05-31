@@ -1,6 +1,5 @@
 package com.example.liammc.yarn.core;
 
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -22,11 +21,12 @@ import com.example.liammc.yarn.finders.NearbyPlaceFinder;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.yarnPlace.ChatCreator;
+import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.example.liammc.yarn.interfaces.ReadyListener;
@@ -56,9 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
-{
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     /*This is main Activity in the whole application and where the firebaseUser will spend most of their
     time. Here the firebaseUser will be searching and interacting with Yarn Places, using the map and
     transitioning to different parts of the application */
@@ -111,7 +109,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         recorder = Recorder.getInstance();
         geocoder = new Geocoder(this,Locale.getDefault());
-        timeChangeReceiver = new TimeChangeReceiver();
+        timeChangeReceiver = new TimeChangeReceiver(this);
+        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
     }
 
     @Override
@@ -138,7 +137,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Initialize the Map Listeners and services
         initMapListeners();
-        initMapServices();
+        initPlacesClient();
 
         //Focus on the firebaseUser and show the radius circle on the map
         onFocusOnUserPressed(null);
@@ -151,14 +150,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         * dismiss that, if the Yarn Place Info Window is showing dismiss that but if only the
         * map is showing go to the account activity*/
 
+        InfoWindow info = touchedYarnPlace.infoWindow;
+        ChatCreator creator = info.chatCreator;
+
         if(touchedYarnPlace != null)
         {
-            if(touchedYarnPlace.chatCreator.window.isShowing())
+            if(creator.window.isShowing())
             {
-                touchedYarnPlace.chatCreator.dismiss();
+                creator.dismiss();
             }
             else{
-                touchedYarnPlace.dismissInfoWindow();
+                info.dismiss();
             }
         }
         else{
@@ -198,7 +200,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void initMapServices(){
+    private void initPlacesClient(){
 
         //Initialize the Places API
         if (!Places.isInitialized()) {
@@ -228,7 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*This is called when the Nearby Chat Finder finds a place with chats*/
 
                 Log.d(TAG,"Found Place with Chats - " + placeMap.toString());
-                addYarnPlace(placeMap);
+                addYarnPlace(placeMap,true);
             }
 
             @Override
@@ -291,25 +293,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*Called when the finder finds a place*/
 
                 //Add it to the map
-                final YarnPlace yarnPlace = addYarnPlace(placeMap);
+                final YarnPlace yarnPlace = addYarnPlace(placeMap,true);
+                touchedYarnPlace = yarnPlace;
 
                 //Once the Yarn Place is ready focus on it and show the Info Window
-                if(yarnPlace.checkReady())
-                {
-                    focusOnLatLng(yarnPlace.marker.getPosition());
-                    touchedYarnPlace = yarnPlace;
-                    yarnPlace.showInfoWindow(mapsActivity,mMap);
-                }
-                else{
-                    yarnPlace.setReadyListener(new ReadyListener() {
-                        @Override
-                        public void onReady() {
-                            focusOnLatLng(yarnPlace.marker.getPosition());
-                            touchedYarnPlace = yarnPlace;
-                            yarnPlace.showInfoWindow(mapsActivity,mMap);
-                        }
-                    });
-                }
+                if(yarnPlace.checkReady())focusOnYarnPlace(yarnPlace);
+
             }
 
             @Override
@@ -326,8 +315,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initMarkerListener() {
         /*Initializes the Map Marker Listener*/
 
-        final MapsActivity mapsActivity = this;
-
         mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
 
             @Override
@@ -335,11 +322,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*Runs when the firebaseUser clicks on a marker*/
 
                 //The firebaseUser has already touched a yarn place so we need to dismiss it
-                if(touchedYarnPlace != null)
-                {
-                    if(touchedYarnPlace.window.isShowing())
-                    {
-                        touchedYarnPlace.dismissInfoWindow();
+                if(touchedYarnPlace != null) {
+
+                    if(touchedYarnPlace.infoWindow.window.isShowing()) {
+                        touchedYarnPlace.infoWindow.dismiss();
                         touchedYarnPlace = null;
                     }
                 }
@@ -348,10 +334,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 touchedYarnPlace = searchMarkerInList(recorder.recordedYarnPlaces,marker);
 
                 //Focus on the Yarn Place and show the info window
-                if(touchedYarnPlace != null)
-                {
-                    focusOnLatLng(marker.getPosition());
-                    touchedYarnPlace.showInfoWindow(mapsActivity,mMap);
+                if(touchedYarnPlace != null) {
+                    focusOnYarnPlace(touchedYarnPlace);
                     Log.d(TAG,"Found the correct Yarn place from marker click");
                 }
                 else{
@@ -372,9 +356,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 /*If the firebaseUser has touched a Yarn Place the application must update it's info window
                 position*/
-                if(touchedYarnPlace != null)
-                {
-                    if(!touchedYarnPlace.updateWindowPosition(mMap)) touchedYarnPlace = null;
+                if(touchedYarnPlace != null) {
+                    if(!touchedYarnPlace.infoWindow.updatePosition(mMap)) touchedYarnPlace = null;
                 }
             }
         });
@@ -389,9 +372,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*Runs when the firebaseUser clicks on the map*/
 
                 //If a Yarn Place Info Window is showing then dismiss it
-                if(touchedYarnPlace != null && touchedYarnPlace.window.isShowing())
+                if(touchedYarnPlace != null && touchedYarnPlace.infoWindow.window.isShowing())
                 {
-                    touchedYarnPlace.dismissInfoWindow();
+                    touchedYarnPlace.infoWindow.dismiss();
                     touchedYarnPlace = null;
                 }
             }
@@ -501,6 +484,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //endregion
 
+    //region Getters and Setters
+
+    public YarnPlace getTouchedYarnPlace(){return touchedYarnPlace;}
+
+    //endregion
+
     //region Button Methods
 
     public void onRefreshButtonPressed(View view) {
@@ -541,10 +530,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
-        /*
-        Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
-        intent.putExtra("recordedYarnPlaces",recorder.recordedYarnPlaces);
-        startActivityForResult(intent,CHAT_PLANNER_CODE);*/
     }
 
     public void onNotificationsPressed(View view) {
@@ -580,18 +565,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return mMap.addMarker(markerOptions);
     }
 
-    public YarnPlace addYarnPlace(HashMap<String,String> placeMap){
+    public YarnPlace addYarnPlace(HashMap<String,String> placeMap,Boolean focus){
         /*Create a Yarn Place Object from the passed placeMap and then adds it to the map and system.
         * This only happens if there isn't a YarnPlace of this description already present. So this
         * method also checks if the passed placeMap's ID isn't present in the list of recorded
         * Yarn Places*/
 
-        final MapsActivity mapsActivity = this;
-
         //There are no yarn places so add them all
-        if(recorder.recordedYarnPlaces.size() == 0)
-        {
-            return createYarnPlace(placeMap);
+        if(recorder.recordedYarnPlaces.size() == 0) {
+
+            return createYarnPlace(placeMap,focus);
         }
         //There are some yarn places so add the ones we need
         else{
@@ -600,11 +583,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             for(YarnPlace place: recorder.recordedYarnPlaces){
 
                 if(place.placeMap.get("id").equals(placeMap.get(("id")))){
+
+                    if(focus)focusOnYarnPlace(place);
                     return place;
                 }
             }
 
-            return createYarnPlace(placeMap);
+            return createYarnPlace(placeMap,focus);
         }
     }
 
@@ -616,11 +601,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         //There are no yarn places so add them all
-        if(recorder.recordedYarnPlaces.size() == 0)
-        {
-            for(HashMap<String,String> placeMap : placeMaps)
-            {
-                createYarnPlace(placeMap);
+        if(recorder.recordedYarnPlaces.size() == 0) {
+
+            for(HashMap<String,String> placeMap : placeMaps) {
+                createYarnPlace(placeMap,false);
             }
         }
         //There are some yarn places so add the ones we need
@@ -638,7 +622,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
                 if(!equal){
-                    createYarnPlace(placeMap);
+                    createYarnPlace(placeMap,false);
                 }
             }
         }
@@ -661,7 +645,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
-    private YarnPlace createYarnPlace(HashMap<String,String> placeMap) {
+    private YarnPlace createYarnPlace(HashMap<String,String> placeMap,final boolean focus) {
         /*Creates a new yarn Place Instance*/
 
         final MapsActivity mapsActivity = this;
@@ -677,22 +661,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 set the chat Value Change listener so that the application knows when those chats
                 change under that Yarn Place*/
 
+                //Show on the map and record
                 yarnPlace.initOnMap(mapsActivity,mMap);
                 recorder.recordYarnPlace(yarnPlace);
 
+                //Initialize the value change listeners on all the chats
                 ArrayList<Chat> chats = yarnPlace.getChats();
-
-                if(chats != null || chats.size() > 0)
-                {
+                if(chats != null && chats.size() > 0) {
                     for (Chat c :chats) {
-                        c.updator.addValueChangeListener(mapsActivity);
+                        c.updator.initChangeListener(mapsActivity);
                     }
                 }
+
+                //focus on the Yarn Place
+                if(focus)focusOnYarnPlace(yarnPlace);
             }
         });
 
 
         return yarnPlace;
+    }
+
+    private void focusOnYarnPlace(YarnPlace touchedYarnPlace){
+
+        if(touchedYarnPlace.infoWindow.window.isShowing()) touchedYarnPlace.infoWindow.dismiss();
+        focusOnLatLng(touchedYarnPlace.marker.getPosition());
+        touchedYarnPlace.infoWindow.show(mMap);
     }
 
     private YarnPlace searchMarkerInList(List<YarnPlace> yarnPlaces, Marker toSearch) {
@@ -713,6 +707,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         /*Updates the circle on the Map*/
 
         if(circle != null )circle.remove();
+        if(mMap == null){
+            Log.e(TAG,"Couldn't draw circle because the Map is null");
+            return;
+        }
+        if(localUser == null || localUser.lastLatLng == null){
+            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
+            return;
+        }
 
         circle = mMap.addCircle(new CircleOptions()
                 .center(localUser.lastLatLng)

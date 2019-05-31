@@ -14,7 +14,12 @@ public class SignInActivity extends AuthActivity {
         /*Runs when the activity is created*/
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+
+        initAuthenticators();
+        initPhoneAuthWindow();
+        initUI();
     }
+
 
     //region Button Methods
 

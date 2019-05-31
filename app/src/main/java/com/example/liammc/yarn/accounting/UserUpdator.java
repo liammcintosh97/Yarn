@@ -55,7 +55,7 @@ public class UserUpdator {
                 });
 
         //Updates the firebaseUser name in the Firebase database
-        localUser.userDatabaseReference.child(localUser.userID).child("userName").setValue(userName)
+        localUser.userDatabaseReference.child("userName").setValue(userName)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -79,7 +79,7 @@ public class UserUpdator {
         Uri uri = getImageUri(activity,profilePictureBitmap);
 
         //Upload the profile picture to storage
-        localUser.userStorageReference.child(localUser.userID).child("profilePicture").putFile(uri)
+        localUser.userStorageReference.child("profilePicture").putFile(uri)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -219,7 +219,7 @@ public class UserUpdator {
         /*Updates the firebaseUser Rating*/
 
         //Write to the User database firebaseUser name
-        localUser.userDatabaseReference.child(localUser.firebaseUser.getUid()).child("rating").setValue(rating)
+        localUser.userDatabaseReference.child("rating").setValue(rating)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -238,7 +238,7 @@ public class UserUpdator {
         /*Updates the firebaseUser's term acceptance*/
 
         //Write to the User database firebaseUser name
-        localUser.userDatabaseReference.child(localUser.firebaseUser.getUid()).child("TermsAcceptance").setValue(acceptance)
+        localUser.userDatabaseReference.child("TermsAcceptance").setValue(acceptance)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {

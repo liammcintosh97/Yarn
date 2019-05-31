@@ -120,12 +120,12 @@ public class Chat
         this.chatRef = initReference();
 
         //Get Chat info
-        updator.addChatDataListener("host");
-        updator.addChatDataListener("guest");
-        updator.addChatDataListener("date");
-        updator.addChatDataListener("time");
-        updator.addChatDataListener("length");
-        updator.addChatDataListener("active");
+        updator.initDataListener("host");
+        updator.initDataListener("guest");
+        updator.initDataListener("date");
+        updator.initDataListener("time");
+        updator.initDataListener("length");
+        updator.initDataListener("active");
     }
 
     //endregion Constructors
@@ -158,12 +158,12 @@ public class Chat
         Communicator.setData(chatRef,"length",chatLength);
         Communicator.setData(chatRef,"active", chatActive);
 
-        updator.addChatDataListener("host");
-        updator.addChatDataListener("guest");
-        updator.addChatDataListener("date");
-        updator.addChatDataListener("time");
-        updator.addChatDataListener("length");
-        updator.addChatDataListener("active");
+        updator.initDataListener("host");
+        updator.initDataListener("guest");
+        updator.initDataListener("date");
+        updator.initDataListener("time");
+        updator.initDataListener("length");
+        updator.initDataListener("active");
     }
 
     private DatabaseReference initReference(){
@@ -180,13 +180,12 @@ public class Chat
 
     public void acceptChat(Context context, YarnUser guestUser) {
         /*Accepts the chat by setting the data in the database and recording the chat*/
-
         Communicator.setData(chatRef,"guest",guestUser.userID);
-        Communicator.setData(chatRef,"chatActive", chatActive);
-
-        valueChangelistener.onAccepted(this,chatRef);
-
         Recorder.getInstance().recordChat(this);
+    }
+
+    public void activateChat(){
+        Communicator.setData(chatRef,"chatActive", true);
     }
 
     public void cancelChat() {

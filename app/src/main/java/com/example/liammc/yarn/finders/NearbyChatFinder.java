@@ -38,8 +38,9 @@ public class NearbyChatFinder {
     private final LocalUser localUser;
     private int searchRadius;
     private FirebaseFunctions firebaseFunctions;
-    private DatabaseReference adminRef;
-    private FinderCallback listener;
+    public DatabaseReference adminRef;
+    public ChildEventListener adminRefListener;
+    public FinderCallback listener;
 
     public NearbyChatFinder(int _searchRadius, FinderCallback _listener) {
         this.localUser = LocalUser.getInstance();
@@ -60,7 +61,7 @@ public class NearbyChatFinder {
         adminRef = AddressTools.getAdminDatabaseReference(localUser.lastAddress.getCountryName()
                 ,localUser.lastAddress.getAdminArea());
 
-        adminRef.addChildEventListener(new ChildEventListener() {
+        adminRefListener = adminRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 parseFoundChat(dataSnapshot,types);
@@ -188,30 +189,35 @@ public class NearbyChatFinder {
     private void parseFoundChat(DataSnapshot dataSnapshot,final ArrayList<String> types){
         /*Takes the data snapshot and returns a place map to the firebaseUser if it is within their radius*/
 
-        DataSnapshot placeInfo = dataSnapshot.child("Yarn_Place_Info");
+        DataSnapshot placeInfo = dataSnapshot.child(YarnPlace.PLACE_INFO_REF);
 
-        double lat = (double)placeInfo.child("lat").getValue();
-        double lng = (double)placeInfo.child("lng").getValue();
+        if(placeInfo.getValue() != null){
+            double lat = (double)placeInfo.child("lat").getValue();
+            double lng = (double)placeInfo.child("lng").getValue();
 
-        String placeId = dataSnapshot.getKey();
-        String placeName = (String) placeInfo.child("place_name").getValue();
-        LatLng placeLatLng =  new LatLng(lat,lng);
-        String placeType =  (String) placeInfo.child("place_type").getValue();
+            String placeId = dataSnapshot.getKey();
+            String placeName = (String) placeInfo.child("place_name").getValue();
+            LatLng placeLatLng =  new LatLng(lat,lng);
+            String placeType =  (String) placeInfo.child("place_type").getValue();
 
-        //The distance is greater then
-        if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
-                ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
-                > searchRadius) return;
+            //The distance is greater then
+            if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
+                    ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
+                    > searchRadius) return;
 
-        //The types don't match
-        if(!checkTypeEquality(placeType,types)) return;
+            //The types don't match
+            if(!checkTypeEquality(placeType,types)) return;
 
         /*If it's within the radius and matches the firebaseUser's chosen types return the place map to the
         listener*/
-        HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
-                ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
+            HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
+                    ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
 
-        listener.onFoundPlace(placeMap);
+            listener.onFoundPlace(placeMap);
+        }
+        else{Log.e(TAG,"Place Info was Null, Check the realtime database and see if the place " +
+                "info is there");}
+
 
     }
 

@@ -63,7 +63,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
         initEvents();
 
         //Registers the time change receiver
-        timeChangeReceiver = new TimeChangeReceiver();
+        timeChangeReceiver = new TimeChangeReceiver(this);
         registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
     }
 
@@ -80,7 +80,6 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
         cancelDialog = new CancelDialog();
         cancelDialog.init(this);
-        chatScrollElements = eventsView.findViewById(R.id.elements);
         chatSuggestionElements = findViewById(R.id.suggestionScrollView).findViewById(R.id.elements);
         parentViewGroup = findViewById(R.id.parentView);
 
@@ -127,6 +126,8 @@ public class ChatPlannerActivity extends AppCompatActivity{
         // Initialize a new instance of LayoutInflater service
         LayoutInflater inflater = getLayoutInflater();
         eventsView = inflater.inflate(R.layout.chat_window,null);
+
+        chatScrollElements = eventsView.findViewById(R.id.elements);
 
         //Get dimensions of the screen
         DisplayMetrics dm = new DisplayMetrics();
@@ -341,12 +342,14 @@ public class ChatPlannerActivity extends AppCompatActivity{
         notifier.removeSuggestion(notification);
     }
 
-    public static void onVerifyCancelPress(Chat chat){
+    public static void onVerifyCancelPress(ChatPlannerActivity planner,Chat chat){
         /*This runs when the firebaseUser verifies that they want to cancel the chat. It removes it from the
         * event scroll view, the database and the application's system*/
         removeChatFromScrollView(chatScrollElements,chat.chatID);
-        chat.yarnPlace.removeChatFromScrollView(chat.chatID);
+        chat.yarnPlace.infoWindow.removeChatFromScrollView(chat.chatID);
         chat.cancelChat();
+
+        if(chatScrollElements.getChildCount() == 0) planner.dismissEventWindow();
     }
 
     //endregion

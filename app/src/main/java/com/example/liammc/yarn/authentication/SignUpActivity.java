@@ -24,6 +24,10 @@ public class SignUpActivity extends AuthActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
+        initAuthenticators();
+        initPhoneAuthWindow();
+        initUI();
+
         checkSignIn();
         initSignUpUI();
     }

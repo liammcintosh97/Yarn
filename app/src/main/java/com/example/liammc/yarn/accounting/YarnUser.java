@@ -53,31 +53,32 @@ public class YarnUser {
 
     //region Constructors
     public YarnUser(){
-        initDatabaseReferences();
     }
 
     public YarnUser(String _userID) {
-        initDatabaseReferences();
-        initUser(_userID);
+
+        initDatabaseReferences(_userID);
+        initUser();
     }
     //endregion
 
     //region Init
-    public void initUser(String _userID){
+    public void initUser(){
         /*Initializes the firebaseUser's information by getting it from Firebase*/
 
-        userID = _userID;
         getUserName();
         getUserProfilePicture();
         getUserRating();
         getUserTermAcceptance();
     }
 
-    private void initDatabaseReferences(){
+    public void initDatabaseReferences(String _userID){
         /*Initialize the database references*/
 
-        userStorageReference = FirebaseStorage.getInstance().getReference().child("Users");
-        userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+        userID = _userID;
+
+        userStorageReference = FirebaseStorage.getInstance().getReference().child("Users").child(userID);
+        userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
     }
     //endregion
 
@@ -87,9 +88,7 @@ public class YarnUser {
         /*Gets the firebaseUser's name by attaching a listener to the userDatabase reference. Location is
         * Users/[userID]/userName*/
 
-        userDatabaseReference
-                .child(userID)
-                .child("userName").addValueEventListener(new ValueEventListener() {
+        userDatabaseReference.child("userName").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 /*Runs when the data at this location changes. Also runs the first time the listener
@@ -120,7 +119,6 @@ public class YarnUser {
         final long ONE_MEGABYTE = 1024 * 1024;
 
         userStorageReference
-                .child(userID)
                 .child("profilePicture")
                 .getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
             @Override
@@ -159,7 +157,6 @@ public class YarnUser {
          * Users/[userID]/rating*/
 
         userDatabaseReference
-                .child(userID)
                 .child("rating").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -206,7 +203,6 @@ public class YarnUser {
         Location is Users/[userID]/TermsAcceptance*/
 
         userDatabaseReference
-                .child(userID)
                 .child("TermsAcceptance").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

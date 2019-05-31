@@ -1,10 +1,12 @@
 package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -12,7 +14,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.TwitterAuthProvider;
+import com.twitter.sdk.android.core.DefaultLogger;
 import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.Twitter;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterConfig;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterAuthClient;
@@ -23,10 +29,27 @@ class TwitterAuth extends Authenticator {
     TwitterAuthClient mTwitterAuthClient;
 
     //Constructor
-    TwitterAuth(FirebaseAuth _mAuth) {
+    TwitterAuth(Context _context,FirebaseAuth _mAuth) {
         super(_mAuth);
+        initTwitter(_context);
         this.mTwitterAuthClient = new TwitterAuthClient();
     }
+
+    //region Init
+
+    private void initTwitter(Context context){
+
+        TwitterConfig config = new TwitterConfig.Builder(context)
+                .logger(new DefaultLogger(Log.DEBUG))
+                .twitterAuthConfig(new TwitterAuthConfig(
+                        context.getString(R.string.com_twitter_sdk_android_CONSUMER_KEY),
+                        context.getString(R.string.com_twitter_sdk_android_CONSUMER_SECRET)))
+                .debug(true)
+                .build();
+        Twitter.initialize(config);
+    }
+
+    //endregion
 
     //region Package Private Methods
 

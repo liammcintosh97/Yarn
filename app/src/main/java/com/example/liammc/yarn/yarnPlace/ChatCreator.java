@@ -1,6 +1,5 @@
-package com.example.liammc.yarn.core;
+package com.example.liammc.yarn.yarnPlace;
 
-import android.app.Activity;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -15,7 +14,8 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.yarnPlace.YarnPlace;
+import com.example.liammc.yarn.core.MapsActivity;
+import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;
@@ -26,14 +26,12 @@ import java.util.HashMap;
 import java.util.Locale;
 
 
-public class ChatCreator
-{
+public class ChatCreator {
     /*The Chat Creator is a firebaseUser interface for creating new chats. It is is used in conjunction with
     the Yarn Place Object*/
 
     private final String TAG = "ChatCreator";
-    //private MapsActivity mapsActivity;
-    private final ViewGroup parentViewGroup;
+    private final MapsActivity mapsActivity;
 
     public PopupWindow window;
     public TimeDialog timePicker;
@@ -42,9 +40,10 @@ public class ChatCreator
     public View mChatCreatorView;
 
     String localUserID;
-    public YarnPlace yarnPlace;
+    private YarnPlace yarnPlace;
 
     //UI
+    private final ViewGroup parentViewGroup;
     TextView placeName;
     Button dateButton;
     Button timeButton;
@@ -56,23 +55,28 @@ public class ChatCreator
     public String chatPlaceName;
     public String chatPlaceAddress;
 
-    public ChatCreator(FragmentActivity activity, ViewGroup _parent, String localUserID)
-    {
-        this.parentViewGroup = _parent;
-
+    public ChatCreator(MapsActivity mapsActivity, String localUserID, YarnPlace _yarnPlace) {
+        this.parentViewGroup = mapsActivity.findViewById(R.id.constraintLayout);
+        this.mapsActivity = mapsActivity;
         this.localUserID = localUserID;
+        this.yarnPlace = _yarnPlace;
 
-        initWindow(activity);
-        initUI(activity);
+        init();
     }
 
     //region init
 
-    private void initWindow(Activity activity) {
+    private void init(){
+        initWindow();
+        initUIReferences();
+        initButtons();
+    }
+
+    private void initWindow() {
         /*This method initializes the window for the Chat Creator*/
 
         // Initialize a new instance of LayoutInflater service
-        mChatCreatorView = inflate(activity,R.layout.popup_chat_creator,parentViewGroup);
+        mChatCreatorView = inflate(R.layout.popup_chat_creator);
 
         // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
@@ -86,14 +90,6 @@ public class ChatCreator
         CompatibilityTools.setPopupElevation(window,5.0f);
     }
 
-    private void initUI(FragmentActivity activity) {
-        /*This method initializes the Chat Creator's UI by getting the references and initializing
-        the buttons
-         */
-        initUIReferences();
-        initButtons(activity);
-    }
-
     private void initUIReferences(){
         /*This method gets the UI references from the layout*/
 
@@ -104,31 +100,31 @@ public class ChatCreator
         createChatButton = mChatCreatorView.findViewById(R.id.createChatButton);
     }
 
-    private void initButtons(final FragmentActivity activity){
+    private void initButtons(){
         /*This method links the button's clicks to their respective methods*/
 
         dateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickDatePressed(activity);
+                onPickDatePressed(mapsActivity);
             }
         });
         timeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickTimePressed(activity);
+                onPickTimePressed(mapsActivity);
             }
         });
         durationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickDurationPressed(activity);
+                onPickDurationPressed(mapsActivity);
             }
         });
         createChatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onCreateChatPressed(activity);
+                onCreateChatPressed(mapsActivity);
             }
         });
     }
@@ -195,16 +191,12 @@ public class ChatCreator
 
         HashMap<String,String> chatMap = Chat.buildChatMap(localUserID,date,time,duration);
 
-        Chat chat  = new Chat(yarnPlace, chatMap, new Chat.ChatReadyListener(){
+        new Chat(yarnPlace, chatMap, new Chat.ChatReadyListener(){
             @Override
             public void onReady(Chat chat) {
 
                 Log.d(TAG,"Chat is ready");
-                chat.yarnPlace.addChat(chat);
-                Recorder.getInstance().recordChat(chat);
-                chat.yarnPlace.yarnPlaceUpdater.initChildListener(activity);
-                chat.yarnPlace.yarnPlaceUpdater.addChildListener();
-
+                yarnPlace.yarnPlaceUpdater.addToSystem(activity.getParent(),chat);
                 dismiss();
             }
         });
@@ -220,14 +212,13 @@ public class ChatCreator
         placeName.setText(_placeName);
     }
 
-    public void show(YarnPlace _yarnPlace) {
+    public void show() {
         /*This method shows the Chat Creator to the firebaseUser*/
+        init();
 
-        yarnPlace = _yarnPlace;
-
-        chatPlaceName = _yarnPlace.placeMap.get("name");
-        chatPlaceID = _yarnPlace.placeMap.get("id");
-        chatPlaceAddress = _yarnPlace.placeMap.get("address");
+        chatPlaceName = yarnPlace.placeMap.get("name");
+        chatPlaceID = yarnPlace.placeMap.get("id");
+        chatPlaceAddress = yarnPlace.placeMap.get("address");
 
         updateUI(chatPlaceName);
 
@@ -239,15 +230,16 @@ public class ChatCreator
 
         if(window != null && window.isShowing()) window.dismiss();
     }
+
     //endregion
 
     //region Private Methods
 
-    private View inflate(Activity activity, int layoutID, ViewGroup parent ) {
+    private View inflate(int layoutID) {
         /*Inflates the given layout ID*/
 
-        LayoutInflater inflater = activity.getLayoutInflater();
-        return inflater.inflate(layoutID,parent);
+        LayoutInflater inflater = mapsActivity.getLayoutInflater();
+        return inflater.inflate(layoutID,null);
     }
 
     //endregion

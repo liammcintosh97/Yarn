@@ -13,6 +13,7 @@ import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.twitter.sdk.android.core.Twitter;
 
 public class MainActivity extends AppCompatActivity {
@@ -92,7 +93,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/
 
-        return mAuth.getCurrentUser() != null;
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        return user!= null;
     }
 
     //endregion

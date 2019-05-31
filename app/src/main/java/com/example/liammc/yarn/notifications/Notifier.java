@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
+import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.chats.Chat;
 
 
@@ -79,6 +80,7 @@ public class Notifier {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 //.setSmallIcon(R.drawable.)
                 .setContentTitle(title)
+                .setSmallIcon(R.drawable.ccp_down_arrow)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
@@ -112,32 +114,6 @@ public class Notifier {
 
         chatSuggestions.remove(notification);
     }
-
-    /*
-    public void onLocationChanged(Context context, Location location)
-    {
-        int nearbyChats = 0;
-        ArrayList<Chat> chatList = Recorder.getInstance().chatList;
-
-        if(chatList != null){
-
-            for(int i  = 0 ; i < chatList.size(); i++)
-            {
-                Chat chat = chatList.get(i);
-
-                Location chatLocation = new Location(LocationManager.GPS_PROVIDER);
-                chatLocation.setLatitude(chat.yarnPlace.marker.getPosition().latitude);
-                chatLocation.setLatitude(chat.yarnPlace.marker.getPosition().longitude);
-
-                if(chatLocation.distanceTo(location) < NOTIFICATION_PROXIMITY) nearbyChats++;
-            }
-
-            addNotification(context,"Nearby Chats","You have " +
-                    nearbyChats + " chats near you!");
-        }
-
-    }*/
-
 
     //endregion
 

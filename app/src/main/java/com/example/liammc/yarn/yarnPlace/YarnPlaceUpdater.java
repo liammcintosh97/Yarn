@@ -80,7 +80,7 @@ public class YarnPlaceUpdater
                     return;
                 }
 
-                addChatToYarnPlace(activity,dataSnapshot.getKey());
+                addChats(activity,dataSnapshot.getKey());
             }
 
             @Override
@@ -113,34 +113,34 @@ public class YarnPlaceUpdater
 
     //region Public Methods
 
-    public void addChatToYarnPlace(final Activity activity, String chatID) {
+    public void addChats(final Activity activity, String chatID) {
 
         final Chat addedChat =  new Chat(yarnPlace, chatID);
 
         addedChat.setReadyListener(new Chat.ChatReadyListener() {
             @Override
             public void onReady(Chat chat) {
-                addChatToSystem(activity,chat);
+                addToSystem(activity,chat);
             }
         });
-
     }
 
-    public void addChatsToYarnPlace(final Activity activity, final Iterable<DataSnapshot> children
+    public void addChats(final Activity activity, final Iterable<DataSnapshot> children
             , final long length) {
 
         final ArrayList<Chat> addedChats =  new ArrayList<>();
-        final YarnPlaceUpdater updater = this;
 
         for (DataSnapshot child: children) {
 
             String chatID = child.getKey();
 
+            //The snapshot child is the place info so we can't make a chat out of it
             if(chatID.equals(Chat.PLACE_INFO_REF)) {
                 Log.d(TAG,"Not a Chat");
                 continue;
             }
 
+            //The chat already exists in the yarnplace so don't add it
             if(existingChat(chatID)){
                 Log.d(TAG,"This chat exists so don't add it");
                 continue;
@@ -155,7 +155,7 @@ public class YarnPlaceUpdater
                     Log.d(TAG,"Chat -" + chat.chatID + " is ready" );
                     addedChats.add(chat);
 
-                    addChatToSystem(activity,chat);
+                    addToSystem(activity,chat);
 
                     if(checkReady(addedChats,length)) {
                         readyListener.onReady();
@@ -168,7 +168,7 @@ public class YarnPlaceUpdater
         }
     }
 
-    public void getJoinedChats(final Activity activity){
+    public void getChats(final Activity activity){
 
         if(yarnPlace.placeRef.getKey() != null) {
 
@@ -179,7 +179,7 @@ public class YarnPlaceUpdater
 
                     //There are chats to add
                     if(childrenCount > 0){
-                        addChatsToYarnPlace(activity,dataSnapshot.getChildren(),childrenCount);
+                        addChats(activity,dataSnapshot.getChildren(),childrenCount);
                     }
                     //There are no chats to add
                     else{
@@ -198,6 +198,25 @@ public class YarnPlaceUpdater
         }
     }
 
+    public void addToSystem(Activity activity, Chat chat) {
+        yarnPlace.addChat(chat);
+        chat.updator.initChangeListener(activity);
+        initChildListener(activity);
+        addChildListener();
+
+        if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.window.isShowing())
+            yarnPlace.infoWindow.updateScrollView();
+
+        if(chat.checkForUserInChat(localUserID)){
+            recorder.recordChat(chat);
+        }else{
+            Notifier.getInstance().addChatSuggestion("Chat suggestion",
+                    "A new chat was created at "
+                            + chat.yarnPlace.placeMap.get("name") + " on "
+                            + chat.chatDate + " at " + chat.chatTime, chat);
+        }
+    }
+
     public void addChildListener() {
         if(yarnPlace.placeRef.getKey() != null) {
 
@@ -208,6 +227,25 @@ public class YarnPlaceUpdater
     public void removeChildListener(){
 
         yarnPlace.placeRef.removeEventListener(childEventListener);
+    }
+
+    public boolean existingChat(String chatID) {
+
+        if(yarnPlace.getChats() != null) {
+            for(int i = 0 ; i < yarnPlace.getChats().size(); i++)
+            {
+                if(chatID.equals(yarnPlace.getChats().get(i).chatID)) return true;
+            }
+        }
+
+        if(recorder.chatList != null) {
+            for(int i = 0 ; i < recorder.chatList.size(); i++)
+            {
+                if(chatID.equals(recorder.chatList.get(i).chatID)) return true;
+            }
+        }
+
+        return false;
     }
     //endregion
 
@@ -233,43 +271,6 @@ public class YarnPlaceUpdater
             if(chatID.equals(removedChatPlaceID)){
                 yarnPlace.getChats().remove(i);
             }
-        }
-
-        yarnPlace.removeChatFromScrollView(removedChatPlaceID);
-    }
-
-    public boolean existingChat(String chatID) {
-
-        if(yarnPlace.getChats() != null)
-        {
-            for(int i = 0 ; i < yarnPlace.getChats().size(); i++)
-            {
-                if(chatID.equals(yarnPlace.getChats().get(i).chatID)) return true;
-            }
-        }
-
-        if(recorder.chatList != null)
-        {
-            for(int i = 0 ; i < recorder.chatList.size(); i++)
-            {
-                if(chatID.equals(recorder.chatList.get(i).chatID)) return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void addChatToSystem(Activity activity, Chat chat) {
-        yarnPlace.addChat(chat);
-        chat.updator.addValueChangeListener(activity);
-        if(chat.checkForUserInChat(localUserID)){
-
-            recorder.recordChat(chat);
-        }else{
-            Notifier.getInstance().addChatSuggestion("Chat suggestion",
-                    "A new chat was created at "
-                            + chat.yarnPlace.placeMap.get("name") + " on "
-                            + chat.chatDate + " at " + chat.chatTime, chat);
         }
     }
 

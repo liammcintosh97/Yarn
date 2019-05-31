@@ -31,12 +31,30 @@ public final class DateTools
         }
     }
 
-    public static Date stringToDate(String dateString) {
+    public static Date stringToddMMYY(String dateString) {
         /*Converts a date string into a date object. It first parses the string into a SimpleDateFormat
          * to see if its a valid date then returns the date object*/
 
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
+            Date date = sdf.parse(dateString);
+
+            return date;
+        }
+        catch(ParseException e)
+        {
+            e.printStackTrace();
+            Log.e("DateTools","Cannot parse date string");
+            return null;
+        }
+    }
+
+    public static Date stringTohMM(String dateString) {
+        /*Converts a date string into a date object. It first parses the string into a SimpleDateFormat
+         * to see if its a valid date then returns the date object*/
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("h:MM",Locale.getDefault());
             Date date = sdf.parse(dateString);
 
             return date;

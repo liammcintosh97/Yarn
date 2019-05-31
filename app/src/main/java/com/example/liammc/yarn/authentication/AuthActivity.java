@@ -3,6 +3,7 @@ package com.example.liammc.yarn.authentication;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -19,6 +20,8 @@ public class AuthActivity extends AppCompatActivity {
     /*The AuthActivity class is the parent class for activities that sign in and up users. It
     * handles the initialization of Authenticators, the Firebase Auth and User and shared UI
     * elements. Activities that are used to sign in or up users must extend this one*/
+
+    private static String TAG = "AuthActivity";
 
     //Sign in result codes
     public static final int GO_SIGN_IN = 1;
@@ -40,20 +43,6 @@ public class AuthActivity extends AppCompatActivity {
     protected PhoneAuthWindow mPhoneAuthWindow;
     protected EditText passwordInput;
     protected EditText emailInput;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        //Get the auth and the firebase firebaseUser
-        mAuth = FirebaseAuth.getInstance();
-        mCurrentUser = mAuth.getCurrentUser();
-
-        //Initialize Authenticators and Phone Auth window
-        initAuthenticators();
-        initPhoneAuthWindow();
-        initUI();
-    }
 
 
     @Override
@@ -83,17 +72,20 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     //region init
-    private void initAuthenticators(){
+    protected void initAuthenticators(){
         /*Initializes the authenticators*/
+
+        mAuth = FirebaseAuth.getInstance();
+        mCurrentUser = mAuth.getCurrentUser();
 
         mAuthenticator = new Authenticator(mAuth);
         mFacebookAuth = new FacebookAuth(this,mAuth);
         mGoogleAuth = new GoogleAuth(this,mAuth);
-        mTwitterAuth = new TwitterAuth(mAuth);
+        mTwitterAuth = new TwitterAuth(this,mAuth);
         mPhoneAuth = new PhoneAuth(this,mAuth);
     }
 
-    private void initPhoneAuthWindow(){
+    protected void initPhoneAuthWindow(){
         /*Initializes the Phone Auth window*/
 
         parentViewGroup = findViewById(R.id.mainConstraintLayout);
@@ -103,7 +95,7 @@ public class AuthActivity extends AppCompatActivity {
         mPhoneAuthWindow.auth = mPhoneAuth;
     }
 
-    private void initUI(){
+    protected void initUI(){
         /*Initializes UI elements*/
 
         passwordInput = findViewById(R.id.passwordInput);

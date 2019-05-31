@@ -70,9 +70,9 @@ public class NotificationsActivity extends AppCompatActivity {
     private void initTimeChangeReceiver() {
         /*Initializes the Time Change Receiver*/
 
-        timeChangeReceiver = new TimeChangeReceiver();
+        timeChangeReceiver = new TimeChangeReceiver(this);
     }
-    //endregion
+    //endregionc
 
     //region Button Methods
 

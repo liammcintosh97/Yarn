@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.core.InitializationActivity;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.google.firebase.auth.AuthCredential;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -61,7 +62,7 @@ public class Authenticator {
                             //Log in was successful so go to the Map
                             Log.d(TAG, "signInWithEmail:success");
 
-                            goToMap(activity);
+                            goToInitialization(activity);
                         } else {
                             //Log in failed so notify the firebaseUser
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -88,7 +89,7 @@ public class Authenticator {
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
                             if(isNew) goToAccountSetup(activity);
-                            else goToMap(activity);
+                            else goToInitialization(activity);
 
                         } else {
                             // If sign in fails, display a message to the firebaseUser.
@@ -108,11 +109,12 @@ public class Authenticator {
         activity.startActivity(myIntent);
     }
 
-    protected void goToMap(Activity activity) {
-        //Takes the firebaseUser to the Map activity
+    protected  void goToInitialization(Activity activity){
+        //Takes the firebaseUser to the Initialization activity
 
-        Intent myIntent = new Intent(activity.getBaseContext(), MapsActivity.class);
+        Intent myIntent = new Intent(activity.getBaseContext(), InitializationActivity.class);
         activity.startActivity(myIntent);
     }
+
     //endregion
 }

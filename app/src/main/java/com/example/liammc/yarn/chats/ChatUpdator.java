@@ -8,6 +8,7 @@ import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.Recorder;
+import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -17,52 +18,46 @@ public class ChatUpdator {
 
     private static final String TAG = "ChatUpdator";
     private Chat chat;
-    private Chat.ValueChangeListener valueChangelistener;
 
     public ChatUpdator(Chat _chat) {
         this.chat = _chat;
-        this.valueChangelistener = _chat.getValueChangelistener();
     }
 
-    public void addChatDataListener(final String dataType) {
+    public void initDataListener(final String dataType) {
 
         chat.chatRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot)
-            {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(!snapshot.exists()){
-                    Log.d(TAG,"This chat node doesn't exsist");
+                    Log.d(TAG,"This chat node doesn't exist");
                     chat.getValueChangelistener().onDeletion(chat,chat.chatRef);
+                    return;
                 }
 
-                if(translateDatabase(dataType,snapshot))
-                {
-                    Log.d(TAG,"Updated " + dataType + " from database : "
-                            + snapshot.getValue().toString());
+                snapshot.getValue().toString();
 
+                if(translateDatabase(dataType,snapshot)) {
+                    Log.d(TAG,"Updated Chat(" + chat.chatID + ")'s " + dataType);
                     chat.checkReady();
                 }
-                else Log.e(TAG,"Fatal error when trying to update "
-                        + dataType + " from database reference - " + chat.chatRef.toString());
+                else Log.d(TAG,dataType + " doesn't exist" + chat.chatRef.toString());
             }
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError)
-            {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG,"Unable to get " + dataType + "value from database");
             }
         });
     }
 
-    public void addValueChangeListener(final Activity activity){
+    public void initChangeListener(final Activity activity){
 
         final Notifier notifier = Notifier.getInstance();
         final Recorder recorder = Recorder.getInstance();
 
-        chat.setValueChangelistener(new Chat.ValueChangeListener() {
+        Chat.ValueChangeListener valueListener = new Chat.ValueChangeListener() {
             @Override
             public void onAccepted(Chat chat, DatabaseReference chatRef) {
-
-                recorder.recordChat(chat);
+                if(chat.hostUser.userID != LocalUser.getInstance().userID) recorder.recordChat(chat);
 
                 if(chat.guestUser != null) notifier.addNotification(activity,"Chat Accepted"
                         ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
@@ -71,22 +66,33 @@ public class ChatUpdator {
 
             @Override
             public void onActiveChange(Chat chat, DatabaseReference chatRef) {
-
+                if(chat.chatActive)Log.d(TAG,"Chat - " + chat.chatID + "was activated by " + chat.hostUser.userID);
             }
 
             @Override
             public void onDeletion(Chat chat, DatabaseReference chatRef) {
+
+                Log.d(TAG,"Chat - " + chat.chatID + "was deleted by " + chat.hostUser.userID);
 
                 if(chat.guestUser != null) notifier.addNotification(activity,"Chat Canceled"
                         ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
                                 + chat.chatDate + " at " + chat.chatTime + " was chatCanceled");
 
                 Recorder.getInstance().removeChat(chat.chatID);
-                chat.yarnPlace.removeChatFromScrollView(chat.chatID);
+
+                InfoWindow infoWindow = chat.yarnPlace.infoWindow;
+
+                if(infoWindow != null && infoWindow.window.isShowing()){
+                    chat.yarnPlace.infoWindow.removeChatFromScrollView(chat.chatID);
+                    chat.yarnPlace.infoWindow.updateScrollView();
+                }
+
                 chat.yarnPlace.yarnPlaceUpdater.removeChat(chat.yarnPlace.placeMap.get("id"));
-                chat.yarnPlace.updateScrollView(activity);
+
             }
-        });
+        };
+
+        chat.setValueChangelistener(valueListener);
     }
 
     private boolean translateDatabase(String dataType, DataSnapshot snapshot) {
@@ -99,29 +105,30 @@ public class ChatUpdator {
 
                 if (chatHostID.equals(chat.localUserID)) {
                     chat.hostUser = LocalUser.getInstance();
-                } else {
-                    Log.d(TAG, String.valueOf( snapshot.getValue()));
-                    chat.hostUser = new YarnUser( chatHostID);
-                }
+                } else chat.hostUser = new YarnUser(chatHostID);
                 return true;
             }
             //endregion
             //region Guest
             case ("guest"): {
 
-                chat.setGuestReady(true);
                 String chatGuestID =  (String)snapshot.child("guest").getValue();
                 if(chatGuestID == null) return false;
 
+                if(chat.getValueChangelistener() == null) Log.e(TAG,"Value Change listener = null");
+
                 if (chatGuestID.equals(chat.localUserID)) {
                     chat.guestUser = LocalUser.getInstance();
-                    if(valueChangelistener != null) valueChangelistener.onAccepted(chat,chat.chatRef);
+                    if(chat.getValueChangelistener() != null)
+                        chat.getValueChangelistener().onAccepted(chat,chat.chatRef);
                 } else if (!chatGuestID.equals("")) {
                     chat.guestUser = new YarnUser( chatGuestID);
-                    if(valueChangelistener != null) valueChangelistener.onAccepted(chat,chat.chatRef);
+                    if(chat.getValueChangelistener() != null)
+                        chat.getValueChangelistener().onAccepted(chat,chat.chatRef);
                 } else {
                     chat.guestUser = null;
                 }
+                chat.setGuestReady(true);
                 return true;
             }
             //endregion
@@ -157,11 +164,12 @@ public class ChatUpdator {
                 Boolean active =  (Boolean)snapshot.child("active").getValue();
                 if (active != null) {
                     chat.chatActive = active;
-                    if(valueChangelistener != null) valueChangelistener.onActiveChange(chat,chat.chatRef);
+                    if(chat.getValueChangelistener() != null)
+                        chat.getValueChangelistener().onActiveChange(chat,chat.chatRef);
                     return true;
                 } else return false;
             }
-
+            //endregion
         }
 
         return false;

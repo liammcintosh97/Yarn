@@ -35,7 +35,8 @@ public class CreateAccountActivity extends AppCompatActivity {
 
         //Get the Local User
         localUser = LocalUser.getInstance();
-        localUser.initUserAuth(FirebaseAuth.getInstance());
+        localUser.initUserAuth(auth);
+        localUser.initDatabaseReferences(currentUser.getUid());
 
         //initialize UI
         userNameInput = findViewById(R.id.userNameInput);

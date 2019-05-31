@@ -59,28 +59,34 @@ public class InitializationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_initilization);
 
         //Initialize the required objects and the Local firebaseUser
-        init();
         initLocalUser();
+        init();
     }
 
     //region Init
 
     private void init(){
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         geocoder = new Geocoder(this, Locale.getDefault());
-        timeChangeReceiver = new TimeChangeReceiver();
+        timeChangeReceiver = new TimeChangeReceiver(this);
+        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+        joinedDownloader = new JoinedDownloader();
     }
 
     private void initLocalUser(){
         /*Initializes the Local User and it's ready listener*/
+
+        //Init the location client
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         //Get the Auth
         userAuth = FirebaseAuth.getInstance();
 
         //Initializes the Local User's variables and systems
         localUser = LocalUser.getInstance();
-        localUser.initUser(userAuth.getCurrentUser().getUid());
         localUser.initUserAuth(userAuth);
+        localUser.initDatabaseReferences(userAuth.getUid());
+        localUser.initUser();
+
         localUser.initUserLocation(this);
         localUser.getUserLocation(this,mFusedLocationProviderClient,null);
 
@@ -106,7 +112,6 @@ public class InitializationActivity extends AppCompatActivity {
         });
     }
 
-
     private void initNotifier(){
         notifier = Notifier.getInstance();
         registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
@@ -115,6 +120,9 @@ public class InitializationActivity extends AppCompatActivity {
     private void initRecorder(){
         recorder = Recorder.getInstance();
         recorder.initPlaceClient(this);
+        recorder.chatList.clear();
+        recorder.recordedYarnPlaces.clear();
+        recorder.recordedChats.clear();
     }
 
     private void initNearbyChatFinder(){
@@ -122,7 +130,7 @@ public class InitializationActivity extends AppCompatActivity {
 
         final Activity activity = this;
 
-        nearbyChatFinder = new NearbyChatFinder(SEARCH_RADIUS, new FinderCallback() {
+        FinderCallback listener = new FinderCallback() {
             @Override
             public void onFoundPlaces(String nextPageToken, final List<HashMap<String, String>> placeMaps) {
                 /*Runs when the Nearby Chat Finder has found multiple chats that are close to the
@@ -155,11 +163,11 @@ public class InitializationActivity extends AppCompatActivity {
                         @Override
                         public void onReady() {
                             /*Runs when the Yarn Place is ready for interaction. When its ready we
-                            * add it to the local added List and then compare its size to the
-                            * passed List of placeMaps from onFoundPlaces. So only ready Yarn places
-                            * are put into the added list. The application knows when all the Yarn
-                            * Places are ready when both the added List and the placeMaps List sizes
-                            * are the same*/
+                             * add it to the local added List and then compare its size to the
+                             * passed List of placeMaps from onFoundPlaces. So only ready Yarn places
+                             * are put into the added list. The application knows when all the Yarn
+                             * Places are ready when both the added List and the placeMaps List sizes
+                             * are the same*/
 
                             //add the yarn Place
                             addedPlaces.add(nearbyPlace);
@@ -185,7 +193,6 @@ public class InitializationActivity extends AppCompatActivity {
                 //Create a new Yarn Place instance and initialize it internally
                 final YarnPlace nearbyPlace = new YarnPlace(placeMap);
                 nearbyPlace.init(activity,geocoder);
-                nearbyPlace.initYarnPlaceUpdater(activity);
 
                 //Record the Yarn Place
                 recorder.recordYarnPlace(nearbyPlace);
@@ -195,7 +202,7 @@ public class InitializationActivity extends AppCompatActivity {
                     @Override
                     public void onReady() {
                         /*Runs when the Yarn Place is ready. Once its ready the application takes
-                        * the firebaseUser to the Map*/
+                         * the firebaseUser to the Map*/
 
                         Log.d(TAG,"Yarn Place is ready");
                         goToMap();
@@ -206,10 +213,12 @@ public class InitializationActivity extends AppCompatActivity {
             @Override
             public void onNoPlacesFound(String message) {
                 /*Runs when no places were found so go to the map because there are no YarnPlaces
-                * and therefor not Chats to initialize*/
+                 * and therefor not Chats to initialize*/
                 goToMap();
             }
-        });
+        };
+
+        nearbyChatFinder = new NearbyChatFinder(SEARCH_RADIUS, listener);
     }
 
     //endregion
@@ -241,6 +250,9 @@ public class InitializationActivity extends AppCompatActivity {
     }
 
     private void goToMap() {
+        nearbyChatFinder.adminRef.removeEventListener(nearbyChatFinder.adminRefListener);
+        nearbyChatFinder.listener = null;
+
         Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
         startActivity(myIntent);
     }

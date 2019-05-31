@@ -178,8 +178,6 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                 ,lastLocation.getLongitude());
         lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
 
-        //TODO make the notifier work with the new location structure
-        //Notifier.getInstance().onLocationChanged(context, location);
         Log.d(TAG, "Got local firebaseUser's location");
 
         //Check if the firebaseUser is ready after getting their location
@@ -248,7 +246,6 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
             readyListener = null;
         }
     }
-
 
     private boolean checkReady(){
         /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a

@@ -72,7 +72,7 @@ public class CancelDialog extends DialogFragment {
                     return;
                 }
 
-                plannerActivity.onVerifyCancelPress(chat);
+                plannerActivity.onVerifyCancelPress(plannerActivity,chat);
             }
         });
     }
