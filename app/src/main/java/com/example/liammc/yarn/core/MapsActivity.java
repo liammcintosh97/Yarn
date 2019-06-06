@@ -109,8 +109,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         recorder = Recorder.getInstance();
         geocoder = new Geocoder(this,Locale.getDefault());
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+
+        initReceivers();
+        initChannels();
     }
 
     @Override
@@ -207,6 +208,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Places.initialize(getApplicationContext(), getResources()
                     .getString(R.string.google_place_android_key));
         }
+    }
+
+    private void initReceivers(){
+
+        timeChangeReceiver = new TimeChangeReceiver(this);
+        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+    }
+
+    private void initChannels(){
+        Notifier.getInstance().createNotificationChannel(this);
     }
 
     //region Finders

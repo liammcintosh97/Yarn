@@ -1,6 +1,10 @@
 package com.example.liammc.yarn.notifications;
 
+import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -91,6 +95,25 @@ public class Notifier {
 
         //Returns the internal notification to the listener
         if(notificationListener != null) notificationListener.onNotificationAdded(notification);
+    }
+
+    public void createNotificationChannel(Activity activity) {
+        /*This Method creates a notification Channel but only if the device's API is 26+*/
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            CharSequence name = "notifier";
+            String description = "notifies the firebaseUser about app activities";
+
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = activity.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     public void addChatSuggestion(String title, String message, Chat chat) {

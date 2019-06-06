@@ -11,6 +11,7 @@ import android.view.View;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
+import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mAuth = FirebaseAuth.getInstance();
-        createNotificationChannel();
+        Notifier.getInstance().createNotificationChannel(this);
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
         //Got to Initialization if the firebaseUser is signed in
@@ -70,25 +71,6 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
     //region Private Methods
-
-    private void createNotificationChannel() {
-        /*This Method creates a notification Channel but only if the device's API is 26+*/
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-            CharSequence name = "notifier";
-            String description = "notifies the firebaseUser about app activities";
-
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
 
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/

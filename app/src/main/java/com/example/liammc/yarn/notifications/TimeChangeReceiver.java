@@ -5,19 +5,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Debug;
 import android.util.Log;
 
 import com.example.liammc.yarn.chats.Chat;
-import com.example.liammc.yarn.chats.ChatActivity;
+import com.example.liammc.yarn.core.ChatActivity;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.utility.DateTools;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 public class TimeChangeReceiver {
     /*This Receiver class is used to check for time and date changes. It is used in conjunction
@@ -104,9 +103,13 @@ public class TimeChangeReceiver {
 
         //Update the info window if it's showing
         if(activity instanceof MapsActivity){
-            InfoWindow window = ((MapsActivity) activity).getTouchedYarnPlace().infoWindow;
 
-            if(window.window.isShowing())window.updateScrollView();
+            YarnPlace touchedYarnPlace = ((MapsActivity) activity).getTouchedYarnPlace();
+
+            if(touchedYarnPlace != null){
+                InfoWindow window = touchedYarnPlace.infoWindow;
+                if(window.window.isShowing())window.update();
+            }
         }
 
         for(int i  = 0 ; i < chatList.size(); i++) {

@@ -185,7 +185,7 @@ public class Chat
     }
 
     public void activateChat(){
-        Communicator.setData(chatRef,"chatActive", true);
+        Communicator.setData(chatRef,"active", true);
     }
 
     public void cancelChat() {

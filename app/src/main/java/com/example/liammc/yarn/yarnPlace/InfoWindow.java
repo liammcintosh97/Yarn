@@ -1,11 +1,9 @@
 package com.example.liammc.yarn.yarnPlace;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Point;
 import android.net.Uri;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,16 +20,13 @@ import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.core.MapsActivity;
-import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.utility.CompatibilityTools;
-import com.example.liammc.yarn.utility.DateTools;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+
 
 public class InfoWindow {
     /*This class is the popup window that shows the user information about the Yarn Place that they
@@ -40,8 +35,9 @@ public class InfoWindow {
 
     private final String TAG = "InfoWindow";
     private YarnPlace yarnPlace;
-    private MapsActivity mapsActivity;
+    public MapsActivity mapsActivity;
     public ChatCreator chatCreator;
+    private ArrayList<InfoElement> infoElements = new ArrayList<>();
 
     //Window
     public PopupWindow window;
@@ -54,9 +50,9 @@ public class InfoWindow {
     private TextView placeNameTitle;
     private ImageView placePicture;
     private Button googleMapsButton;
-    private Button joinChatButton;
     private Button createChatButton;
-    private ScrollView chatScrollView;
+    public ScrollView chatScrollView;
+    public LinearLayout chatScrollViewElements;
 
     public InfoWindow(MapsActivity mapsActivity, YarnPlace _yarnPlace){
         this.mapsActivity = mapsActivity;
@@ -106,9 +102,10 @@ public class InfoWindow {
         placeNameTitle = infoWindow.findViewById(R.id.placeTilte);
         placePicture = infoWindow.findViewById(R.id.placePicture);
         googleMapsButton = infoWindow.findViewById(R.id.googleMapsButton);
-        joinChatButton = infoWindow.findViewById(R.id.joinChatButton);
         createChatButton = infoWindow.findViewById(R.id.createChatButton);
         chatScrollView = infoWindow.findViewById(R.id.chatScrollView);
+        chatScrollViewElements = chatScrollView.findViewById(R.id.elements);
+
 
         googleMapsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,14 +148,6 @@ public class InfoWindow {
         mapsActivity.startActivity(mapsIntent);
     }
 
-    private void OnJoinChatPressed(Context context, Chat chat) {
-        /*This method is run when the firebaseUser clicks on one of the chat's join buttons.
-         */
-
-        chat.acceptChat(context, LocalUser.getInstance());
-        Recorder.getInstance().recordChat(chat);
-        dismiss();
-    }
     //endregion
 
     //region Public Methods
@@ -166,7 +155,7 @@ public class InfoWindow {
     public boolean show(GoogleMap map) {
         /*This method shows the info window to the firebase User*/
         if(!yarnPlace.checkReady()) return false;
-        updateScrollView();
+        update();
 
         setPlacePhoto();
         measureWindow();
@@ -210,11 +199,13 @@ public class InfoWindow {
         if(window != null && window.isShowing()) window.dismiss();
     }
 
-    public void showChats( ArrayList<Chat> chats){
+    public void update(){
         /*This Method loops over all the chats in the Yarn Place and then adds them to the scroll
         view
          */
 
+        //TODO Only show chats that are before the current time
+        /*
         //Get the current time and format it so that is can be compared with the chat time
         Date currentDateTime = Calendar.getInstance().getTime();
         Calendar cal = Calendar.getInstance();
@@ -231,23 +222,18 @@ public class InfoWindow {
             Log.d(TAG,"Chat time is " + chatTime.toString() + " and the current time is "
                     + currentTime.toString());
             if(chatTime.after(currentDateTime)) addToScrollView(chat);
+        }*/
+
+        chatScrollViewElements.removeAllViews();
+        infoElements.clear();
+
+        for (Chat chat: yarnPlace.getChats()) {
+
+            InfoElement e = new InfoElement(this,chat);
+
+            infoElements.add(e);
+            chatScrollViewElements.addView(e.elementView);
         }
-    }
-
-    public void addToScrollView( final Chat chat) {
-        /*This method adds a chat to the chat scroll view on the the Yarn Place Info window*/
-
-        View element = inflate(R.layout.info_window_scroll_view_element);
-        View joinButton = element.findViewById(R.id.joinChatButton);
-
-        setElementButton(element,chat);
-        setElementData(element,chat);
-
-        if(chat.hostUser.userID.equals(LocalUser.getInstance().userID))
-            joinButton.setVisibility(View.INVISIBLE);
-
-        LinearLayout elements  = chatScrollView.findViewById(R.id.elements);
-        elements.addView(element);
     }
 
     public void removeChatFromScrollView(String removedChatID) {
@@ -266,13 +252,6 @@ public class InfoWindow {
         }
     }
 
-    public void updateScrollView() {
-        /*This method updates the chat scroll view*/
-
-        LinearLayout elements  = chatScrollView.findViewById(R.id.elements);
-        elements.removeAllViews();
-        showChats(yarnPlace.getChats());
-    }
 
     //endregion
 
@@ -304,26 +283,6 @@ public class InfoWindow {
         imageView.setImageBitmap(yarnPlace.placePhoto);
     }
 
-    private void setElementData(View element,Chat chat) {
-        //Sets the scroll view element data
-
-        String displayText = chat.chatDate + " " + chat.chatTime;
-
-        element.setContentDescription(chat.yarnPlace.placeMap.get("id"));
-        TextView dateTime = element.findViewById(R.id.dateTime);
-        dateTime.setText(displayText);
-    }
-
-    private void setElementButton(View element, final Chat chat) {
-        //Sets the scroll view element's button
-
-        element.findViewById(R.id.joinChatButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnJoinChatPressed(mapsActivity,chat);
-            }
-        });
-    }
 
     //endregion
 }

@@ -205,7 +205,7 @@ public class YarnPlaceUpdater
         addChildListener();
 
         if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.window.isShowing())
-            yarnPlace.infoWindow.updateScrollView();
+            yarnPlace.infoWindow.update();
 
         if(chat.checkForUserInChat(localUserID)){
             recorder.recordChat(chat);

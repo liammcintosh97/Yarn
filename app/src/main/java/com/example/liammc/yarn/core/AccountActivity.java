@@ -17,6 +17,8 @@ import android.widget.TextView;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.notifications.Notifier;
+import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -27,6 +29,7 @@ public class AccountActivity extends AppCompatActivity {
     private final String TAG = "AccountActivity";
 
     LocalUser localUser;
+    TimeChangeReceiver timeChangeReceiver;
 
     //UI
     private ImageButton profilePicture;
@@ -47,6 +50,8 @@ public class AccountActivity extends AppCompatActivity {
         localUser.initUserAuth(FirebaseAuth.getInstance());
 
         initUI();
+        initReceivers();
+        initChannels();
     }
 
     @Override
@@ -111,6 +116,17 @@ public class AccountActivity extends AppCompatActivity {
         for(int i = 0; i < localUser.rating; i++){
             stars[i].setVisibility(View.VISIBLE);
         }
+    }
+
+    private void initReceivers(){
+
+        //Registers the time change receiver
+        timeChangeReceiver = new TimeChangeReceiver(this);
+        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+    }
+
+    private void initChannels(){
+        Notifier.getInstance().createNotificationChannel(this);
     }
 
     //endregion

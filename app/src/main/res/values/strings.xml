@@ -113,6 +113,24 @@
     <string name="infoWindow_googleMaps_Button">Google Maps</string>
     <string name="infoWindow_contentDiscription">Place Photo</string>
 
+    //Chat Activity
+    <string name="chatActivity_PlaceTitle">Place Name</string>
+    <string name="chatActivity_DateTitle">Date</string>
+    <string name="chatActivity_DateDefault">00/00/00</string>
+    <string name="chatActivity_TimeTitle">Time</string>
+    <string name="chatActivity_timeDefault">00:00AM</string>
+    <string name="chatActivity_PersonNameTitle">Name</string>
+    <string name="chatActivity_PersonNameDefault">John Doe</string>
+    <string name="chatActivity_MeetingWith">Meeting With</string>
+    <string name="chatActivity_RatingTitle">Rating</string>
+    <string name="chatActivity_StartButton">Start</string>
+    <string name="chatActivity_PersonImageDescription">Profile picture</string>
+    <string name="chatActivity_NoOneToMeet">There is no one to meet yet</string>
+    <string name= "chatActivity_AddressDefault">Address</string>
+    <string name="chatActivity_LengthTitle">Length</string>
+    <string name="chatActivity_Length">15mins</string>
+
+
     //Misc
     <string name="lorem_ipsum" translatable="false" tools:ignore="Typos">Lorem ipsum dolor sit amet, sed in. Sollicitudin nisl donec dictumst tellus, luctus pretium. Eget ut nec sit. Gravida taciti faucibus bibendum velit id, urna ultricies nec viverra inventore, et sed in viverra posuere, vitae enim in. Praesent libero varius pellentesque ultrices, eget aenean, leo et, fames quis primis mi. Ac pellentesque ultrices lobortis nullam, eget urna dolorem lorem congue. Vel ultricies nullam erat pede quis viverra, suspendisse molestie, erat vitae morbi amet diam ut.
     Consequat donec velit habitant, malesuada nec vestibulum lorem, convallis nunc enim arcu sed aliquet, arcu nec. Per nibh, felis rutrum nulla pellentesque aliquet dolor, id nec posuere quis convallis magna. Ultricies arcu fermentum et justo in, convallis quam ut aenean fermentum. Felis erat nullam scelerisque, elit eleifend, id fusce nec vulputate, ipsum sit ipsum. Ut wisi, tellus ut porttitor a, sed nam. Eu nisl vel, lacus commodo, turpis eu orci donec elit amet eget, in conubia neque nec maecenas sollicitudin. Id rutrum in arcu odio, suspendisse lobortis, nunc viverra ipsum tortor tempor, justo quisque vel nunc scelerisque, sodales maecenas justo est nec.

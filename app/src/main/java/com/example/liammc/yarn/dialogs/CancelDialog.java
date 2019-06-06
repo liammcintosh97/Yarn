@@ -7,15 +7,15 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
 
+import com.example.liammc.yarn.planner.EventElement;
 import com.example.liammc.yarn.chats.Chat;
-import com.example.liammc.yarn.core.ChatPlannerActivity;
 import com.example.liammc.yarn.core.Recorder;
 
 public class CancelDialog extends DialogFragment {
     /*This warning Dialog is used for warning the User to cancelling Chats*/
 
     private final String TAG = "CancelDialog";
-    private ChatPlannerActivity plannerActivity;
+    private EventElement eventElement;
     private final String message = "Are you sure you want to cancel this chat? It'll likely " +
             "disadvantage the other person";
 
@@ -33,8 +33,8 @@ public class CancelDialog extends DialogFragment {
 
     //region Init
 
-    public void init(ChatPlannerActivity _plannerActivity){
-        plannerActivity = _plannerActivity;
+    public void init(EventElement _eventElement){
+        eventElement = _eventElement;
     }
 
     //endregion
@@ -72,7 +72,7 @@ public class CancelDialog extends DialogFragment {
                     return;
                 }
 
-                plannerActivity.onVerifyCancelPress(plannerActivity,chat);
+                eventElement.onVerifyCancelPress(chat);
             }
         });
     }

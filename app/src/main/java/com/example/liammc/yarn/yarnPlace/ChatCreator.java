@@ -106,25 +106,25 @@ public class ChatCreator {
         dateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickDatePressed(mapsActivity);
+                onPickDatePressed();
             }
         });
         timeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickTimePressed(mapsActivity);
+                onPickTimePressed();
             }
         });
         durationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onPickDurationPressed(mapsActivity);
+                onPickDurationPressed();
             }
         });
         createChatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onCreateChatPressed(mapsActivity);
+                onCreateChatPressed();
             }
         });
     }
@@ -134,28 +134,28 @@ public class ChatCreator {
     //region Button Methods
     /*This region contains all the button methods for the Chat Creator*/
 
-    private void onPickTimePressed(FragmentActivity activity) {
+    private void onPickTimePressed() {
         /*This method launches the time picker*/
 
         timePicker = new TimeDialog();
-        timePicker.show(activity.getSupportFragmentManager(), "timePicker");
+        timePicker.show(mapsActivity.getSupportFragmentManager(), "timePicker");
     }
 
-    private void onPickDatePressed(FragmentActivity activity) {
+    private void onPickDatePressed() {
         /*This method launches the date picker*/
 
         datepicker = new DateDialog();
-        datepicker.show(activity.getSupportFragmentManager(),"datePicker");
+        datepicker.show(mapsActivity.getSupportFragmentManager(),"datePicker");
     }
 
-    private void onPickDurationPressed(FragmentActivity activity) {
+    private void onPickDurationPressed() {
         /*This method launches the duration picker*/
 
         durationPicker = new DurationDialog();
-        durationPicker.show(activity.getFragmentManager(),"durationPicker");
+        durationPicker.show(mapsActivity.getFragmentManager(),"durationPicker");
     }
 
-    private void onCreateChatPressed(final FragmentActivity activity) {
+    private void onCreateChatPressed() {
         /*This method confirms the input and creates a chat from it*/
 
         int year = datepicker.year;
@@ -196,7 +196,7 @@ public class ChatCreator {
             public void onReady(Chat chat) {
 
                 Log.d(TAG,"Chat is ready");
-                yarnPlace.yarnPlaceUpdater.addToSystem(activity.getParent(),chat);
+                yarnPlace.yarnPlaceUpdater.addToSystem(mapsActivity,chat);
                 dismiss();
             }
         });

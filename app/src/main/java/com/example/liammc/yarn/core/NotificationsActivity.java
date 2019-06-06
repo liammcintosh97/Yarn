@@ -32,9 +32,8 @@ public class NotificationsActivity extends AppCompatActivity {
 
         initUI();
         initNotifier();
-        initTimeChangeReceiver();
-
-        registerReceiver(timeChangeReceiver.receiver, TimeChangeReceiver.intentFilter);
+        initReceivers();
+        initChannels();
     }
 
     @Override
@@ -67,10 +66,15 @@ public class NotificationsActivity extends AppCompatActivity {
         });
     }
 
-    private void initTimeChangeReceiver() {
+    private void initReceivers() {
         /*Initializes the Time Change Receiver*/
 
         timeChangeReceiver = new TimeChangeReceiver(this);
+        registerReceiver(timeChangeReceiver.receiver, TimeChangeReceiver.intentFilter);
+    }
+
+    private void initChannels(){
+        Notifier.getInstance().createNotificationChannel(this);
     }
     //endregionc
 

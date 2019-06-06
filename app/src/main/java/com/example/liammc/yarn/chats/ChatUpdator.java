@@ -4,10 +4,14 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.liammc.yarn.core.ChatActivity;
+import com.example.liammc.yarn.core.ChatPlannerActivity;
+import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.Recorder;
+import com.example.liammc.yarn.planner.EventWindow;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -59,14 +63,21 @@ public class ChatUpdator {
             public void onAccepted(Chat chat, DatabaseReference chatRef) {
                 if(chat.hostUser.userID != LocalUser.getInstance().userID) recorder.recordChat(chat);
 
-                if(chat.guestUser != null) notifier.addNotification(activity,"Chat Accepted"
-                        ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
-                                + chat.chatDate + " at " + chat.chatTime + " was chatAccepted");
+                if(chat.guestUser != null && chat.guestUser.userID != LocalUser.getInstance().userID){
+                    notifier.addNotification(activity,"Chat Accepted"
+                            ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
+                                    + chat.chatDate + " at " + chat.chatTime + " was chatAccepted");
+                }
+
+                if(activity instanceof ChatPlannerActivity)updateChatPlanner(activity);
+                if(activity instanceof ChatActivity)updateChatActivity(activity);
             }
 
             @Override
             public void onActiveChange(Chat chat, DatabaseReference chatRef) {
                 if(chat.chatActive)Log.d(TAG,"Chat - " + chat.chatID + "was activated by " + chat.hostUser.userID);
+
+                if(activity instanceof ChatActivity)updateChatActivity(activity);
             }
 
             @Override
@@ -75,20 +86,15 @@ public class ChatUpdator {
                 Log.d(TAG,"Chat - " + chat.chatID + "was deleted by " + chat.hostUser.userID);
 
                 if(chat.guestUser != null) notifier.addNotification(activity,"Chat Canceled"
-                        ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
+                        ,"Chat at " + chat.yarnPlace.placeMap.get("name") + " on "
                                 + chat.chatDate + " at " + chat.chatTime + " was chatCanceled");
 
                 Recorder.getInstance().removeChat(chat.chatID);
-
-                InfoWindow infoWindow = chat.yarnPlace.infoWindow;
-
-                if(infoWindow != null && infoWindow.window.isShowing()){
-                    chat.yarnPlace.infoWindow.removeChatFromScrollView(chat.chatID);
-                    chat.yarnPlace.infoWindow.updateScrollView();
-                }
-
                 chat.yarnPlace.yarnPlaceUpdater.removeChat(chat.yarnPlace.placeMap.get("id"));
 
+
+                if(activity instanceof MapsActivity)updateInfoWindow();
+                if(activity instanceof ChatActivity)updateChatActivity(activity);
             }
         };
 
@@ -175,4 +181,24 @@ public class ChatUpdator {
         return false;
     }
 
+    private void updateChatPlanner(Activity activity){
+        ChatPlannerActivity plannerActivity = (ChatPlannerActivity)activity;
+        EventWindow eventWindow = plannerActivity.eventWindow;
+
+        if(eventWindow != null && eventWindow.window.isShowing()) eventWindow.update();
+    }
+
+    private void updateInfoWindow(){
+        InfoWindow infoWindow = chat.yarnPlace.infoWindow;
+
+        if(infoWindow != null && infoWindow.window.isShowing()){
+            chat.yarnPlace.infoWindow.update();
+        }
+    }
+
+    private  void updateChatActivity(Activity activity){
+        ChatActivity chatActivity = (ChatActivity) activity;
+
+        chatActivity.update();
+    }
 }
