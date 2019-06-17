@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public final class DateTools
@@ -84,6 +85,24 @@ public final class DateTools
         {
             e.printStackTrace();
             return null;
+        }
+
+    }
+
+    public static  Long HHmmssStringToMillis(String timeString){
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss",Locale.getDefault());
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = sdf.parse(timeString);
+
+            return date.getTime();
+        }
+        catch(ParseException e)
+        {
+            e.printStackTrace();
+            Log.e("DateTools","Cannot parse time string");
+            return 0L;
         }
 
     }

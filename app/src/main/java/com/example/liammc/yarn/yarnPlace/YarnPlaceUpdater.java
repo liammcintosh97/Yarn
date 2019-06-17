@@ -60,7 +60,6 @@ public class YarnPlaceUpdater
     //region Init
 
     public void initChildListener(final Activity activity){
-
         /*Listens for new chats as they are added to the database under the ID of the Yarn
         Place*/
 
@@ -70,11 +69,13 @@ public class YarnPlaceUpdater
             {
                 String key = dataSnapshot.getKey();
 
+                //Check if the new child is the Place Info Ref object if so return
                 if(key.equals(Chat.PLACE_INFO_REF)) {
                     Log.d(TAG,"Not a Chat");
                     return;
                 }
 
+                //Check if the chat is exsisting in the system
                 if(existingChat(key)){
                     Log.d(TAG,"This chat object is already in the system");
                     return;
@@ -114,6 +115,7 @@ public class YarnPlaceUpdater
     //region Public Methods
 
     public void addChats(final Activity activity, String chatID) {
+        /*Adds a single chat to the Yarn Place*/
 
         final Chat addedChat =  new Chat(yarnPlace, chatID);
 
@@ -127,9 +129,12 @@ public class YarnPlaceUpdater
 
     public void addChats(final Activity activity, final Iterable<DataSnapshot> children
             , final long length) {
+        /*Adds multiples chats to the YarnPlace*/
 
-        final ArrayList<Chat> addedChats =  new ArrayList<>();
+        //creates a list of all the chats that we need to add
+        final ArrayList<Chat> readyChats =  new ArrayList<>();
 
+        //Loop over all chat objects in the database
         for (DataSnapshot child: children) {
 
             String chatID = child.getKey();
@@ -148,16 +153,23 @@ public class YarnPlaceUpdater
 
             final Chat addedChat =  new Chat(yarnPlace, chatID);
 
+            /*Add the chat to the system once it's ready*/
             addedChat.setReadyListener(new Chat.ChatReadyListener() {
                 @Override
                 public void onReady(Chat chat) {
 
                     Log.d(TAG,"Chat -" + chat.chatID + " is ready" );
-                    addedChats.add(chat);
+                    /*Record the newly ready chat into the ready chats list, so that the application
+                    can record how many of the newly added chats are ready
+                     */
+                    readyChats.add(chat);
 
                     addToSystem(activity,chat);
 
-                    if(checkReady(addedChats,length)) {
+                    /*Check if the Yarn Place Updator is ready. Its considered ready when  size
+                    of the ready chat list is equal the the length of the chat objects in the database
+                     */
+                    if(checkReady(readyChats,length)) {
                         readyListener.onReady();
                         initChildListener(activity);
                         addChildListener();
@@ -168,7 +180,8 @@ public class YarnPlaceUpdater
         }
     }
 
-    public void getChats(final Activity activity){
+    public void getChatsFromDatabase(final Activity activity){
+        /*This method gets all the chats form the database thats under this Yarn Place ID*/
 
         if(yarnPlace.placeRef.getKey() != null) {
 
@@ -199,25 +212,36 @@ public class YarnPlaceUpdater
     }
 
     public void addToSystem(Activity activity, Chat chat) {
-        yarnPlace.addChat(chat);
-        chat.updator.initChangeListener(activity);
-        initChildListener(activity);
-        addChildListener();
+        /*This methods add a chat to the entire system and updates various listeners and
+        * UI elements*/
 
-        if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.window.isShowing())
-            yarnPlace.infoWindow.update();
+        if(!existingChat(chat.chatID)){
+            yarnPlace.addChat(chat);
 
-        if(chat.checkForUserInChat(localUserID)){
-            recorder.recordChat(chat);
-        }else{
-            Notifier.getInstance().addChatSuggestion("Chat suggestion",
-                    "A new chat was created at "
-                            + chat.yarnPlace.placeMap.get("name") + " on "
-                            + chat.chatDate + " at " + chat.chatTime, chat);
+            //Initialize listeners
+            chat.updator.initChangeListener(activity);
+            initChildListener(activity);
+            addChildListener();
+
+            //Update the Info Window
+            if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.window.isShowing())
+                yarnPlace.infoWindow.update();
+
+            //Record the chat if this local user is in it
+            if(chat.checkForUserInChat(localUserID)){
+                recorder.recordChat(chat);
+            }else{
+                //Notify the user of a chat suggestion because they are currently not in it
+                Notifier.getInstance().addChatSuggestion("Chat suggestion",
+                        "A new chat was created at "
+                                + chat.yarnPlace.placeMap.get("name") + " on "
+                                + chat.chatDate + " at " + chat.chatTime, chat);
+            }
         }
     }
 
     public void addChildListener() {
+        /*Listens to children under to the Yarn Place ID in the database*/
         if(yarnPlace.placeRef.getKey() != null) {
 
             yarnPlace.placeRef.addChildEventListener(childEventListener);
@@ -225,12 +249,14 @@ public class YarnPlaceUpdater
     }
 
     public void removeChildListener(){
-
+        /*Removes the child listener*/
         yarnPlace.placeRef.removeEventListener(childEventListener);
     }
 
     public boolean existingChat(String chatID) {
+        /*Checks if the passed chat ID exists in the application*/
 
+        //Check if it exists in the Yarn Place
         if(yarnPlace.getChats() != null) {
             for(int i = 0 ; i < yarnPlace.getChats().size(); i++)
             {
@@ -238,6 +264,7 @@ public class YarnPlaceUpdater
             }
         }
 
+        //Check if it exists in the recorded chat's list
         if(recorder.chatList != null) {
             for(int i = 0 ; i < recorder.chatList.size(); i++)
             {
@@ -252,6 +279,9 @@ public class YarnPlaceUpdater
     //region Private methods
 
     private boolean checkReady(ArrayList<Chat> chatList,long amount){
+        /*Checks if the updater is ready. Its considered ready when all the found chats are ready
+        by comparing a list of chats against the length of children in a database snapshot
+         */
 
         Log.d(TAG,chatList.size() + " " + amount);
 
@@ -259,7 +289,7 @@ public class YarnPlaceUpdater
     }
 
     public void removeChat(String removedChatPlaceID) {
-        //String removedChatPlaceID = (String)dataSnapshot.getValue();
+        //Removes the passed chat from the yarn Place
 
         for(int i = 0; i < yarnPlace.getChats().size(); i ++)
         {

@@ -85,7 +85,7 @@ public class ChatUpdator {
 
                 Log.d(TAG,"Chat - " + chat.chatID + "was deleted by " + chat.hostUser.userID);
 
-                if(chat.guestUser != null) notifier.addNotification(activity,"Chat Canceled"
+                if(chat.guestUser != null && !chat.chatActive) notifier.addNotification(activity,"Chat Canceled"
                         ,"Chat at " + chat.yarnPlace.placeMap.get("name") + " on "
                                 + chat.chatDate + " at " + chat.chatTime + " was chatCanceled");
 

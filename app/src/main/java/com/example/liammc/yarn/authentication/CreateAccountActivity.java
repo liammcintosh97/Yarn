@@ -72,7 +72,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         //Set the User's Information
         localUser.updator.updateUserName(userName);
         localUser.updator.updateUserProfilePicture(this,profilePictureBitmap);
-        localUser.updator.updateUserRating(5.0);
+        localUser.updator.addUserRating(localUser.userID,5);
 
         //Take the firebaseUser to the IntroActivity
         Intent intent = new Intent(getBaseContext(), IntroActivity.class);

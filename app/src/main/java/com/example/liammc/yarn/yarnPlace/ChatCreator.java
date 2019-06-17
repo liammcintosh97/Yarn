@@ -27,8 +27,8 @@ import java.util.Locale;
 
 
 public class ChatCreator {
-    /*The Chat Creator is a firebaseUser interface for creating new chats. It is is used in conjunction with
-    the Yarn Place Object*/
+    /*The Chat Creator is used  by the user when they want to create new chats. It is is used in
+    conjunction with the Yarn Place Object and it's Info Window*/
 
     private final String TAG = "ChatCreator";
     private final MapsActivity mapsActivity;

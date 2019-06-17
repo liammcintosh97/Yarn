@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
 import com.example.liammc.yarn.notifications.Notifier;

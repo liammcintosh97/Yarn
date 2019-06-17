@@ -34,7 +34,7 @@ public class InfoWindow {
      */
 
     private final String TAG = "InfoWindow";
-    private YarnPlace yarnPlace;
+    public YarnPlace yarnPlace;
     public MapsActivity mapsActivity;
     public ChatCreator chatCreator;
     private ArrayList<InfoElement> infoElements = new ArrayList<>();

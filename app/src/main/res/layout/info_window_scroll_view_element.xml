@@ -6,48 +6,39 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <LinearLayout
-        android:id="@+id/contents"
+    <Button
+        android:id="@+id/dateTime"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1.0"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:layout_weight="0.25"
+        android:text="@string/infoWindow_dateTime" />
 
-        <Button
-            android:id="@+id/dateTime"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_weight="0.75"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/hostImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.25"
-            android:text="@string/infoWindow_dateTime" />
+            android:layout_weight="0.5"
+            app:srcCompat="@drawable/com_facebook_profile_picture_blank_square" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:layout_weight="0.75"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/hostImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                app:srcCompat="@drawable/com_facebook_profile_picture_blank_square" />
-
-            <ImageView
-                android:id="@+id/guestImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                app:srcCompat="@drawable/com_facebook_profile_picture_blank_square" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/joinChatButton"
+        <ImageView
+            android:id="@+id/guestImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.75"
-            android:text="@string/infoWindow_joinChat_button" />
-
+            android:layout_weight="0.5"
+            app:srcCompat="@drawable/com_facebook_profile_picture_blank_square" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/joinChatButton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.75"
+        android:text="@string/infoWindow_joinChat_button" />
 
 </LinearLayout>

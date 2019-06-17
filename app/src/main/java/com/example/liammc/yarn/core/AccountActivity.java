@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,11 +15,9 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class AccountActivity extends AppCompatActivity {
     /*This activity is where the firebaseUser interacts with their account and settings*/
@@ -112,8 +109,8 @@ public class AccountActivity extends AppCompatActivity {
             stars[i].setVisibility(View.INVISIBLE);
         }
 
-        //Show the firebaseUser's rating by setting the visibility of the stars
-        for(int i = 0; i < localUser.rating; i++){
+        //Show the firebaseUser's meanRating by setting the visibility of the stars
+        for(int i = 0; i < localUser.meanRating; i++){
             stars[i].setVisibility(View.VISIBLE);
         }
     }

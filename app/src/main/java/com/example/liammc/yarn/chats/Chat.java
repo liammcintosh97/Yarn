@@ -188,7 +188,7 @@ public class Chat
         Communicator.setData(chatRef,"active", true);
     }
 
-    public void cancelChat() {
+    public void removeChat() {
         /*Cancels the chat by setting the data in the database */
         Communicator.removeData(chatRef);
     }

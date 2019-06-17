@@ -8,7 +8,7 @@ import android.util.Log;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.common.collect.Iterables;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,6 +38,7 @@ public class YarnUser {
 
     //endregion
     private final String TAG = "YarnUser";
+    public final UserUpdater updator;
 
     //Firebase
     protected StorageReference userStorageReference;
@@ -48,17 +49,20 @@ public class YarnUser {
     public String userName;
     public Bitmap profilePicture;
     public String email;
-    public Double rating = null;
+    protected Iterable<DataSnapshot> ratings = null;
+    public long meanRating;
     public Boolean termsAcceptance = null;
 
     //region Constructors
     public YarnUser(){
+        updator = new UserUpdater(this);
     }
 
     public YarnUser(String _userID) {
 
         initDatabaseReferences(_userID);
         initUser();
+        updator = new UserUpdater(this);
     }
     //endregion
 
@@ -68,7 +72,7 @@ public class YarnUser {
 
         getUserName();
         getUserProfilePicture();
-        getUserRating();
+        getUserRatings();
         getUserTermAcceptance();
     }
 
@@ -152,50 +156,29 @@ public class YarnUser {
         });
     }
 
-    private void getUserRating() {
-        /*Gets the firebaseUser's ratting by attaching a listener to the userDatabase reference. Location is
-         * Users/[userID]/rating*/
-
+    public void getUserRatings(){
         userDatabaseReference
-                .child("rating").addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        /*Runs when the data at this location changes. Also runs the first time the
-                        listener is added*/
+                .child("ratings").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                //Try to cast the meanRating into a double
+                ratings = snapshot.getChildren();
+                Log.d(TAG,"Got firebaseUser rates");
 
-                        /*Get the data. The rating can either be a long or a double so the application
-                        must cast either or*/
-                        try {
-                            //Try to cast the rating into a double
-                            rating = (double) snapshot.getValue();
-                            Log.d(TAG,"Got firebaseUser rating");
+                meanRating = calculateMeanRating(ratings);
 
-                            //Check if the firebaseUser is ready after getting the username
-                            if(checkReady()){
-                                readyListener.onReady();
-                                readyListener = null;
-                            }
-                        }
-                        catch (ClassCastException e) {
-                            /*Their was an exception when casting to a double so try and cast to a
-                            long*/
-                            Long l = (long)snapshot.getValue();
-                            rating = l.doubleValue();
-                            Log.d(TAG,"Got firebaseUser rating");
-
-                            //Check if the firebaseUser is ready after getting the username
-                            if(checkReady()){
-                                readyListener.onReady();
-                                readyListener = null;
-                            }
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        //There was an error so log it.
-                        Log.e(TAG,"Unable to get value from database");
-                    }
-                });
+                //Check if the firebaseUser is ready after getting the username
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //There was an error so log it.
+                Log.e(TAG,"Unable to get value from database");
+            }
+        });
     }
 
     private void getUserTermAcceptance() {
@@ -229,17 +212,32 @@ public class YarnUser {
 
     private boolean checkReady(){
         /*Checks is the firebaseUser is ready. The firebaseUser is considered ready when they have a picture, name,
-          rating and terms acceptance*/
+          meanRating and terms acceptance*/
 
         boolean ready = readyListener != null &&
                         profilePicture != null &&
                         userName != null &&
-                        rating != null &&
+                        ratings != null &&
                         termsAcceptance != null;
 
         return ready;
     }
 
+    private long calculateMeanRating(Iterable<DataSnapshot> ratings){
+
+        double total = 0;
+        double amount = Iterables.size(ratings);
+        long result = 0;
+
+        //Get the total ratings
+        for(DataSnapshot rate : ratings){
+            total += (int)rate.getValue();
+        }
+        result = Math.round(total/amount);
+
+        Log.d(TAG,"The user's mean rating is " + result);
+        return result;
+    }
     //endregion
 
 }

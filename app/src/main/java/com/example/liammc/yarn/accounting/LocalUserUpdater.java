@@ -18,13 +18,16 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 
-public class UserUpdator {
-    /*This class is used to update the Local User*/
+public class LocalUserUpdater extends UserUpdater {
 
-    private final String TAG = "UserUpdator";
-    private LocalUser localUser;
+    private final String TAG = "LocalUserUpdater";
 
-    public UserUpdator(LocalUser _localUser){this.localUser = _localUser;}
+    private final LocalUser localUser;
+
+    public LocalUserUpdater(LocalUser _localUser){
+        super( _localUser);
+        this.localUser = _localUser;
+    }
 
     //region Public Methods
 
@@ -215,26 +218,7 @@ public class UserUpdator {
 
     }
 
-    public void updateUserRating(double rating) {
-        /*Updates the firebaseUser Rating*/
-
-        //Write to the User database firebaseUser name
-        localUser.userDatabaseReference.child("rating").setValue(rating)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG,"rating write to database was a success");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG,"rating write to database was a failure -" + e);
-                    }
-                });
-    }
-
-    public void updateTermsAceptance(boolean acceptance) {
+    public void updateTermsAcceptance(boolean acceptance) {
         /*Updates the firebaseUser's term acceptance*/
 
         //Write to the User database firebaseUser name

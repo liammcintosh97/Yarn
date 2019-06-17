@@ -120,7 +120,7 @@ public class YarnPlace {
                 if(checkReady())readyListener.onReady();
             }
         });
-        yarnPlaceUpdater.getChats(activity);
+        yarnPlaceUpdater.getChatsFromDatabase(activity);
     }
 
     public void initYarnPlaceDatabase() {
@@ -190,7 +190,7 @@ public class YarnPlace {
         // Specify fields. Requests for photos must always have the PHOTO_METADATAS field.
         List<Place.Field> fields = Arrays.asList(Place.Field.PHOTO_METADATAS);
 
-        // Get a Place object (this example uses fetchPlace(), but you can also use findCurrentPlace())
+        // Get a Place Request object
         FetchPlaceRequest placeRequest = FetchPlaceRequest.builder(placeMap.get("id"), fields).build();
 
         placesClient.fetchPlace(placeRequest).addOnSuccessListener(new OnSuccessListener<FetchPlaceResponse>() {
@@ -291,6 +291,13 @@ public class YarnPlace {
     }
 
     public ArrayList<Chat> getChats(){return chats;}
+
+    public void removeChat(Chat chat){
+        /*This method removes the passed chat from the Yarn Place*/
+        if(chats.indexOf(chat) != -1) return;
+
+        chats.remove(chat);
+    }
 
     //endregion
 

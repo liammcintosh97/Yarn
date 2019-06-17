@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,6 +31,7 @@ public class EventElement {
     private TextView chatDetails;
     private ImageView hostImage;
     private ImageView guestImage;
+    private Button cancelButton;
 
     public EventElement(EventWindow _eventWindow, Chat _chat){
         this.chat = _chat;
@@ -71,6 +73,7 @@ public class EventElement {
         hostImage = parentView.findViewById(R.id.hostImage);
         guestImage =  parentView.findViewById(R.id.guestImage);
         chatDetails = parentView.findViewById(R.id.chatDetails);
+        cancelButton = parentView.findViewById(R.id.cancelChatButton);
 
         //Update the elementView
         update();
@@ -94,6 +97,9 @@ public class EventElement {
         hostImage.setVisibility(View.VISIBLE);
         if(chat.guestUser == null) guestImage.setVisibility(View.INVISIBLE);
         else guestImage.setVisibility(View.VISIBLE);
+
+        if(chat.chatActive)  cancelButton.setEnabled(false);
+        else cancelButton.setEnabled(true);
     }
 
     //endregion
@@ -105,7 +111,7 @@ public class EventElement {
          * event scroll view, the database and the application's system*/
         eventWindow.removeChat(chat.chatID);
         chat.yarnPlace.infoWindow.removeChatFromScrollView(chat.chatID);
-        chat.cancelChat();
+        chat.removeChat();
 
         if(eventWindow.chatScrollElements.getChildCount() == 0) eventWindow.dismiss();
     }

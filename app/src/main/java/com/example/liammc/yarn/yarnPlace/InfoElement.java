@@ -9,12 +9,13 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.core.ChatActivity;
 import com.example.liammc.yarn.core.Recorder;
 
 public class InfoElement {
-    //The info element class is used to describe a created chat at the yarn place
+    //The info element class is used to describe a created chat in the InfoWindow
 
     private final InfoWindow infoWindow;
     private final Chat chat;
@@ -74,13 +75,39 @@ public class InfoElement {
         elementView.setContentDescription(chat.yarnPlace.placeMap.get("id"));
         dateTime.setText(displayText);
 
-        if(chat.hostUser.userID.equals(LocalUser.getInstance().userID))
-            joinButton.setVisibility(View.INVISIBLE);
+        YarnUser guest = chat.guestUser;
+        YarnUser host = chat.hostUser;
 
-        if(chat.hostUser == null) hostImage.setVisibility(View.INVISIBLE);
+        //Local user is host
+        if(host.userID.equals(LocalUser.getInstance().userID)) {
+            joinButton.setVisibility(View.INVISIBLE);
+            dateTime.setEnabled(true);
+        }
+        //Local user is the guest
+        else if(guest != null && guest.userID.equals(LocalUser.getInstance().userID)) {
+            joinButton.setVisibility(View.INVISIBLE);
+            dateTime.setEnabled(true);
+        }
+        //The local User is neither
+        else{
+            //The guest is null so the user can join the chat
+            if(guest == null){
+                joinButton.setVisibility(View.VISIBLE);
+                dateTime.setEnabled(false);
+            }
+            /*The guest isn't null so we must remove it from the yarnPlace because the user cant join
+            it*/
+            else{
+                infoWindow.yarnPlace.removeChat(chat);
+                infoWindow.removeChatFromScrollView(chat.chatID);
+            }
+        }
+
+
+        if(host == null) hostImage.setVisibility(View.INVISIBLE);
         else hostImage.setVisibility(View.VISIBLE);
 
-        if(chat.guestUser == null) guestImage.setVisibility(View.INVISIBLE);
+        if(guest == null) guestImage.setVisibility(View.INVISIBLE);
         else guestImage.setVisibility(View.VISIBLE);
     }
 

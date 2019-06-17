@@ -1,17 +1,13 @@
 package com.example.liammc.yarn.accounting;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -20,16 +16,10 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 
 public class LocalUser extends YarnUser implements LocationSource, LocationListener {
@@ -80,7 +70,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     public FirebaseAuth firebaseAuth;
     public FirebaseUser firebaseUser;
 
-    public UserUpdator updator;
+    public LocalUserUpdater updator;
 
     //region Init
     public void initUserLocation(Activity activity) {
@@ -111,7 +101,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
         firebaseUser = auth.getCurrentUser();
         getEmail(firebaseAuth);
 
-        updator = new UserUpdator(this);
+        updator = new LocalUserUpdater(this);
     }
     //endregion
 
@@ -249,7 +239,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
     private boolean checkReady(){
         /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a
-        picture, name, location, email, rating and terms acceptance
+        picture, name, location, email, meanRating and terms acceptance
          */
 
         boolean ready = readyListener != null &&
@@ -257,7 +247,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                 userName != null &&
                 lastLocation != null &&
                 email != null &&
-                rating != null &&
+                ratings != null &&
                 termsAcceptance != null;
 
         return ready;

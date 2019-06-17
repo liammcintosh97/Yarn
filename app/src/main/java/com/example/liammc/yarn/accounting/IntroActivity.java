@@ -13,7 +13,6 @@ import android.view.View;
 import com.example.liammc.yarn.core.InitializationActivity;
 import com.example.liammc.yarn.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class IntroActivity extends FragmentActivity {
     /*This Activity is the intro into Yarn for the user after they first sign up*/
@@ -72,7 +71,7 @@ public class IntroActivity extends FragmentActivity {
     }
 
     public void onAcceptPressed(View view) {
-        localUser.updator.updateTermsAceptance(true);
+        localUser.updator.updateTermsAcceptance(true);
 
         Intent myIntent = new Intent(getBaseContext(),   InitializationActivity.class);
         startActivity(myIntent);
