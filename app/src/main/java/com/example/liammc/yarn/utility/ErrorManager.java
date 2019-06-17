@@ -15,23 +15,22 @@ public final class ErrorManager {
         String invalidChars = " ,<.>/?;:'[{]}|!@#$%^&*()_+=\\\"`~";
 
         //Password isn't empty
-        if(password == null || password.equals(""))
-        {
+        if(password == null || password.equals("")) {
             throw new IOException("Please enter a password");
         }
         //Confirmed password isn't empty;
-        else if(passwordConfirm == null || passwordConfirm.equals(""))
-        {
+        else if(passwordConfirm == null || passwordConfirm.equals("")) {
             throw new IOException("Please confirm your password");
         }
         //Password has valid chars
-        else if(!checkStringForChars(password, invalidChars))
-        {
+        else if(!checkStringForChars(password, invalidChars)) {
             throw new IOException("Invalid Password - Only alphabetic, numeric and \"_\" characters are allowed!");
         }
+        else if(!checkStringForNumbers(password)){
+            throw new IOException("Invalid Password - Requires a number");
+        }
         //Password equals the confirmed password
-        else if(!password.equals(passwordConfirm))
-        {
+        else if(!password.equals(passwordConfirm)) {
             throw new IOException("Password does not equal confirmed password");
         }
     }
@@ -87,13 +86,28 @@ public final class ErrorManager {
 
     //region Private Methods
     private static boolean checkStringNumeric(String toCheck) {
-        /*Checks if the passed string is numeric by looping over the string and seeing if it doesn't
-        trigger a parseInt exception
+        /*Checks if the passed string is numeric by seeing if it doesn't trigger a parseInt
+        exception
          */
 
         try
         {
             Integer.parseInt(toCheck);
+            return true;
+        }
+        catch(NumberFormatException nfe)
+        {
+            return false;
+        }
+    }
+
+    private static boolean checkCharNumeric(char toCheck){
+        /*Checks if the passed char is numeric by seeing if it doesn't trigger a parseInt exception
+         */
+
+        try
+        {
+            Integer.parseInt(String.valueOf(toCheck));
             return true;
         }
         catch(NumberFormatException nfe)
@@ -114,6 +128,17 @@ public final class ErrorManager {
             {
                 if(toCheck.charAt(i) == against.charAt(j)) return false;
             }
+        }
+
+        return true;
+    }
+
+    private static boolean checkStringForNumbers(String toCheck){
+        //This methods returns true if the passed string has at least one numeric number in it
+
+        for(int i = 0; i< toCheck.length();i++)
+        {
+            if(checkCharNumeric(toCheck.charAt(i))) return true;
         }
 
         return true;

@@ -41,7 +41,8 @@ public class Authenticator {
                             //Sign up failed so notify the firebaseUser
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
 
-                            Toast.makeText(activity, "Authentication failed.",
+                            Toast.makeText(activity, "Authentication failed - "
+                                            + task.getException(),
                                     Toast.LENGTH_SHORT).show();
                         }
                     }

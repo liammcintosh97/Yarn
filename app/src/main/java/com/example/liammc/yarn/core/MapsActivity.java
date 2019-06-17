@@ -540,7 +540,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
         startActivity(intent);
-        overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
     }
 
     public void onNotificationsPressed(View view) {
@@ -548,7 +547,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
         startActivity(intent);
-        overridePendingTransition(R.anim.down_to_up,R.anim.up_to_down);
     }
 
     public void onAccountPressed(View view) {
@@ -556,7 +554,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent intent = new Intent(getBaseContext(), AccountActivity.class);
         startActivity(intent);
-        overridePendingTransition(R.anim.left_to_right,R.anim.right_to_left);
     }
 
     //endregion

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
@@ -57,6 +58,9 @@ public class CreateAccountActivity extends AppCompatActivity {
                 ImageButton imageButton = findViewById(R.id.profilePictureButton);
                 imageButton.setImageBitmap(profilePictureBitmap);
             }
+            else{
+                Toast.makeText(this, "Couldn't get profile picture", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -68,6 +72,16 @@ public class CreateAccountActivity extends AppCompatActivity {
         //Get the firebaseUser name
         EditText userNameInput = findViewById(R.id.userNameInput);
         String userName = userNameInput.getText().toString();
+
+        if(userName.equals("")){
+            Toast.makeText(this, "Please Enter a name", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(profilePictureBitmap == null){
+            Toast.makeText(this, "Please Enter a Profile picture", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         //Set the User's Information
         localUser.updator.updateUserName(userName);

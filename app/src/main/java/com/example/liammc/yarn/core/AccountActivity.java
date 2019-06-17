@@ -69,13 +69,6 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-   @Override
-   public void finish(){
-        /*When the activity finishes set the transition animation*/
-
-        super.finish();
-        overridePendingTransition(R.anim.right_to_left,R.anim.left_to_right);
-   }
 
     //region init
 
