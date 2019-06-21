@@ -11,13 +11,12 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.CameraController;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
-import com.example.liammc.yarn.finders.NearbyPlaceFinder;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
@@ -28,7 +27,6 @@ import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.utility.PermissionTools;
-import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -62,7 +60,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     transitioning to different parts of the application */
 
     private  final int PERMISSION_REQUEST_CODE = 1;
-    private final int SEARCH_RADIUS = 1000;
     private final String TAG = "MapsActivity";
 
     //Google Services
@@ -72,7 +69,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Geocoder geocoder;
 
     //Finders
-    NearbyPlaceFinder nearbyPlaceFinder;
     NearbyChatFinder nearbyChatFinder;
     SearchPlaceFinder searchPlaceFinder;
 
@@ -85,14 +81,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Recorder recorder;
 
     //UI
-    CheckBox barCheckBox;
-    CheckBox cafeCheckBox;
-    CheckBox restaurantCheckBox;
-    CheckBox nightClubCheckBox;
     Circle circle;
+    SeekBar radiusBar;
 
     //Receivers
     TimeChangeReceiver timeChangeReceiver;
+
+    //User Input
+    CameraController cameraController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,22 +123,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             place.initOnMap(this,mMap);
         }
 
+        //Initialize the firebaseUser
+        initLocalUser();
+
         //Initialize Finders
         initUpNearByChatFinder();
-        initUpNearByPlaceFinder();
         initUpSearchPlaceFinder();
 
-        //Initialize the firebaseUser and the Map UI
+        //Initialize User Input
+        InitCameraController();
+
+        //Initialize the Map UI
         initLocalUser();
         initMapUI();
+        InitSeekBar();
 
         //Initialize the Map Listeners and services
         initMapListeners();
         initPlacesClient();
 
         //Focus on the firebaseUser and show the radius circle on the map
+        InitSearchCircle();
         onFocusOnUserPressed(null);
-        updateCircle();
     }
 
     @Override
@@ -192,7 +194,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initLocalUser() {
         /*This method initializes the Local firebaseUser*/
 
-        localUser = LocalUser.getInstance();
+        localUser = LocalUser.getInstance(this);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -227,7 +229,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         final Activity activity =  this;
 
-        nearbyChatFinder = new NearbyChatFinder(SEARCH_RADIUS, new FinderCallback() {
+        nearbyChatFinder = new NearbyChatFinder((int)localUser.searchRadius, new FinderCallback() {
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
                 /*This is called when the Nearby Chat Finder finds some places with chats*/
@@ -241,7 +243,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*This is called when the Nearby Chat Finder finds a place with chats*/
 
                 Log.d(TAG,"Found Place with Chats - " + placeMap.toString());
-                addYarnPlace(placeMap,true);
+                addYarnPlace(placeMap,false);
             }
 
             @Override
@@ -250,34 +252,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
             }
         });
-    }
 
-    private void initUpNearByPlaceFinder() {
-        /*Initializes the Nearby By Place Finder*/
-
-        final Activity activity =  this;
-
-        nearbyPlaceFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.google_place_key), SEARCH_RADIUS, new FinderCallback() {
-            @Override
-            public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
-                /*This is called when the Nearby Place Finder finds some places */
-
-                addYarnPlaces(placeMaps);
-                if(nextPageToken!= null) nearbyPlaceFinder.getPlacesNextPage(nextPageToken);
-            }
-
-            @Override
-            public void onFoundPlace(HashMap<String, String> placeMap){
-                /*This is called when the Nearby Place Finder finds a place */
-            }
-
-            @Override
-            public void onNoPlacesFound(String message) {
-                /*This is called when the Nearby Place Finder doesn't find any places */
-                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
-            }
-        });
+        nearbyChatFinder.initNearbyChatsListener(localUser.types);
     }
 
     private void initUpSearchPlaceFinder(){
@@ -407,8 +383,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         uiSettings.setZoomControlsEnabled(false);
 
         initMapStyle();
-
-        initCheckBoxes();
     }
 
     private void initMapStyle() {
@@ -429,66 +403,74 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void initCheckBoxes() {
-        /*Initializes the Check Boxes*/
+    private void InitSearchCircle(){
+        /*Updates the circle on the Map*/
 
-        //Get button references
-        barCheckBox = findViewById(R.id.barCheckBox);
-        cafeCheckBox = findViewById(R.id.cafeCheckBox);
-        restaurantCheckBox = findViewById(R.id.restaurantCheckBox);
-        nightClubCheckBox = findViewById(R.id.nightClubCheckBox);
+        if(circle != null )circle.remove();
+        if(mMap == null){
+            Log.e(TAG,"Couldn't draw circle because the Map is null");
+            return;
+        }
+        if(localUser == null || localUser.lastLatLng == null){
+            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
+            return;
+        }
 
-        //Set button values
-        barCheckBox.setChecked(false);
-        restaurantCheckBox.setChecked(false);
-        nightClubCheckBox.setChecked(false);
+        circle = mMap.addCircle(new CircleOptions()
+                .center(localUser.lastLatLng)
+                .radius(localUser.SEARCH_RADIUS_DEFAULT)
+                .strokeColor(R.color.searchRadiusStroke)
+                .fillColor(R.color.searchRadiusFill));
 
-        cafeCheckBox.setChecked(true);
+    }
 
-        //Set button listeners
-        barCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+    private void InitSeekBar(){
+        radiusBar = findViewById(R.id.radiusBar);
+
+        radiusBar.setMax(LocalUser.SEARCH_RADIUS_MAX);
+        radiusBar.setProgress(LocalUser.SEARCH_RADIUS_DEFAULT);
+
+        cameraController.moveToLatLng(localUser.lastLatLng,(
+                int)calculateCameraZoom(radiusBar.getProgress()));
+
+        radiusBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                //If the buttons are all unchecked check the cafe one;
-                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
-                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
-                    cafeCheckBox.setChecked(true);
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                Log.d(TAG,"The zoom of the camera is " + mMap.getCameraPosition().zoom);
+                //Clamp the progress bar to a minimum
+                if(progress < LocalUser.SEARCH_RADIUS_MIN){
+                    progress = LocalUser.SEARCH_RADIUS_MIN;
+                    seekBar.setProgress(progress);
                 }
+
+                localUser.searchRadius = progress;
+
+                updateCircle(progress,localUser.lastLatLng);
+
+                double zoom = calculateCameraZoom(seekBar.getProgress());
+                cameraController.zoomTo((float)zoom);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
-        cafeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                //If the buttons are all unchecked check the cafe one;
-                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
-                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
-                    cafeCheckBox.setChecked(true);
-                }
-            }
-        });
+    }
 
-        restaurantCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                //If the buttons are all unchecked check the cafe one;
-                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
-                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
-                    cafeCheckBox.setChecked(true);
-                }
-            }
-        });
+    //endregion
 
-        nightClubCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                //If the buttons are all unchecked check the cafe one;
-                if(!cafeCheckBox.isChecked() && !barCheckBox.isChecked()
-                        && !restaurantCheckBox.isChecked() && !nightClubCheckBox.isChecked()){
-                    cafeCheckBox.setChecked(true);
-                }
-            }
-        });
+    //region User Input
+
+    private void InitCameraController(){
+        cameraController =  new CameraController(mMap);
     }
 
     //endregion
@@ -508,18 +490,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if(localUser.lastLocation != null)
         {
-            updateCircle();
-
-            //Get all the selected types
-            ArrayList<String> types = new ArrayList<>();
-            if(barCheckBox.isChecked()) types.add(PlaceType.BAR);
-            if(cafeCheckBox.isChecked()) types.add(PlaceType.CAFE);
-            if(restaurantCheckBox.isChecked()) types.add(PlaceType.RESTAURANT);
-            if(nightClubCheckBox.isChecked()) types.add(PlaceType.NIGHT_CLUB);
+            updateCircle(localUser.searchRadius,localUser.lastLatLng);
 
             //Get the chats with the selected types
-            nearbyChatFinder.getNearbyChats(types);
-            nearbyChatFinder.initNearbyChatsListener(types);
+            nearbyChatFinder.getNearbyChats(localUser.types);
+            nearbyChatFinder.initNearbyChatsListener(localUser.types);
             Log.d(TAG,"Getting near by chats");
         }
     }
@@ -530,7 +505,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         localUser.getUserLocation(this, mFusedLocationProviderClient, new LocalUser.locationReceivedListener() {
             @Override
             public void onLocationReceived(LatLng latLng) {
-                focusOnLatLng(latLng);
+                cameraController.moveToLatLng(latLng,
+                        (int)calculateCameraZoom(radiusBar.getProgress()));
             }
         });
     }
@@ -556,6 +532,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         startActivity(intent);
     }
 
+    public void onWhereToPressed(View view){
+        Intent intent = new Intent(getBaseContext(), WhereToActivity.class);
+        startActivity(intent);
+    }
     //endregion
 
     //region Public Methods
@@ -636,22 +616,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    public void updateCircle(double radius, LatLng center){
+        if(mMap == null){
+            Log.e(TAG,"Couldn't draw circle because the Map is null");
+            return;
+        }
+        if(localUser == null || localUser.lastLatLng == null){
+            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
+            return;
+        }
+        if(circle == null ){
+            Log.e(TAG,"Couldn't draw circle because it's null");
+            return;
+        }
+
+        circle.setRadius(radius);
+        circle.setCenter(center);
+    }
     //endregion
 
     //region Private methods
-
-    private void focusOnLatLng(LatLng latLng) {
-        /*Focuses the camera on a LatLng position*/
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(latLng)
-                .zoom(15)
-                .tilt(40)
-                .build();
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-    }
 
     private YarnPlace createYarnPlace(HashMap<String,String> placeMap,final boolean focus) {
         /*Creates a new yarn Place Instance*/
@@ -693,7 +677,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void focusOnYarnPlace(YarnPlace touchedYarnPlace){
 
         if(touchedYarnPlace.infoWindow.window.isShowing()) touchedYarnPlace.infoWindow.dismiss();
-        focusOnLatLng(touchedYarnPlace.marker.getPosition());
+        cameraController.moveToLatLng(touchedYarnPlace.marker.getPosition(),15);
         touchedYarnPlace.infoWindow.show(mMap);
     }
 
@@ -711,24 +695,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-    private void updateCircle(){
-        /*Updates the circle on the Map*/
+    private double calculateCameraZoom(int progress ){
 
-        if(circle != null )circle.remove();
-        if(mMap == null){
-            Log.e(TAG,"Couldn't draw circle because the Map is null");
-            return;
-        }
-        if(localUser == null || localUser.lastLatLng == null){
-            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
-            return;
-        }
+        double radiusPer = ((double) progress/(double) LocalUser.SEARCH_RADIUS_MAX) * (double) 100;
+        double zoomPercantage =  100 - radiusPer;
+        int zoomRange = CameraController.ZOOM_MAX - CameraController.ZOOM_MIN;
 
-        circle = mMap.addCircle(new CircleOptions()
-                .center(localUser.lastLatLng)
-                .radius(SEARCH_RADIUS)
-                .strokeColor(R.color.searchRadiusStroke)
-                .fillColor(R.color.searchRadiusFill));
+        return ((zoomPercantage * zoomRange)/100) + CameraController.ZOOM_MIN;
     }
     //endregion
 }

@@ -11,7 +11,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
+import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
@@ -20,6 +22,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class LocalUser extends YarnUser implements LocationSource, LocationListener {
@@ -32,12 +35,21 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     private static final LocalUser instance = new LocalUser();
 
     //private constructor to avoid client applications to use constructor
-    private LocalUser(){}
+    private LocalUser(){
+        searchRadius =  SEARCH_RADIUS_DEFAULT;
 
-    public static LocalUser getInstance(){
+        types.add(PlaceType.BAR);
+        types.add(PlaceType.CAFE);
+        types.add(PlaceType.NIGHT_CLUB);
+        types.add(PlaceType.RESTAURANT);
+    }
+
+    public static LocalUser getInstance(Activity _activity){
+        instance.activity = _activity;
         return instance;
     }
 
+    public static LocalUser getInstance(){ return instance; }
     //endregion
 
     //region Location Received Listener
@@ -51,6 +63,8 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     //endregion
 
     private final String TAG = "Local User";
+    private Activity activity;
+    public ArrayList<String> types = new ArrayList<>();
 
     //Local User Location;
     OnLocationChangedListener locationChangedListener;
@@ -65,6 +79,10 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     public Location lastLocation;
     public LatLng lastLatLng;
     public Address lastAddress;
+    public double searchRadius;
+    public static final int SEARCH_RADIUS_DEFAULT = 1000;
+    public static final int SEARCH_RADIUS_MAX =  10000;
+    public static final int SEARCH_RADIUS_MIN =  100;
 
     //Firebase
     public FirebaseAuth firebaseAuth;
@@ -73,6 +91,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     public LocalUserUpdater updator;
 
     //region Init
+
     public void initUserLocation(Activity activity) {
         /*Initialises the firebaseUser location services so that the application can track them*/
 
@@ -169,6 +188,12 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
         lastAddress = AddressTools.getAddressFromLocation(geocoder, lastLatLng);
 
         Log.d(TAG, "Got local firebaseUser's location");
+
+        if(activity != null && activity instanceof MapsActivity){
+            MapsActivity mapsActivity = ((MapsActivity)activity);
+            mapsActivity.updateCircle(searchRadius,lastLatLng);
+
+        }
 
         //Check if the firebaseUser is ready after getting their location
         if(checkReady()){

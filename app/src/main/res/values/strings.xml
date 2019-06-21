@@ -33,6 +33,9 @@
     <string name="map_accountButton">Account</string>
     <string name="maps_searchButton">Search</string>
     <string name="maps_searchDefaultText">Where to next?</string>
+    <string name="maps_whereToGoButton">Where to go?</string>
+    <string name="maps_100m">100m</string>
+    <string name="maps_10km">10km</string>
 
     //Chat Planner
     <string name="chatPlanner_title">Chat Planner</string>
@@ -126,7 +129,7 @@
     <string name="chatActivity_StartButton">Start</string>
     <string name="chatActivity_PersonImageDescription">Profile picture</string>
     <string name="chatActivity_NoOneToMeet">There is no one to meet yet</string>
-    <string name= "chatActivity_AddressDefault">Address</string>
+    <string name="chatActivity_AddressDefault">Address</string>
     <string name="chatActivity_LengthTitle">Length</string>
     <string name="chatActivity_Length">15mins</string>
 

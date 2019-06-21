@@ -237,14 +237,10 @@ public class InitializationActivity extends AppCompatActivity {
                 * Then the application must get all the chat data with the nearby Chat Finder*/
                 setProgressMessage("Getting nearby Chats");
 
-                //Get Chat Data
-                ArrayList<String> types = new ArrayList<>();
-                types.add(PlaceType.CAFE);
-                types.add(PlaceType.RESTAURANT);
 
                 initNearbyChatFinder();
-                nearbyChatFinder.getNearbyChats(types);
-                nearbyChatFinder.initNearbyChatsListener(types);
+                nearbyChatFinder.getNearbyChats(localUser.types);
+                nearbyChatFinder.initNearbyChatsListener(localUser.types);
             }
         });
     }

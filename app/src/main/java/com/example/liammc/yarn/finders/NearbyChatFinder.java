@@ -191,34 +191,44 @@ public class NearbyChatFinder {
 
         DataSnapshot placeInfo = dataSnapshot.child(YarnPlace.PLACE_INFO_REF);
 
-        if(placeInfo.getValue() != null){
-            double lat = (double)placeInfo.child("lat").getValue();
-            double lng = (double)placeInfo.child("lng").getValue();
-
-            String placeId = dataSnapshot.getKey();
-            String placeName = (String) placeInfo.child("place_name").getValue();
-            LatLng placeLatLng =  new LatLng(lat,lng);
-            String placeType =  (String) placeInfo.child("place_type").getValue();
-
-            //The distance is greater then
-            if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
-                    ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
-                    > searchRadius) return;
-
-            //The types don't match
-            if(!checkTypeEquality(placeType,types)) return;
-
-        /*If it's within the radius and matches the firebaseUser's chosen types return the place map to the
-        listener*/
-            HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,placeName,placeType
-                    ,String.valueOf(placeLatLng.latitude),String.valueOf(placeLatLng.longitude));
-
-            listener.onFoundPlace(placeMap);
+        if(placeInfo.getValue() == null){
+            Log.d(TAG,"Place info isn't there at this point");
+            return;
         }
-        else{Log.e(TAG,"Place Info was Null, Check the realtime database and see if the place " +
-                "info is there");}
+        //The place info node exists and has value
+        else{
+            Object latSnap = placeInfo.child("lat").getValue();
+            Object lngSnap = placeInfo.child("lng").getValue();
+            Object nameSnap = placeInfo.child("place_name").getValue();
+            Object typeSnap = placeInfo.child("place_type").getValue();
 
+            //Check if all the required data is in the database
+            if(latSnap != null && lngSnap != null && nameSnap != null && typeSnap != null){
 
+                String placeId = dataSnapshot.getKey();
+                LatLng placeLatLng =  new LatLng((double)latSnap,(double)lngSnap);
+
+                //The distance is greater then
+                if(MathTools.latLngDistance(placeLatLng.latitude,placeLatLng.longitude
+                        ,localUser.lastLatLng.latitude,localUser.lastLatLng.longitude)
+                        > searchRadius) return;
+
+                //The types don't match
+                if(!checkTypeEquality((String)typeSnap,types)) return;
+
+                /*If it's within the radius and matches the firebaseUser's chosen types return the
+                place map to the listener*/
+                HashMap<String, String> placeMap = YarnPlace.buildPlaceMap(placeId,(String)nameSnap,
+                        (String)typeSnap,String.valueOf(placeLatLng.latitude)
+                        ,String.valueOf(placeLatLng.longitude));
+
+                listener.onFoundPlace(placeMap);
+            }
+            else{
+                Log.d(TAG,"Not all the required data is at this location at this point");
+                return;
+            }
+        }
     }
 
     private Task<String> requestNearbyChats(ArrayList<String> types) {
