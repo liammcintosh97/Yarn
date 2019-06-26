@@ -37,7 +37,6 @@ public class ChatPlannerActivity extends AppCompatActivity{
     Notifier notifier;
     TimeChangeReceiver timeChangeReceiver;
 
-
     //UI
     public ViewGroup parentViewGroup;
     private CompactCalendarView calendarView;

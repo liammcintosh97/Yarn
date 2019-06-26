@@ -21,8 +21,7 @@ import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.utility.DateTools;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
-import com.google.common.collect.Iterables;
-import com.google.firebase.database.DataSnapshot;
+
 
 public class ChatActivity extends AppCompatActivity {
     /*The Chat Activity is used when the user clicks on a chat from the Info Window or in the

@@ -8,7 +8,6 @@ import android.util.Log;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.common.collect.Iterables;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -16,6 +15,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import java.util.Iterator;
 
 
 public class YarnUser {
@@ -226,7 +227,8 @@ public class YarnUser {
     private long calculateMeanRating(Iterable<DataSnapshot> ratings){
 
         double total = 0;
-        double amount = Iterables.size(ratings);
+        double amount = 0;
+        for ( ; ratings.iterator().hasNext() ; ++amount ) ratings.iterator().next();
         long result = 0;
 
         //Get the total ratings

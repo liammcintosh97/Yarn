@@ -59,6 +59,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     time. Here the firebaseUser will be searching and interacting with Yarn Places, using the map and
     transitioning to different parts of the application */
 
+    public static int WHERE_TO_CODE =  0;
     private  final int PERMISSION_REQUEST_CODE = 1;
     private final String TAG = "MapsActivity";
 
@@ -153,11 +154,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         * dismiss that, if the Yarn Place Info Window is showing dismiss that but if only the
         * map is showing go to the account activity*/
 
-        InfoWindow info = touchedYarnPlace.infoWindow;
-        ChatCreator creator = info.chatCreator;
-
         if(touchedYarnPlace != null)
         {
+            InfoWindow info = touchedYarnPlace.infoWindow;
+            ChatCreator creator = info.chatCreator;
+
             if(creator.window.isShowing())
             {
                 creator.dismiss();
@@ -179,6 +180,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         unregisterReceiver(timeChangeReceiver.receiver);
         super.onDestroy();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == WHERE_TO_CODE) {
+            if (resultCode == RESULT_OK) {
+                try{
+                    HashMap<String, String> placeMap =
+                            (HashMap<String, String>) data.getSerializableExtra("placeMap");
+
+                    addYarnPlace(placeMap,true);
+                }catch(ClassCastException e){
+                    Log.e(TAG,"Couldn't cast place map from result - " + e.getMessage());
+                }
+            }
+        }
     }
 
     //region Init
@@ -282,9 +300,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Add it to the map
                 final YarnPlace yarnPlace = addYarnPlace(placeMap,true);
                 touchedYarnPlace = yarnPlace;
-
-                //Once the Yarn Place is ready focus on it and show the Info Window
-                if(yarnPlace.checkReady())focusOnYarnPlace(yarnPlace);
 
             }
 
@@ -534,7 +549,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void onWhereToPressed(View view){
         Intent intent = new Intent(getBaseContext(), WhereToActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent,WHERE_TO_CODE);
     }
     //endregion
 
@@ -674,9 +689,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return yarnPlace;
     }
 
-    private void focusOnYarnPlace(YarnPlace touchedYarnPlace){
+    private void focusOnYarnPlace(YarnPlace _touchedYarnPlace){
 
-        if(touchedYarnPlace.infoWindow.window.isShowing()) touchedYarnPlace.infoWindow.dismiss();
+        if(touchedYarnPlace != null){
+            if(touchedYarnPlace.infoWindow.window.isShowing()) touchedYarnPlace.infoWindow.dismiss();
+        }
+
+        touchedYarnPlace = _touchedYarnPlace;
+
         cameraController.moveToLatLng(touchedYarnPlace.marker.getPosition(),15);
         touchedYarnPlace.infoWindow.show(mMap);
     }

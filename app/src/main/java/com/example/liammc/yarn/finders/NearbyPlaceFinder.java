@@ -6,6 +6,7 @@ import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 
+import com.example.liammc.yarn.interfaces.NearbyPlaceCallback;
 import com.example.liammc.yarn.networking.Downloader;
 import com.example.liammc.yarn.networking.PlaceDataParser;
 
@@ -26,11 +27,12 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
     private final LocalUser localUser;
     private final String googlePlaceKey;
     private int searchRadius;
-    private FinderCallback listener;
+    private NearbyPlaceCallback listener;
+    public boolean done = true;
 
 
     public NearbyPlaceFinder(String _googlePlaceKey, int _searchRadius
-            , FinderCallback _listener) {
+            , NearbyPlaceCallback _listener) {
 
         this.localUser = LocalUser.getInstance();
         this.googlePlaceKey = _googlePlaceKey;
@@ -44,6 +46,8 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
     @Override
     protected String doInBackground(Object... objects){
         /*This is want runs during the async task execution*/
+
+        if(isCancelled())return null;
 
         //Get the url and place type from the results
         String url = (String)objects[0];
@@ -76,9 +80,13 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
 
         //Return the result to the listener
         if(nearbyPlaceList != null) {
-            listener.onFoundPlaces(nextPageToken,nearbyPlaceList);
+            done = true;
+            listener.onFoundPlaces(this,nextPageToken,nearbyPlaceList);
         }
-        else listener.onNoPlacesFound("No places were found");
+        else{
+            done = true;
+            listener.onNoPlacesFound("No places were found");
+        }
     }
     //endregion
 
@@ -92,12 +100,16 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
 
     public void getPlacesNextPage(String nextPageToken) {
         /*Gets the nearby places on the next page of the results */
+        if(getStatus() == Status.RUNNING) cancel(true);
         execute(buildNextPageTransfer(nextPageToken));
+        done = false;
     }
 
     public void getNearbyPlaces(String type) {
         /*Gets the nearby places*/
-       execute(buildTransfer(type));
+        if(getStatus() == Status.RUNNING) cancel(true);
+        execute(buildTransfer(type));
+        done = false;
     }
 
     //endregion
@@ -124,13 +136,13 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
         return dataTransfer;
     }
 
-    private String buildRequestUrl(int radius, double latitude , double longitude , String nearbyPlace) {
+    private String buildRequestUrl(int radius, double latitude , double longitude , String type) {
         /*Builds the required URL string for the request*/
 
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
         googlePlaceUrl.append("&radius="+radius);
-        googlePlaceUrl.append("&type="+nearbyPlace);
+        googlePlaceUrl.append("&type="+type);
         googlePlaceUrl.append("&fields=name,place_id,geometry,reference");
         googlePlaceUrl.append("&key="+googlePlaceKey);
 
