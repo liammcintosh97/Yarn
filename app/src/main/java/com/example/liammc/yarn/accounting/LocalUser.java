@@ -8,7 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.example.liammc.yarn.core.MapsActivity;
@@ -191,8 +191,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
         if(activity != null && activity instanceof MapsActivity){
             MapsActivity mapsActivity = ((MapsActivity)activity);
-            mapsActivity.updateCircle(searchRadius,lastLatLng);
-
+            mapsActivity.searchRadius.update(searchRadius,lastLatLng);
         }
 
         //Check if the firebaseUser is ready after getting their location

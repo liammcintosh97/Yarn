@@ -1,7 +1,7 @@
 package com.example.liammc.yarn.core;
 
 import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -44,6 +44,7 @@ public class WhereToActivity extends AppCompatActivity {
     CheckBox restaurantCheckBox;
     CheckBox nightClubCheckBox;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +79,12 @@ public class WhereToActivity extends AppCompatActivity {
     private void initReceivers(){
 
         timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+
+        try {
+            registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
+        } catch(IllegalArgumentException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initChannels(){
@@ -173,7 +179,10 @@ public class WhereToActivity extends AppCompatActivity {
             @Override
             public void onNoPlacesFound(String message) {
                 /*This is called when the Nearby Place Finder doesn't find any places */
-                Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+                if (checkReady()){
+                    Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
+                    searchButton.setEnabled(true);
+                }
             }
         };
     }

@@ -1,7 +1,7 @@
 package com.example.liammc.yarn.yarnPlace;
 
-import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.FragmentActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import android.util.Log;
 import android.view.Gravity;
 
@@ -15,7 +15,6 @@ import android.widget.TextView;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.core.MapsActivity;
-import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;

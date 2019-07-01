@@ -2,7 +2,7 @@ package com.example.liammc.yarn.core;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.liammc.yarn.planner.EventElement;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.Notification;
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Set;
 
 public class ChatPlannerActivity extends AppCompatActivity{
     /*The Chat Planner activity is were the User interacts with the chats that they have created

@@ -2,11 +2,10 @@ package com.example.liammc.yarn.networking;
 
 import android.app.Activity;
 import android.location.Geocoder;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.Recorder;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;

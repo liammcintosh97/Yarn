@@ -15,6 +15,9 @@ import java.util.List;
 public class PlaceDataParser {
     /*This class is used for passing Place JSON data and then returning a list of placeMaps*/
 
+    String[] invalidPlaceTypes = {"gas_station","supermarket","store","shopping_mall","pharmacy"
+    ,"meal_takeaway","meal_delivery","lodging","liquor_store",};
+
     public List<HashMap<String, String>> parse(String jsonData, String type) {
         /*This method is used when we need to parse some JSONData and return a List of PlaceMaps*/
 
@@ -54,7 +57,7 @@ public class PlaceDataParser {
 
                 //Extract the data and put it in the result list
                 HashMap<String, String> placeMap = getJsonPlace(jsonObject,type);
-                placelist.add(placeMap);
+                if(placeMap != null) placelist.add(placeMap);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -86,6 +89,13 @@ public class PlaceDataParser {
             {
                 id = googlePlaceJson.getString("place_id");
             }
+            //Check is the place types isn't null
+            if(!googlePlaceJson.isNull("types")){
+                if(!validPlace(googlePlaceJson.getJSONArray("types"))){
+                    Log.d("DataParser","The place is of an invalid type");
+                    return null;
+                }
+            }
 
             //Gets the Latitude and Longitude
             lat = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
@@ -100,6 +110,22 @@ public class PlaceDataParser {
 
         //return the result
         return googlePlaceMap;
+    }
+
+    private boolean validPlace(JSONArray types){
+
+        for(int i = 0; i < types.length();i++){
+
+            for(int y = 0 ; y < invalidPlaceTypes.length; y++){
+                try{
+                    if(types.getString(i).equals(invalidPlaceTypes[y]))return false;
+                }catch (JSONException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return true;
     }
 
     /*

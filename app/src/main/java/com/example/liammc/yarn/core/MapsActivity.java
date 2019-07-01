@@ -6,20 +6,22 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Geocoder;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.example.liammc.yarn.CameraController;
+import com.example.liammc.yarn.userInput.CameraController;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.userInput.RadiusBar;
+import com.example.liammc.yarn.userInput.SearchRadius;
 import com.example.liammc.yarn.yarnPlace.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
@@ -28,25 +30,17 @@ import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.interfaces.ReadyListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
 
 import java.util.ArrayList;
 
@@ -61,12 +55,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static int WHERE_TO_CODE =  0;
     private  final int PERMISSION_REQUEST_CODE = 1;
+    private final int AUTOCOMPLETE_REQUEST_CODE= 2;
     private final String TAG = "MapsActivity";
 
     //Google Services
     GoogleMap mMap;
-    PlacesClient placesClient;
-    FusedLocationProviderClient mFusedLocationProviderClient;
     Geocoder geocoder;
 
     //Finders
@@ -81,15 +74,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Notifier notifier;
     Recorder recorder;
 
-    //UI
-    Circle circle;
-    SeekBar radiusBar;
-
     //Receivers
     TimeChangeReceiver timeChangeReceiver;
 
     //User Input
+    public SearchRadius searchRadius;
     CameraController cameraController;
+    RadiusBar radiusBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +94,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         //Initialize some internal variables needed for certain processes
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         recorder = Recorder.getInstance();
         geocoder = new Geocoder(this,Locale.getDefault());
 
@@ -127,24 +117,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Initialize the firebaseUser
         initLocalUser();
 
+        //Initialize the Map Listeners and services
+        initMarkerListener();
+        initCameraMoveListener();
+        initMapClickListener();
+
         //Initialize Finders
         initUpNearByChatFinder();
         initUpSearchPlaceFinder();
 
         //Initialize User Input
-        InitCameraController();
+        cameraController =  new CameraController(mMap,radiusBar);
+        searchRadius = new SearchRadius(mMap);
+        radiusBar =  new RadiusBar(this,cameraController,searchRadius);
 
         //Initialize the Map UI
         initLocalUser();
         initMapUI();
-        InitSeekBar();
-
-        //Initialize the Map Listeners and services
-        initMapListeners();
-        initPlacesClient();
 
         //Focus on the firebaseUser and show the radius circle on the map
-        InitSearchCircle();
         onFocusOnUserPressed(null);
     }
 
@@ -154,22 +145,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         * dismiss that, if the Yarn Place Info Window is showing dismiss that but if only the
         * map is showing go to the account activity*/
 
-        if(touchedYarnPlace != null)
-        {
+        if(touchedYarnPlace != null) {
             InfoWindow info = touchedYarnPlace.infoWindow;
             ChatCreator creator = info.chatCreator;
 
-            if(creator.window.isShowing())
-            {
-                creator.dismiss();
-            }
-            else{
-                info.dismiss();
-            }
+            if(creator.window.isShowing()) creator.dismiss();
+
+            else info.dismiss();
         }
-        else{
-            onAccountPressed(null);
-        }
+        else onAccountPressed(null);
     }
 
     @Override
@@ -185,6 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        //Where to activity search result
         if (requestCode == WHERE_TO_CODE) {
             if (resultCode == RESULT_OK) {
                 try{
@@ -197,17 +182,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
+
+        //Auto complete activity search result
+        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = Autocomplete.getPlaceFromIntent(data);
+
+                HashMap<String,String> placeMap = searchPlaceFinder.parsePlaceSearch(place);
+                if(placeMap == null) searchPlaceFinder.listener.onNoPlacesFound("Sorry you can't create a chat here");
+                else searchPlaceFinder.listener.onFoundPlace(placeMap);
+
+            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                searchPlaceFinder.listener.onNoPlacesFound("There was an error selecting this place");
+            }
+        }
     }
 
     //region Init
-
-    private void initMapListeners() {
-        /*This method initializes all the needed map listeners*/
-
-        initMarkerListener();
-        initCameraMoveListener();
-        initMapClickListener();
-    }
 
     private void initLocalUser() {
         /*This method initializes the Local firebaseUser*/
@@ -218,15 +209,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setLocationSource(localUser);
             mMap.setMyLocationEnabled(true);
-        }
-    }
-
-    private void initPlacesClient(){
-
-        //Initialize the Places API
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), getResources()
-                    .getString(R.string.google_place_android_key));
         }
     }
 
@@ -276,17 +258,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void initUpSearchPlaceFinder(){
         /*Initializes the Search Place Finder*/
-
         final MapsActivity mapsActivity =  this;
 
-        // Initialize the AutocompleteSupportFragment.
-        AutocompleteSupportFragment searchBar = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        //Get the country
-        String country = getResources().getConfiguration().locale.getCountry();
-
-        searchPlaceFinder = new SearchPlaceFinder(searchBar,country, new FinderCallback() {
+        searchPlaceFinder = new SearchPlaceFinder(this,
+                SearchPlaceFinder.FinderType.INTENT,new FinderCallback() {
 
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
@@ -300,7 +275,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Add it to the map
                 final YarnPlace yarnPlace = addYarnPlace(placeMap,true);
                 touchedYarnPlace = yarnPlace;
-
             }
 
             @Override
@@ -337,7 +311,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Focus on the Yarn Place and show the info window
                 if(touchedYarnPlace != null) {
-                    focusOnYarnPlace(touchedYarnPlace);
+                    cameraController.focusOnYarnPlace(touchedYarnPlace);
                     Log.d(TAG,"Found the correct Yarn place from marker click");
                 }
                 else{
@@ -418,76 +392,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void InitSearchCircle(){
-        /*Updates the circle on the Map*/
-
-        if(circle != null )circle.remove();
-        if(mMap == null){
-            Log.e(TAG,"Couldn't draw circle because the Map is null");
-            return;
-        }
-        if(localUser == null || localUser.lastLatLng == null){
-            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
-            return;
-        }
-
-        circle = mMap.addCircle(new CircleOptions()
-                .center(localUser.lastLatLng)
-                .radius(localUser.SEARCH_RADIUS_DEFAULT)
-                .strokeColor(R.color.searchRadiusStroke)
-                .fillColor(R.color.searchRadiusFill));
-
-    }
-
-    private void InitSeekBar(){
-        radiusBar = findViewById(R.id.radiusBar);
-
-        radiusBar.setMax(LocalUser.SEARCH_RADIUS_MAX);
-        radiusBar.setProgress(LocalUser.SEARCH_RADIUS_DEFAULT);
-
-        cameraController.moveToLatLng(localUser.lastLatLng,(
-                int)calculateCameraZoom(radiusBar.getProgress()));
-
-        radiusBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-                Log.d(TAG,"The zoom of the camera is " + mMap.getCameraPosition().zoom);
-                //Clamp the progress bar to a minimum
-                if(progress < LocalUser.SEARCH_RADIUS_MIN){
-                    progress = LocalUser.SEARCH_RADIUS_MIN;
-                    seekBar.setProgress(progress);
-                }
-
-                localUser.searchRadius = progress;
-
-                updateCircle(progress,localUser.lastLatLng);
-
-                double zoom = calculateCameraZoom(seekBar.getProgress());
-                cameraController.zoomTo((float)zoom);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-
-    }
-
-    //endregion
-
-    //region User Input
-
-    private void InitCameraController(){
-        cameraController =  new CameraController(mMap);
-    }
-
     //endregion
 
     //endregion
@@ -495,6 +399,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //region Getters and Setters
 
     public YarnPlace getTouchedYarnPlace(){return touchedYarnPlace;}
+
+    public void setTouchedYarnPlace(YarnPlace _touchedYarnPlace){touchedYarnPlace = _touchedYarnPlace;}
 
     //endregion
 
@@ -505,7 +411,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if(localUser.lastLocation != null)
         {
-            updateCircle(localUser.searchRadius,localUser.lastLatLng);
+            searchRadius.update(localUser.searchRadius,localUser.lastLatLng);
 
             //Get the chats with the selected types
             nearbyChatFinder.getNearbyChats(localUser.types);
@@ -517,13 +423,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onFocusOnUserPressed(View view) {
         /*Focus the camera on the firebaseUser*/
 
-        localUser.getUserLocation(this, mFusedLocationProviderClient, new LocalUser.locationReceivedListener() {
-            @Override
-            public void onLocationReceived(LatLng latLng) {
-                cameraController.moveToLatLng(latLng,
-                        (int)calculateCameraZoom(radiusBar.getProgress()));
-            }
-        });
+        cameraController.focusOnUser(this);
     }
 
     public void onChatPlannerPressed(View view) {
@@ -548,25 +448,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void onWhereToPressed(View view){
+
         Intent intent = new Intent(getBaseContext(), WhereToActivity.class);
         startActivityForResult(intent,WHERE_TO_CODE);
+    }
+
+    public void onSearchButtonPressed(View view){
+        searchPlaceFinder.search(AUTOCOMPLETE_REQUEST_CODE);
     }
     //endregion
 
     //region Public Methods
-
-    public Marker createMarker(Double lat, Double lng) {
-        /*This method creates a marker at the given location*/
-
-        //Set the marker options
-        MarkerOptions markerOptions = new MarkerOptions();
-        LatLng latLng = new LatLng( lat, lng);
-        markerOptions.position(latLng);
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-
-        //Add the marker to the map and return it
-        return mMap.addMarker(markerOptions);
-    }
 
     public YarnPlace addYarnPlace(HashMap<String,String> placeMap,Boolean focus){
         /*Create a Yarn Place Object from the passed placeMap and then adds it to the map and system.
@@ -587,7 +479,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if(place.placeMap.get("id").equals(placeMap.get(("id")))){
 
-                    if(focus)focusOnYarnPlace(place);
+                    if(focus){
+                        touchedYarnPlace = place;
+                        cameraController.focusOnYarnPlace(place);
+                    }
                     return place;
                 }
             }
@@ -631,23 +526,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    public void updateCircle(double radius, LatLng center){
-        if(mMap == null){
-            Log.e(TAG,"Couldn't draw circle because the Map is null");
-            return;
-        }
-        if(localUser == null || localUser.lastLatLng == null){
-            Log.e(TAG,"Couldn't draw circle because the Local user or their last LatLng is null");
-            return;
-        }
-        if(circle == null ){
-            Log.e(TAG,"Couldn't draw circle because it's null");
-            return;
-        }
-
-        circle.setRadius(radius);
-        circle.setCenter(center);
-    }
     //endregion
 
     //region Private methods
@@ -681,24 +559,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 //focus on the Yarn Place
-                if(focus)focusOnYarnPlace(yarnPlace);
+                if(focus){
+                    touchedYarnPlace = yarnPlace;
+                    cameraController.focusOnYarnPlace(yarnPlace);
+                }
             }
         });
 
 
         return yarnPlace;
-    }
-
-    private void focusOnYarnPlace(YarnPlace _touchedYarnPlace){
-
-        if(touchedYarnPlace != null){
-            if(touchedYarnPlace.infoWindow.window.isShowing()) touchedYarnPlace.infoWindow.dismiss();
-        }
-
-        touchedYarnPlace = _touchedYarnPlace;
-
-        cameraController.moveToLatLng(touchedYarnPlace.marker.getPosition(),15);
-        touchedYarnPlace.infoWindow.show(mMap);
     }
 
     private YarnPlace searchMarkerInList(List<YarnPlace> yarnPlaces, Marker toSearch) {
@@ -715,13 +584,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
-    private double calculateCameraZoom(int progress ){
-
-        double radiusPer = ((double) progress/(double) LocalUser.SEARCH_RADIUS_MAX) * (double) 100;
-        double zoomPercantage =  100 - radiusPer;
-        int zoomRange = CameraController.ZOOM_MAX - CameraController.ZOOM_MIN;
-
-        return ((zoomPercantage * zoomRange)/100) + CameraController.ZOOM_MIN;
-    }
     //endregion
 }

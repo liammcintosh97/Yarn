@@ -1,13 +1,12 @@
 package com.example.liammc.yarn.finders;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.MathTools;
 import com.google.android.gms.maps.model.LatLng;

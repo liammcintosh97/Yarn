@@ -5,7 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.example.liammc.yarn.chats.Chat;
@@ -17,7 +17,10 @@ import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
@@ -99,7 +102,7 @@ public class YarnPlace {
         Context context = activity.getApplicationContext();
 
         // Initialize Places.
-        Places.initialize(context,context.getResources().getString(R.string.google_place_key));
+        Places.initialize(context,context.getResources().getString(R.string.google_place_android_key));
 
         // Create a new Places client instance.
         placesClient = Places.createClient(context);
@@ -179,7 +182,7 @@ public class YarnPlace {
         double lat = Double.parseDouble(placeMap.get("lat"));
         double lng = Double.parseDouble( placeMap.get("lng"));
 
-        marker = mapsActivity.createMarker(lat,lng);
+        marker = createMarker(map,lat,lng);
     }
 
     private void getPhoto(){
@@ -341,6 +344,23 @@ public class YarnPlace {
 
         return placeMap;
     }
+    //endregion
+
+    //region Private Methods
+
+    private Marker createMarker(GoogleMap mMap,Double lat, Double lng) {
+        /*This method creates a marker at the given location*/
+
+        //Set the marker options
+        MarkerOptions markerOptions = new MarkerOptions();
+        LatLng latLng = new LatLng( lat, lng);
+        markerOptions.position(latLng);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+        //Add the marker to the map and return it
+        return mMap.addMarker(markerOptions);
+    }
+
     //endregion
 
 }

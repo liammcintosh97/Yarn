@@ -2,12 +2,11 @@ package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.core.InitializationActivity;
-import com.example.liammc.yarn.core.MapsActivity;
 import com.google.firebase.auth.AuthCredential;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;

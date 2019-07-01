@@ -1,15 +1,12 @@
 package com.example.liammc.yarn.core;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
 import com.example.liammc.yarn.notifications.Notifier;
