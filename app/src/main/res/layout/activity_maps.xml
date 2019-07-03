@@ -35,22 +35,24 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
-            android:id="@+id/searchBar"
+            android:id="@+id/searchLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/searchBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.25"
-                android:visibility="gone">
+                android:visibility="visible">
 
                 <fragment
                     android:id="@+id/autocomplete_fragment"
                     android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    tools:layout="@layout/places_autocomplete_search_bar" />
 
             </androidx.cardview.widget.CardView>
 
@@ -61,7 +63,7 @@
                 android:layout_weight="0.5"
                 android:onClick="onSearchButtonPressed"
                 android:text="@string/maps_searchButton"
-                android:visibility="visible" />
+                android:visibility="gone" />
 
             <Button
                 android:id="@+id/whereToGo"

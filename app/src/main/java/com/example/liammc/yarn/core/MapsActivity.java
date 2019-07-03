@@ -6,30 +6,30 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Geocoder;
-import androidx.fragment.app.FragmentActivity;
 import android.os.Bundle;
-import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
-import com.example.liammc.yarn.userInput.CameraController;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+
+import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
-import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
+import com.example.liammc.yarn.interfaces.FinderCallback;
+import com.example.liammc.yarn.interfaces.ReadyListener;
+import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.userInput.CameraController;
 import com.example.liammc.yarn.userInput.RadiusBar;
 import com.example.liammc.yarn.userInput.SearchRadius;
+import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
-import com.example.liammc.yarn.interfaces.FinderCallback;
-import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.utility.PermissionTools;
-import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -37,13 +37,11 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -95,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Initialize some internal variables needed for certain processes
         recorder = Recorder.getInstance();
-        geocoder = new Geocoder(this,Locale.getDefault());
+        geocoder = new Geocoder(this, Locale.getDefault());
 
         initReceivers();
         initChannels();
@@ -256,12 +254,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         nearbyChatFinder.initNearbyChatsListener(localUser.types);
     }
 
+
     private void initUpSearchPlaceFinder(){
         /*Initializes the Search Place Finder*/
         final MapsActivity mapsActivity =  this;
 
         searchPlaceFinder = new SearchPlaceFinder(this,
-                SearchPlaceFinder.FinderType.INTENT,new FinderCallback() {
+                SearchPlaceFinder.FinderType.WIDGET,new FinderCallback() {
 
             @Override
             public void onFoundPlaces(String nextPageToken, List<HashMap<String, String>> placeMaps) {
@@ -291,7 +290,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initMarkerListener() {
         /*Initializes the Map Marker Listener*/
 
-        mMap.setOnMarkerClickListener( new OnMarkerClickListener(){
+        mMap.setOnMarkerClickListener( new GoogleMap.OnMarkerClickListener(){
 
             @Override
             public boolean onMarkerClick(Marker marker) {
@@ -584,5 +583,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
+
     //endregion
+
 }

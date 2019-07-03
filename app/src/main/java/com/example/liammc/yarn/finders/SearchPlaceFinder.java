@@ -2,6 +2,10 @@ package com.example.liammc.yarn.finders;
 
 import android.content.Intent;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+
+import androidx.cardview.widget.CardView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.core.MapsActivity;
@@ -14,7 +18,6 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.widget.Autocomplete;
-import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
@@ -30,10 +33,15 @@ public class SearchPlaceFinder{
 
     private final String TAG = "SearchPlaceFinder";
     public FinderCallback listener;
-    AutocompleteSupportFragment searchBar;
     PlacesClient placesClient;
     MapsActivity mapsActivity;
     Intent searchIntent;
+
+    //UI
+    public AutocompleteSupportFragment autocompleteSupportFragment;
+    Button searchButton;
+    CardView searchBar;
+
 
     List<Place.Field> placeFields;
     String country;
@@ -54,6 +62,9 @@ public class SearchPlaceFinder{
     private void init() {
         /*Initializes the search bar*/
 
+        searchButton = mapsActivity.findViewById(R.id.searchButton);
+        searchBar = mapsActivity.findViewById(R.id.searchBar);
+
         //Initialize Places
         if (!Places.isInitialized()) {
             Places.initialize(mapsActivity.getApplicationContext(),
@@ -72,20 +83,25 @@ public class SearchPlaceFinder{
 
     private void initSearchWidget(){
 
+        searchBar.setVisibility(View.VISIBLE);
+        searchButton.setVisibility(View.GONE);
+
         // Initialize the AutocompleteSupportFragment.
-        searchBar = (AutocompleteSupportFragment)
+        autocompleteSupportFragment = (AutocompleteSupportFragment)
                 mapsActivity.getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
         //Set the search bar
-        searchBar.setPlaceFields(placeFields);
-        searchBar.setCountry(country);
-        searchBar.setTypeFilter(typeFilter);
+        autocompleteSupportFragment.setPlaceFields(placeFields);
+        autocompleteSupportFragment.setCountry(country);
+        autocompleteSupportFragment.setTypeFilter(typeFilter);
 
         initSelectionListener();
-
     }
 
     private void initSearchIntent(){
+
+        searchBar.setVisibility(View.GONE);
+        searchButton.setVisibility(View.VISIBLE);
 
         searchIntent = new Autocomplete.IntentBuilder(
                 AutocompleteActivityMode.OVERLAY, placeFields)
@@ -97,7 +113,7 @@ public class SearchPlaceFinder{
     private void initSelectionListener(){
         /*Initializes the search bar selection listener*/
 
-        searchBar.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+        autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
 
