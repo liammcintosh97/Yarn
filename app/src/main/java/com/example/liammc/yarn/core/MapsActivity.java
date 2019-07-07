@@ -194,6 +194,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 searchPlaceFinder.listener.onNoPlacesFound("There was an error selecting this place");
             }
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     //region Init
