@@ -64,7 +64,7 @@ public class ChatUpdator {
                 if(chat.hostUser.userID != LocalUser.getInstance().userID) recorder.recordChat(chat);
 
                 if(chat.guestUser != null && chat.guestUser.userID != LocalUser.getInstance().userID){
-                    notifier.addNotification(activity,"Chat Accepted"
+                    notifier.addNotification(chat,activity,"Chat Accepted"
                             ,"Your chat at " + chat.yarnPlace.placeMap.get("name") + " on "
                                     + chat.chatDate + " at " + chat.chatTime + " was chatAccepted");
                 }
@@ -85,9 +85,10 @@ public class ChatUpdator {
 
                 Log.d(TAG,"Chat - " + chat.chatID + "was deleted by " + chat.hostUser.userID);
 
-                if(chat.guestUser != null && !chat.chatActive) notifier.addNotification(activity,"Chat Canceled"
-                        ,"Chat at " + chat.yarnPlace.placeMap.get("name") + " on "
-                                + chat.chatDate + " at " + chat.chatTime + " was chatCanceled");
+                if(chat.guestUser != null && !chat.chatActive) notifier.addNotification(chat,
+                        activity,"Chat Canceled","Chat at "
+                                + chat.yarnPlace.placeMap.get("name") + " on " + chat.chatDate
+                                + " at " + chat.chatTime + " was chatCanceled");
 
                 Recorder.getInstance().removeChat(chat.chatID);
                 chat.yarnPlace.yarnPlaceUpdater.removeChat(chat.yarnPlace.placeMap.get("id"));

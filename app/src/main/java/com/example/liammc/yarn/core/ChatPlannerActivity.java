@@ -1,11 +1,9 @@
 package com.example.liammc.yarn.core;
 
-import android.app.Activity;
 import android.graphics.Color;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -13,8 +11,8 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.Notification;
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.notifications.Suggestion;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.planner.EventWindow;
 import com.github.sundeepk.compactcalendarview.CompactCalendarView;
@@ -39,7 +37,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
     public ViewGroup parentViewGroup;
     private CompactCalendarView calendarView;
     private TextView monthYearTitle;
-    private LinearLayout chatSuggestionElements;
+    public LinearLayout chatSuggestionElements;
     public EventWindow eventWindow;
 
     @Override
@@ -52,6 +50,7 @@ public class ChatPlannerActivity extends AppCompatActivity{
         initEvents();
         initReceivers();
         initChannels();
+        initSuggestions();
     }
 
     @Override
@@ -114,12 +113,12 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
         notifier.setSuggestionListener(new Notifier.SuggestionListener() {
             @Override
-            public void onSuggestionAdded(Notification notification, Chat chat) {
+            public void onSuggestionAdded(Suggestion suggestion) {
                /*When a new suggestion is added to the Notifier the application must update the
                Suggestion Scroll view by adding a new elementView
                 */
 
-                addSuggestion(notification,chat);
+                addSuggestion(suggestion);
             }
         });
     }
@@ -173,50 +172,21 @@ public class ChatPlannerActivity extends AppCompatActivity{
         Notifier.getInstance().createNotificationChannel(this);
     }
 
+    private void initSuggestions(){
+
+        for(Suggestion suggestion : notifier.chatSuggestions){
+            addSuggestion(suggestion);
+        }
+    }
     //endregion
 
     //region Private Local Methods
 
-    private void addSuggestion(final Notification notification, final Chat chat) {
+    private void addSuggestion(final Suggestion suggestion) {
         /*Adds a chat to the suggestion scroll view*/
 
-        //Inflate the elementView and add it to the suggestion scroll view
-        final View element = inflate(R.layout.chat_suggestion_element,false);
+        View element = suggestion.show(this);
         chatSuggestionElements.addView(element);
-
-        //Set the elementView's button listeners
-        element.findViewById(R.id.removeSuggestionButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onRemoveSuggestionPress(element,notification);
-            }
-        });
-
-        //Set the text and descriptions
-        String suggestionText = notification.message;
-        TextView suggestionTextView = findViewById(R.id.suggestionText);
-        suggestionTextView.setContentDescription(chat.chatID);
-        suggestionTextView.setText(suggestionText);
-    }
-
-    private View inflate(int layoutID, boolean attachToRoot){
-        /*Inflates the layout that has the passed layoutID*/
-
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(layoutID,parentViewGroup,attachToRoot);
-
-        return view;
-    }
-
-    //endregion
-
-    //region Button Methods
-
-    private void onRemoveSuggestionPress(View view,Notification notification) {
-        /*Removes suggestion from the suggestion scroll view*/
-
-        chatSuggestionElements.removeView(view);
-        notifier.removeSuggestion(notification);
     }
 
     //endregion

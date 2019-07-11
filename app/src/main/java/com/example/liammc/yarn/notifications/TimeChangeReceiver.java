@@ -87,7 +87,7 @@ public class TimeChangeReceiver {
 
             if(yearDifference(currentTime,chatDate) == 0
                     && dayDifference(currentTime,chatDate) == 0) {
-                Notifier.getInstance().addNotification(context,"Upcoming Chat",
+                Notifier.getInstance().addNotification(chat,context,"Upcoming Chat",
                         "You have a chat today at " +
                                 chat.yarnPlace.placeMap.get("name") + " at "
                                 + chat.chatTime);

@@ -30,6 +30,8 @@ import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -40,6 +42,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,8 +56,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     transitioning to different parts of the application */
 
     public static int WHERE_TO_CODE =  0;
-    private  final int PERMISSION_REQUEST_CODE = 1;
-    private final int AUTOCOMPLETE_REQUEST_CODE= 2;
+    public static int PERMISSION_REQUEST_CODE = 1;
+    public static int AUTOCOMPLETE_REQUEST_CODE= 2;
+    public static int SUGGESTION_RESULT_CODE = 3;
+    public static int NOTIFICATION_RESULT_CODE = 4;
     private final String TAG = "MapsActivity";
 
     //Google Services
@@ -115,6 +121,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Initialize the firebaseUser
         initLocalUser();
 
+        if(!localUser.checkReady()){
+            localUser.initUserLocation(this);
+            localUser.setReadyListener(new ReadyListener() {
+                @Override
+                public void onReady() {
+
+                }
+            });
+        }
+        else{}
+
         //Initialize the Map Listeners and services
         initMarkerListener();
         initCameraMoveListener();
@@ -126,11 +143,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //Initialize User Input
         cameraController =  new CameraController(mMap,radiusBar);
-        searchRadius = new SearchRadius(mMap);
+        searchRadius = new SearchRadius(mMap,nearbyChatFinder);
         radiusBar =  new RadiusBar(this,cameraController,searchRadius);
 
         //Initialize the Map UI
-        initLocalUser();
         initMapUI();
 
         //Focus on the firebaseUser and show the radius circle on the map
@@ -167,33 +183,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        //Where to activity search result
-        if (requestCode == WHERE_TO_CODE) {
-            if (resultCode == RESULT_OK) {
-                try{
-                    HashMap<String, String> placeMap =
-                            (HashMap<String, String>) data.getSerializableExtra("placeMap");
-
-                    addYarnPlace(placeMap,true);
-                }catch(ClassCastException e){
-                    Log.e(TAG,"Couldn't cast place map from result - " + e.getMessage());
-                }
-            }
-        }
-
-        //Auto complete activity search result
-        if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                Place place = Autocomplete.getPlaceFromIntent(data);
-
-                HashMap<String,String> placeMap = searchPlaceFinder.parsePlaceSearch(place);
-                if(placeMap == null) searchPlaceFinder.listener.onNoPlacesFound("Sorry you can't create a chat here");
-                else searchPlaceFinder.listener.onFoundPlace(placeMap);
-
-            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
-                searchPlaceFinder.listener.onNoPlacesFound("There was an error selecting this place");
-            }
-        }
+        if (requestCode == WHERE_TO_CODE) whereToResult(resultCode,data);
+        else if (requestCode == AUTOCOMPLETE_REQUEST_CODE) searchResult(resultCode,data);
+        else if (requestCode == SUGGESTION_RESULT_CODE) suggestionResult(resultCode,data);
+        else if (requestCode == NOTIFICATION_RESULT_CODE) notificationResult(resultCode,data);
 
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -255,7 +248,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         nearbyChatFinder.initNearbyChatsListener(localUser.types);
     }
-
 
     private void initUpSearchPlaceFinder(){
         /*Initializes the Search Place Finder*/
@@ -431,14 +423,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         /*This method goes to the Chat Planner activity when they press the Chat Planner Button*/
 
         Intent intent = new Intent(getBaseContext(),ChatPlannerActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent,SUGGESTION_RESULT_CODE);
     }
 
     public void onNotificationsPressed(View view) {
         /*This method goes to the Notification activity when the firebaseUser presses the notification button*/
 
         Intent intent = new Intent(getBaseContext(),NotificationsActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent,NOTIFICATION_RESULT_CODE);
     }
 
     public void onAccountPressed(View view) {
@@ -527,6 +519,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    public void goToChat(String chatID){
+
+        Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra("chatID",chatID);
+        startActivity(intent);
+
+    }
+
     //endregion
 
     //region Private methods
@@ -585,6 +585,75 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return null;
     }
 
+    private void whereToResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK) {
+            try{
+                HashMap<String, String> placeMap =
+                        (HashMap<String, String>) data.getSerializableExtra("placeMap");
+
+                addYarnPlace(placeMap,true);
+            }catch(ClassCastException e){
+                Log.e(TAG,"Couldn't cast place map from result - " + e.getMessage());
+            }
+        }
+    }
+
+    private void searchResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK) {
+            Place place = Autocomplete.getPlaceFromIntent(data);
+
+            HashMap<String,String> placeMap = searchPlaceFinder.parsePlaceSearch(place);
+            if(placeMap == null) searchPlaceFinder.listener.onNoPlacesFound("Sorry you can't create a chat here");
+            else searchPlaceFinder.listener.onFoundPlace(placeMap);
+
+        } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+            searchPlaceFinder.listener.onNoPlacesFound("There was an error selecting this place");
+        }
+    }
+
+    private void suggestionResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK) {
+
+            String placeId = data.getStringExtra("placeID");
+            YarnPlace selectedPlace = recorder.getYarnPlace(placeId);
+
+            if(selectedPlace != null){
+                touchedYarnPlace =  selectedPlace;
+                cameraController.focusOnYarnPlace(selectedPlace);
+            }
+
+        } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+            Log.e(TAG,"There was an error trying to focus on the place after " +
+                    "suggestion selection");
+        }
+    }
+
+    private void notificationResult(int resultCode, Intent data){
+        if (resultCode == RESULT_OK) {
+
+            String placeID =  data.getStringExtra("placeID");
+            String chatID =  data.getStringExtra("chatID");
+
+            YarnPlace selectedPlace = recorder.getYarnPlace(placeID);
+            Chat selectedChat = recorder.getRecordedChat(chatID);
+
+            //The Yarn place isn't null
+            if(selectedPlace != null){
+
+                //The chat is null so just focus on the Yarn Place
+                if(selectedChat == null){
+                    touchedYarnPlace =  selectedPlace;
+                    cameraController.focusOnYarnPlace(selectedPlace);
+                }
+                //The chat isn't null so go to the chat
+                else goToChat(selectedChat.chatID);
+            }
+
+        } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+            Log.e(TAG,"There was an error trying to focus on the place after " +
+                    "Notification selection");
+        }
+    }
 
     //endregion
 

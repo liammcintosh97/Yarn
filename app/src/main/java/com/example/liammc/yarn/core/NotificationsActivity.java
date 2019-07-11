@@ -1,12 +1,9 @@
 package com.example.liammc.yarn.core;
 
-import android.app.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ScrollView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.notifications.Notifier;
@@ -21,9 +18,8 @@ public class NotificationsActivity extends AppCompatActivity {
     TimeChangeReceiver timeChangeReceiver;
 
     //UI
-    private ViewGroup main;
-    private TextView defaultText;
-    private ScrollView notificationsScrollView;
+    public TextView defaultText;
+    public LinearLayout notificationElements;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +30,7 @@ public class NotificationsActivity extends AppCompatActivity {
         initNotifier();
         initReceivers();
         initChannels();
+        initNotifications();
     }
 
     @Override
@@ -48,9 +45,8 @@ public class NotificationsActivity extends AppCompatActivity {
     private void initUI() {
         /*Initializes the UI for the activity*/
 
-        notificationsScrollView = findViewById(R.id.notificationsScrollView);
+        notificationElements = findViewById(R.id.elements);
         defaultText = findViewById(R.id.defaultText);
-        main = findViewById(R.id.main);
     }
 
     private void initNotifier() {
@@ -61,7 +57,7 @@ public class NotificationsActivity extends AppCompatActivity {
         notifier.setNotificationListener(new Notifier.NotificationListener() {
             @Override
             public void onNotificationAdded(Notification notification) {
-                addNotificationToScrollView(notification);
+                addNotification(notification);
             }
         });
     }
@@ -76,58 +72,22 @@ public class NotificationsActivity extends AppCompatActivity {
     private void initChannels(){
         Notifier.getInstance().createNotificationChannel(this);
     }
-    //endregionc
 
-    //region Button Methods
-
-    public void onRemoveNotificationPressed(View view, Notification notification) {
-        /*Removes the notification from the scroll and the notifier*/
-
-        notificationsScrollView.removeView(view);
-
-        if(notificationsScrollView.getChildCount() == 0)
-        {
-            defaultText.setVisibility(View.VISIBLE);
+    private void initNotifications(){
+        for(Notification notification : notifier.notifications){
+            addNotification(notification);
         }
-
-        notifier.removeNotification(notification);
     }
-
     //endregion
 
     //region Private Methods
 
-    private void addNotificationToScrollView(final Notification notification) {
+    private void addNotification(final Notification notification) {
         /*Adds the notification to the scroll view*/
 
-        //Inflate the notification
-        LayoutInflater inflater = (LayoutInflater)
-                getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        final View notificationElement = inflater.inflate(R.layout.notfication_element,
-                main,false);
-
-        //Set button
-        setButtonListener(notificationElement,notification);
-
-        //Set Text
-        TextView message = notificationElement.findViewById(R.id.message);
-        message.setText(notification.message);
-
-        //Add to scroll view
-        notificationsScrollView.addView(notificationElement);
+        View element = notification.show(this);
         defaultText.setVisibility(View.INVISIBLE);
-    }
-
-    private void setButtonListener(final View notificationElement,final Notification notification){
-        /*Sets the onClick listener*/
-
-        notificationElement.findViewById(R.id.closeNotification)
-                .setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onRemoveNotificationPressed(notificationElement,notification);
-            }
-        });
+        notificationElements.addView(element);
     }
 
     //endregion

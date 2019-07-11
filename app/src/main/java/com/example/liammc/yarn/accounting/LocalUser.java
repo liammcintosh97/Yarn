@@ -15,6 +15,7 @@ import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -191,7 +192,8 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
         if(activity != null && activity instanceof MapsActivity){
             MapsActivity mapsActivity = ((MapsActivity)activity);
-            mapsActivity.searchRadius.update(searchRadius,lastLatLng);
+            if(mapsActivity.searchRadius != null)
+                mapsActivity.searchRadius.update(searchRadius,lastLatLng);
         }
 
         //Check if the firebaseUser is ready after getting their location
@@ -204,6 +206,21 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     //endregion
 
     //region Public Methods
+
+    public void readyUser(Activity activity){
+
+        //Init the location client
+        FusedLocationProviderClient mFusedLocationProviderClient =
+                LocationServices.getFusedLocationProviderClient(activity);
+
+
+        //Initializes the Local User's variables and systems
+        initDatabaseReferences(firebaseAuth.getUid());
+        initUser();
+
+        initUserLocation(activity);
+        getUserLocation(activity,mFusedLocationProviderClient,null);
+    }
 
     public void getUserLocation(Activity activity,
                                 FusedLocationProviderClient mFusedLocationProviderClient,
@@ -244,6 +261,23 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
             Log.e("Exception: %s", e.getMessage());
         }
     }
+
+    public boolean checkReady(){
+        /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a
+        picture, name, location, email, meanRating and terms acceptance
+         */
+
+        boolean ready = readyListener != null &&
+                profilePicture != null &&
+                userName != null &&
+                lastLocation != null &&
+                email != null &&
+                ratings != null &&
+                termsAcceptance != null;
+
+        return ready;
+    }
+
     //endregion
 
     //region Private Methods
@@ -261,21 +295,6 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
         }
     }
 
-    private boolean checkReady(){
-        /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a
-        picture, name, location, email, meanRating and terms acceptance
-         */
-
-        boolean ready = readyListener != null &&
-                profilePicture != null &&
-                userName != null &&
-                lastLocation != null &&
-                email != null &&
-                ratings != null &&
-                termsAcceptance != null;
-
-        return ready;
-    }
 
     //endregion
 }

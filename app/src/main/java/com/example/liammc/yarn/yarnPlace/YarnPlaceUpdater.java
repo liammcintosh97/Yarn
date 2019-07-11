@@ -232,7 +232,7 @@ public class YarnPlaceUpdater
                 recorder.recordChat(chat);
             }else{
                 //Notify the user of a chat suggestion because they are currently not in it
-                Notifier.getInstance().addChatSuggestion("Chat suggestion",
+                Notifier.getInstance().addSuggestion("Chat suggestion",
                         "A new chat was created at "
                                 + chat.yarnPlace.placeMap.get("name") + " on "
                                 + chat.chatDate + " at " + chat.chatTime, chat);

@@ -5,6 +5,8 @@ import android.widget.SeekBar;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.finders.NearbyChatFinder;
+import com.example.liammc.yarn.interfaces.NearbyPlaceCallback;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -15,13 +17,15 @@ public class SearchRadius {
     private final String TAG = "SearchRadius";
     private final GoogleMap map;
     private final LocalUser localUser;
+    NearbyChatFinder nearbyChatFinder;
 
     //UI
     Circle circle;
 
-    public SearchRadius(GoogleMap _map){
+    public SearchRadius(GoogleMap _map,NearbyChatFinder _nearbyChatFinder){
         this.map = _map;
         this.localUser = LocalUser.getInstance();
+        this.nearbyChatFinder = _nearbyChatFinder;
         this.Init();
     }
 
@@ -68,6 +72,7 @@ public class SearchRadius {
 
         circle.setRadius(radius);
         circle.setCenter(center);
+        nearbyChatFinder.setSearchRadius((int)radius);
     }
 
     //endregion
