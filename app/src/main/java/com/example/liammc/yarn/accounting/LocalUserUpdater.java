@@ -8,6 +8,7 @@ import android.provider.MediaStore;
 import androidx.annotation.NonNull;
 import android.util.Log;
 
+import com.example.liammc.yarn.interfaces.AuthListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -23,6 +24,21 @@ public class LocalUserUpdater extends UserUpdater {
     private final String TAG = "LocalUserUpdater";
 
     private final LocalUser localUser;
+
+    //region Auth Listener
+    /*This listener is used to alert the application when an authentication opteration has
+    * completed*/
+
+    protected AuthListener authListener;
+
+    public AuthListener getAuthListener() {
+        return authListener;
+    }
+
+    public void setAuthListener(AuthListener _authListener) {
+        this.authListener = _authListener;
+    }
+    //endregion
 
     public LocalUserUpdater(LocalUser _localUser){
         super( _localUser);
@@ -202,20 +218,26 @@ public class LocalUserUpdater extends UserUpdater {
 
     }
 
-    public void updateUserPassword(String newPassword) {
-        //Updates the firebaseUser password
+    public void updatePassword(String password,final AuthListener _authListener) {
+        /*Update the password in Firebase Authentication*/
 
-        localUser.firebaseUser.updatePassword(newPassword)
+        //Update the email in Firebase Authentication
+        localUser.firebaseUser.updatePassword(password)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
+
                         if (task.isSuccessful()) {
+                            //Email update was successful
                             Log.d(TAG, "User password updated.");
+                            _authListener.onAuth();
                         }
-                        else Log.e(TAG,"User password update failed - " + task.getException());
+                        else{
+                            Log.e(TAG,"Error when updating password - " + task.getException());
+                            _authListener.onError();
+                        }
                     }
                 });
-
     }
 
     public void updateTermsAcceptance(boolean acceptance) {

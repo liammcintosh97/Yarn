@@ -54,6 +54,9 @@
     <string name="account_cancelButton">Cancel</string>
     <string name="account_updateButton">Update</string>
     <string name="account_logOutButton">Log Out</string>
+    <string name="account_supportButton">Support</string>
+    <string name="account_resetPasswordButton">Reset Password</string>
+    <string name="account_resetEmailButton">Reset Email</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>
@@ -149,6 +152,13 @@
     <string name="whereToElement_chats">Chats</string>
     <string name="whereToElement_chatsNumber">0</string>
 
+    //Password Reset Window
+    <string name="reset_title">Reset Password</string>
+    <string name="reset_passwordInput">Password</string>
+    <string name="reset_newPasswordInput">New Password</string>
+    <string name="reset_confirmNewPasswordInput">Confirm New Password</string>
+    <string name="reset_cancelButton">Cancel</string>
+    <string name="reset_submitButton">Submit</string>
 
     //Misc
     <string name="lorem_ipsum" translatable="false" tools:ignore="Typos">Lorem ipsum dolor sit amet, sed in. Sollicitudin nisl donec dictumst tellus, luctus pretium. Eget ut nec sit. Gravida taciti faucibus bibendum velit id, urna ultricies nec viverra inventore, et sed in viverra posuere, vitae enim in. Praesent libero varius pellentesque ultrices, eget aenean, leo et, fames quis primis mi. Ac pellentesque ultrices lobortis nullam, eget urna dolorem lorem congue. Vel ultricies nullam erat pede quis viverra, suspendisse molestie, erat vitae morbi amet diam ut.

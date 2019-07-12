@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.core.InitializationActivity;
+import com.example.liammc.yarn.interfaces.AuthListener;
 import com.google.firebase.auth.AuthCredential;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -15,6 +16,21 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class Authenticator {
     /*The Authenticator is used to log in the firebaseUser and sign them up through Firebase*/
+
+    //region Auth Listener
+    /*This listener is used to alert the application when an authentication opteration has
+     * completed*/
+
+    protected AuthListener authListener;
+
+    public AuthListener getAuthListener() {
+        return authListener;
+    }
+
+    public void setAuthListener(AuthListener _authListener) {
+        this.authListener = _authListener;
+    }
+    //endregion
 
     final FirebaseAuth mAuth;
     final String TAG = "Authenticator";
@@ -49,7 +65,7 @@ public class Authenticator {
 
     }
 
-    void login(final Activity activity, String email, String password) {
+    void login(final Activity activity, String email, String password, final AuthListener listener) {
         /*This method logs in the firebaseUser to Firebase with an email and password*/
 
         mAuth.signInWithEmailAndPassword(email, password)
@@ -62,12 +78,14 @@ public class Authenticator {
                             //Log in was successful so go to the Map
                             Log.d(TAG, "signInWithEmail:success");
 
-                            goToInitialization(activity);
+                            //goToInitialization(activity);
+                            listener.onAuth();
                         } else {
                             //Log in failed so notify the firebaseUser
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(activity, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+                            listener.onError();
                         }
                     }
                 });

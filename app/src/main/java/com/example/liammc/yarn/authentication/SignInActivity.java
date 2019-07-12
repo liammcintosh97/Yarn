@@ -1,10 +1,12 @@
 package com.example.liammc.yarn.authentication;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.interfaces.AuthListener;
 
 public class SignInActivity extends AuthActivity {
     /*This activity is used to sign the firebaseUser into Firebase*/
@@ -30,7 +32,19 @@ public class SignInActivity extends AuthActivity {
         String email = emailEditText.getText().toString();
         String password = passwordEditText.getText().toString();
 
-        mAuthenticator.login(this,email,password);
+        final Activity a =  this;
+
+        mAuthenticator.login(this, email, password, new AuthListener() {
+            @Override
+            public void onAuth() {
+                mAuthenticator.goToInitialization(a);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
     }
 
     //endregion

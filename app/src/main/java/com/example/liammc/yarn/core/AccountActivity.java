@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.authentication.PasswordResetter;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,6 +31,7 @@ public class AccountActivity extends AppCompatActivity {
     TimeChangeReceiver timeChangeReceiver;
 
     //UI
+    private PasswordResetter passwordResetter;
     private ImageButton profilePicture;
     private EditText profileNameInput;
     private TextView profileName;
@@ -82,6 +85,8 @@ public class AccountActivity extends AppCompatActivity {
         editButton = findViewById(R.id.editButton);
         cancelButton = findViewById(R.id.cancelButton);
         updateButton = findViewById(R.id.updateButton);
+
+        passwordResetter =  new PasswordResetter(this,(ViewGroup) findViewById(R.id.main));
 
         initStars();
         setEditable(false);
@@ -163,6 +168,17 @@ public class AccountActivity extends AppCompatActivity {
         startActivityForResult(intent,CAMERA_PIC_REQUEST);
     }
 
+    public void onResetPasswordButton(View view){
+        passwordResetter.show();
+    }
+
+    public void onResetEmailButton(View view){
+
+    }
+
+    public void onSupportButtonPress(View view){
+
+    }
     //endregion
 
     //region Private Methods
