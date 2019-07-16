@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.utility.CompatibilityTools;
@@ -43,6 +44,10 @@ public class AuthActivity extends AppCompatActivity {
     protected PhoneAuthWindow mPhoneAuthWindow;
     protected EditText passwordInput;
     protected EditText emailInput;
+    protected ImageButton phoneButton;
+    protected ImageButton twitterButton;
+    protected ImageButton googlebutton;
+    protected ImageButton facebookButton;
 
 
     @Override
@@ -103,6 +108,40 @@ public class AuthActivity extends AppCompatActivity {
 
         CompatibilityTools.setPasswordAutoFill(passwordInput);
         CompatibilityTools.setEmailAutoFill(emailInput);
+
+        initButtons();
+    }
+
+    protected void initButtons(){
+
+        phoneButton =  findViewById(R.id.btn_ph_login);
+        twitterButton = findViewById(R.id.btn_tw_login);
+        googlebutton =  findViewById(R.id.btn_go_login);
+        facebookButton =  findViewById(R.id.btn_fb_login);
+
+        phoneButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSignInPhoneButtonPressed(v);
+            }
+        });
+        twitterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { onSignInTwitterButtonPressed(v);
+            }
+        });
+        googlebutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSignInGoogleButtonPressed(v);
+            }
+        });
+        facebookButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { onSignInFacebookButtonPressed(v);
+            }
+        });
+
     }
     //endregion
 

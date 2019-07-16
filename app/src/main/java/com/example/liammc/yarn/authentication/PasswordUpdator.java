@@ -1,7 +1,6 @@
 package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,26 +10,26 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.interfaces.AuthListener;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 
-public class PasswordResetter {
+public class PasswordUpdator {
+
     private static String TAG = "PasswordUpdator";
     private LocalUser localUser;
     private Authenticator authenticator;
 
     //UI
-    EditText emailInput;
+    EditText passwordInput;
+    EditText newPasswordInput;
+    EditText confirmNewPasswordInput;
     Button submitButton;
     Button cancelButton;
 
@@ -39,7 +38,7 @@ public class PasswordResetter {
     public static PopupWindow window;
     public View mainView;
 
-    public PasswordResetter(Activity activity, ViewGroup _parent){
+    public PasswordUpdator(Activity activity, ViewGroup _parent){
         this.parentViewGroup = _parent;
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
@@ -54,7 +53,7 @@ public class PasswordResetter {
 
         // Initialize a new instance of LayoutInflater service
         LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.password_reset_window,parentViewGroup,false);
+        mainView = inflater.inflate(R.layout.password_update_window,parentViewGroup,false);
 
         // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
@@ -71,9 +70,13 @@ public class PasswordResetter {
     private void initUI(Activity activity) {
         /*This method initializes the Phone auth window UI*/
 
-        emailInput =  mainView.findViewById(R.id.emailInput);
+        passwordInput =  mainView.findViewById(R.id.emailInput);
+        newPasswordInput =  mainView.findViewById(R.id.newPasswordInput);
+        confirmNewPasswordInput =  mainView.findViewById(R.id.confirmNewPasswordInput);
 
-        CompatibilityTools.setEmailAutoFill(emailInput);
+        CompatibilityTools.setPasswordAutoFill(passwordInput);
+        CompatibilityTools.setPasswordAutoFill(newPasswordInput);
+        CompatibilityTools.setPasswordAutoFill(confirmNewPasswordInput);
 
         initButtons(activity);
     }
@@ -112,26 +115,39 @@ public class PasswordResetter {
 
         try{
             //Validate the new password
-            final String email =  emailInput.getText().toString();
+            ErrorManager.validatePassword(newPasswordInput.getText().toString(),
+                    confirmNewPasswordInput.getText().toString());
 
-            ErrorManager.validateEmail(email);
-
-            FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+            //log the user
+            authenticator.login(activity, localUser.email, passwordInput.getText().toString()
+                    , new AuthListener() {
                         @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "Password reset email sent.");
-                                Toast.makeText(activity,"Password reset sent to  - " + email
-                                        ,Toast.LENGTH_LONG).show();
-                                dismiss();
-                            }
-                            else{
-                                Log.e(TAG,"Password reset email failed to send - "
-                                        + task.getException());
-                                Toast.makeText(activity,"Failed to send password reset email to  - " + email
-                                        ,Toast.LENGTH_LONG).show();
-                            }
+                        public void onAuth() {
+                            //If the user logged in correctly update their password
+                            localUser.updator.updatePassword(newPasswordInput.getText().toString()
+                                    , new AuthListener() {
+                                        @Override
+                                        public void onAuth() {
+                                            //The password updated so close the Password Resetter
+                                            Toast.makeText(activity,"Updated password"
+                                                    ,Toast.LENGTH_SHORT).show();
+                                            dismiss();
+                                        }
+
+                                        @Override
+                                        public void onError(String message) {
+                                            //The password update failed
+                                            Toast.makeText(activity,message
+                                                    ,Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            //The user couldn't log in so alert them
+                            Toast.makeText(activity,message
+                                    ,Toast.LENGTH_SHORT).show();
                         }
                     });
 
@@ -166,7 +182,9 @@ public class PasswordResetter {
 
     private boolean validateEmptyFields(){
 
-        if(emailInput.getText().toString().equals("")) return false;
+        if(passwordInput.getText().toString().equals("")||
+        newPasswordInput.getText().toString().equals("")||
+        confirmNewPasswordInput.getText().toString().equals("")) return false;
 
         return true;
     }

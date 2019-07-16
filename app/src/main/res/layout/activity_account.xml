@@ -179,14 +179,14 @@
             android:id="@+id/resetPasswordButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onResetPasswordButton"
+            android:onClick="onUpdatePasswordButton"
             android:text="@string/account_resetPasswordButton" />
 
         <Button
             android:id="@+id/resetEmailButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="onResetEmailButton"
+            android:onClick="onUpdateEmailButton"
             android:text="@string/account_resetEmailButton" />
 
         <Button

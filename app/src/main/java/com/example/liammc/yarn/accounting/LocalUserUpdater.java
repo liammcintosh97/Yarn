@@ -166,7 +166,7 @@ public class LocalUserUpdater extends UserUpdater {
 
     }
 
-    public void updateUserEmail(String email) {
+    public void updateUserEmail(final String email,final AuthListener authListener) {
         /*Update the email in Firebase Authentication and in the Firebase database reference*/
 
         //Update the email in Firebase Authentication
@@ -187,32 +187,38 @@ public class LocalUserUpdater extends UserUpdater {
                                             if (task.isSuccessful()) {
                                                 //Verification email sent
                                                 Log.d(TAG, "Verification email sent.");
+
+                                                authListener.onAuth();
+                                                /*
+                                                //Update the email in Firebase Database
+                                                localUser.userDatabaseReference.child(localUser.userID).child("email").setValue(email)
+                                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                            @Override
+                                                            public void onSuccess(Void aVoid) {
+                                                                Log.d(TAG,"email write to database was a success");
+                                                                authListener.onAuth();
+                                                            }
+                                                        })
+                                                        .addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Log.d(TAG,"email write to database was a failure -" + e);
+                                                                authListener.onError("Error updating email - Couldn't update database");
+                                                            }
+                                                        });*/
                                             }
                                             else {
                                                 Log.e(TAG,"Error when sending verification " +
                                                         "email - " + task.getException());
+                                                authListener.onError("Error updating email - Couldn't send email verification");
                                             }
                                         }
                                     });
                         }
                         else{
                             Log.e(TAG,"Error when updating email - " + task.getException());
+                            authListener.onError("Error updating email");
                         }
-                    }
-                });
-
-        //Update the email in Firebase Database
-        localUser.userDatabaseReference.child(localUser.userID).child("email").setValue(email)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG,"email write to database was a success");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG,"email write to database was a failure -" + e);
                     }
                 });
 
@@ -234,7 +240,7 @@ public class LocalUserUpdater extends UserUpdater {
                         }
                         else{
                             Log.e(TAG,"Error when updating password - " + task.getException());
-                            _authListener.onError();
+                            _authListener.onError("Error updating password");
                         }
                     }
                 });
@@ -259,22 +265,6 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
-    public void sendPasswordReset(String emailAddress) {
-        //Sends a password reset email
-
-        localUser.firebaseAuth.sendPasswordResetEmail(emailAddress)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "Password reset email sent.");
-                        }
-                        else Log.e(TAG,"Password reset email failed to send - "
-                                + task.getException());
-                    }
-                });
-    }
-
     public void deleteUser() {
         //Deletes the from Firebase Authentication, database and storage
 
@@ -290,7 +280,7 @@ public class LocalUserUpdater extends UserUpdater {
                 });
 
         //Remove from database and storage
-        localUser.userDatabaseReference.child(localUser.firebaseUser.getUid()).removeValue();
+        localUser.userDatabaseReference.child(localUser.firebaseUser.getUid()).removeValue(null);
         localUser.userStorageReference.child(localUser.firebaseUser.getUid()).delete();
 
     }

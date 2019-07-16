@@ -3,5 +3,5 @@ package com.example.liammc.yarn.interfaces;
 public interface AuthListener {
 
     void onAuth();
-    void onError();
+    void onError(String message);
 }

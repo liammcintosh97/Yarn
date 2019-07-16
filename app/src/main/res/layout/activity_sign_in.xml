@@ -11,9 +11,11 @@
         android:id="@+id/appTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:text="@string/app_name"
         android:textAlignment="center"
         android:textSize="50sp"
@@ -22,162 +24,159 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/signInTitle"
+    <LinearLayout
+        android:id="@+id/messageLayout"
         android:layout_width="wrap_content"
-        android:layout_height="26dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/signIn_title"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.505"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appTitle" />
-
-    <EditText
-        android:id="@+id/emailInput"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:ems="10"
-        android:hint="@string/signIn_emailHint"
-        android:inputType="textEmailAddress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.503"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signInTitle"
-        tools:ignore="Autofill" />
-
-    <EditText
-        android:id="@+id/passwordInput"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:ems="10"
-        android:hint="@string/signIn_passwordHint"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.51"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/emailInput"
-        tools:ignore="Autofill" />
-
-    <Button
-        android:id="@+id/signInButton"
-        android:layout_width="216dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="8dp"
-        android:onClick="onSignInEmailButtonPressed"
-        android:text="@string/signIn_button"
+        android:layout_marginRight="8dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.513"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/passwordInput" />
+        app:layout_constraintTop_toBottomOf="@+id/appTitle">
 
-    <TextView
-        android:id="@+id/signUpOr"
+        <TextView
+            android:id="@+id/signInTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:text="@string/signIn_title"
+            android:textAlignment="center"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/passwordInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:ems="10"
+            android:hint="@string/signIn_passwordHint"
+            android:inputType="textPassword"
+            tools:ignore="Autofill" />
+
+        <EditText
+            android:id="@+id/emailInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:ems="10"
+            android:hint="@string/signIn_emailHint"
+            android:inputType="textEmailAddress"
+            tools:ignore="Autofill" />
+
+        <Button
+            android:id="@+id/signInButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:onClick="onSignInEmailButtonPressed"
+            android:text="@string/signIn_button" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/otherInput"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="32dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/signUp_or"
-        android:textAlignment="center"
-        android:textSize="20sp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signInButton" />
+        app:layout_constraintTop_toBottomOf="@+id/messageLayout">
 
-    <TextView
-        android:id="@+id/signUpTitle2"
+        <TextView
+            android:id="@+id/signUpOr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:text="@string/signUp_or"
+            android:textAlignment="center"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/signUpTitle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:text="@string/signIn_title2"
+            android:textAlignment="center"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:id="@+id/socialMedias"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_fb_login"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="15dp"
+                android:background="@null"
+                android:contentDescription="@string/signUp_facebookButtonContentDescription"
+                app:srcCompat="@color/com_facebook_blue" />
+
+            <ImageButton
+                android:id="@+id/btn_go_login"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="15dp"
+                android:background="@null"
+                android:contentDescription="@string/signUp_facebookButtonContentDescription"
+                app:srcCompat="@color/colorAccent" />
+
+            <ImageButton
+                android:id="@+id/btn_tw_login"
+                android:layout_width="52dp"
+                android:layout_height="50dp"
+                android:layout_margin="15dp"
+                android:background="@null"
+                android:contentDescription="@string/signUp_facebookButtonContentDescription"
+                app:srcCompat="@color/tw__composer_blue" />
+
+            <ImageButton
+                android:id="@+id/btn_ph_login"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="15dp"
+                android:background="@null"
+                android:contentDescription="@string/signUp_facebookButtonContentDescription"
+                app:srcCompat="@color/colorPrimary" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/forgotPasswordbutton"
         android:layout_width="wrap_content"
-        android:layout_height="29dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/signIn_title2"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.547"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUpOr" />
-
-    <ImageButton
-        android:id="@+id/btn_fb_login"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="72dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginBottom="16dp"
-        android:background="@null"
-        android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="onSignInFacebookButtonPressed"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_go_login"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@color/com_facebook_blue" />
-
-    <ImageButton
-        android:id="@+id/btn_go_login"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@null"
-        android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="onSignInGoogleButtonPressed"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_tw_login"
-        app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@color/colorAccent" />
-
-    <ImageButton
-        android:id="@+id/btn_tw_login"
-        android:layout_width="52dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@null"
-        android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="onSignInTwitterButtonPressed"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_ph_login"
-        app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@color/tw__composer_blue" />
-
-    <ImageButton
-        android:id="@+id/btn_ph_login"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="72dp"
-        android:layout_marginBottom="16dp"
-        android:background="@null"
-        android:contentDescription="@string/signUp_facebookButtonContentDescription"
-        android:onClick="onSignInPhoneButtonPressed"
+        android:onClick="onResetPasswordButton"
+        android:text="@string/signIn_forgotPasswordButton"
+        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/signUpTitle2"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@color/colorPrimary" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/otherInput"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

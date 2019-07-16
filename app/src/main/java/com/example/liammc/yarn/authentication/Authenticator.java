@@ -85,7 +85,7 @@ public class Authenticator {
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Toast.makeText(activity, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            listener.onError();
+                            listener.onError("Authentication failed please try again");
                         }
                     }
                 });

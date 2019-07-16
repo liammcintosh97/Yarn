@@ -48,7 +48,7 @@ public class SignUpActivity extends AuthActivity {
     private void initSignUpUI(){
         /*Initializes the sign up UI*/
 
-        confirmPasswordInput = findViewById(R.id.emailInput);
+        confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         phoneNumberInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneNumberInput);
         codeInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneCodeInput);
 

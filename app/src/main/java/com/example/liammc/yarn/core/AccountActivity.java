@@ -16,9 +16,11 @@ import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.authentication.PasswordResetter;
+import com.example.liammc.yarn.authentication.EmailUpdator;
+import com.example.liammc.yarn.authentication.PasswordUpdator;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.yarnSupport.SupportWindow;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class AccountActivity extends AppCompatActivity {
@@ -31,7 +33,9 @@ public class AccountActivity extends AppCompatActivity {
     TimeChangeReceiver timeChangeReceiver;
 
     //UI
-    private PasswordResetter passwordResetter;
+    private PasswordUpdator passwordUpdator;
+    private EmailUpdator emailUpdator;
+    private SupportWindow supportWindow;
     private ImageButton profilePicture;
     private EditText profileNameInput;
     private TextView profileName;
@@ -86,7 +90,11 @@ public class AccountActivity extends AppCompatActivity {
         cancelButton = findViewById(R.id.cancelButton);
         updateButton = findViewById(R.id.updateButton);
 
-        passwordResetter =  new PasswordResetter(this,(ViewGroup) findViewById(R.id.main));
+        ViewGroup main =  findViewById(R.id.main);
+
+        passwordUpdator =  new PasswordUpdator(this,main);
+        emailUpdator =  new EmailUpdator(this,main);
+        supportWindow =  new SupportWindow(this,main);
 
         initStars();
         setEditable(false);
@@ -168,17 +176,16 @@ public class AccountActivity extends AppCompatActivity {
         startActivityForResult(intent,CAMERA_PIC_REQUEST);
     }
 
-    public void onResetPasswordButton(View view){
-        passwordResetter.show();
+    public void onUpdatePasswordButton(View view){
+        passwordUpdator.show();
     }
 
-    public void onResetEmailButton(View view){
-
+    public void onUpdateEmailButton(View view){
+        emailUpdator.show();
     }
 
-    public void onSupportButtonPress(View view){
+    public void onSupportButtonPress(View view){ supportWindow.show(); }
 
-    }
     //endregion
 
     //region Private Methods

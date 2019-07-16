@@ -16,7 +16,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/password_reset_title"
+        android:text="@string/email_update_title"
         android:textColor="@color/browser_actions_bg_grey"
         android:textSize="50sp"
         android:textStyle="bold"
@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/password_reset_submitButton" />
+            android:text="@string/email_update_submitButton" />
 
         <Button
             android:id="@+id/cancelButton"
@@ -51,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/password_reset_cancelButton" />
+            android:text="@string/email_update_cancelButton" />
     </LinearLayout>
 
     <LinearLayout
@@ -70,7 +70,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textView8">
 
         <LinearLayout
-            android:id="@+id/emailLayout"
+            android:id="@+id/passwordLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -82,12 +82,63 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:text="@string/password_reset_emailInput"
+                android:text="@string/email_update_passwordInput"
                 android:textColor="@color/browser_actions_bg_grey"
                 android:textSize="24sp" />
 
             <EditText
                 android:id="@+id/emailInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPassword"
+                android:textColor="@color/browser_actions_bg_grey" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/newEmailLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/newEmailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/email_update_newEmailInput"
+                android:textColor="@color/browser_actions_bg_grey"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/newEmailInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textPassword|textEmailAddress"
+                android:textColor="@color/browser_actions_bg_grey" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/confrimNewEmailLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/confirmNewEmailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/email_update_confirmNewEmailInput"
+                android:textColor="@color/browser_actions_bg_grey"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/confirmNewEmailInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
