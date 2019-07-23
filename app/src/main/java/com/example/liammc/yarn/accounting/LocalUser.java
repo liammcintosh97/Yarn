@@ -273,6 +273,8 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                 lastLocation != null &&
                 email != null &&
                 ratings != null &&
+                birthDate != null &&
+                gender != null &&
                 termsAcceptance != null;
 
         return ready;

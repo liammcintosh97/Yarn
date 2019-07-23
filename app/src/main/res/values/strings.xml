@@ -57,6 +57,10 @@
     <string name="account_supportButton">Support</string>
     <string name="account_resetPasswordButton">Update Password</string>
     <string name="account_resetEmailButton">Update Email</string>
+    <string name="account_ageTitle">Age</string>
+    <string name="account_ageDefault">18</string>
+    <string name="account_genderTitle">Gender</string>
+    <string name="account_genderDefault">Male</string>
 
     //Sign Up
     <string name="signUp_title">--------------- Sign Up ---------------</string>
@@ -88,7 +92,9 @@
     //Create Account
     <string name="createAccount_title">--------------- Create Account ---------------</string>
     <string name="createAccount_userNameHint">User Name</string>
+    <string name="createAccount_birthDateHint">Birth Date</string>
     <string name="createAccount_profilePictureHint">Profile Picture</string>
+    <string name="createAccount_genderHint">Gender</string>
     <string name="createAccount_profilePictureDescription">User Profile Picture</string>
     <string name="createAccount_button">Create Account</string>
 
@@ -123,6 +129,10 @@
     <string name="chatActivity_timeDefault">00:00AM</string>
     <string name="chatActivity_PersonNameTitle">Name</string>
     <string name="chatActivity_PersonNameDefault">John Doe</string>
+    <string name="chatActivity_PersonAgeTitle">Age</string>
+    <string name="chatActivity_PersonAgeDefault">18</string>
+    <string name="chatActivity_PersonGenderTitle">Gender</string>
+    <string name="chatActivity_PersonGenderDefault">Male</string>
     <string name="chatActivity_MeetingWith">Meeting With</string>
     <string name="chatActivity_RatingTitle">Rating</string>
     <string name="chatActivity_StartButton">Start</string>

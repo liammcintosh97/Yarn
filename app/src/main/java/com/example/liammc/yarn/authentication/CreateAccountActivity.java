@@ -5,16 +5,22 @@ import android.graphics.Bitmap;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.utility.CompatibilityTools;
+import com.example.liammc.yarn.utility.DateTools;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Calendar;
 
 public class CreateAccountActivity extends AppCompatActivity {
     /*This activity is used when the firebaseUser creates an Account*/
@@ -24,6 +30,10 @@ public class CreateAccountActivity extends AppCompatActivity {
 
     private Bitmap profilePictureBitmap;
     private EditText userNameInput;
+    private Spinner genderSpinner;
+    private DatePicker birthDateInput;
+
+    private String[] genderOptions = new String[]{"Male", "Female", "Rather not say"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +49,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         localUser.initUserAuth(auth);
         localUser.initDatabaseReferences(currentUser.getUid());
 
-        //initialize UI
-        userNameInput = findViewById(R.id.userNameInput);
-        CompatibilityTools.setUserNameAutoFill(userNameInput);
+        initUI();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -64,14 +72,35 @@ public class CreateAccountActivity extends AppCompatActivity {
         }
     }
 
+    //region Private Methods
+
+    private void initUI(){
+
+        //initialize UI
+        userNameInput = findViewById(R.id.userNameInput);
+        genderSpinner  = findViewById(R.id.genderSpinner);
+        birthDateInput =  findViewById(R.id.birthDatePicker);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_dropdown_item, genderOptions);
+        genderSpinner.setAdapter(adapter);
+
+        CompatibilityTools.setUserNameAutoFill(userNameInput);
+    }
+
+    //endregion
+
     //region Button Methods
 
     public void onCreateAccountButtonPress(View view) {
         /*Updates the User's Information*/
 
-        //Get the firebaseUser name
-        EditText userNameInput = findViewById(R.id.userNameInput);
         String userName = userNameInput.getText().toString();
+
+        int birthYear = birthDateInput.getYear();
+        String birthDate = DateTools.parse(birthDateInput.getDayOfMonth(),birthDateInput.getMonth()
+                                            ,birthYear);
+        String gender =  genderSpinner.getSelectedItem().toString();
 
         if(userName.equals("")){
             Toast.makeText(this, "Please Enter a name", Toast.LENGTH_SHORT).show();
@@ -82,10 +111,21 @@ public class CreateAccountActivity extends AppCompatActivity {
             return;
         }
 
+        if(!validateAge(birthYear)){
+            Toast.makeText(this, "Sorry you must be 18+", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(!validateGender(birthDate)){
+            Toast.makeText(this, "Please enter a gender option", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         //Set the User's Information
         localUser.updator.updateUserName(userName);
         localUser.updator.updateUserProfilePicture(this,profilePictureBitmap);
+        localUser.updator.updateBirthDate(birthDate);
+        localUser.updator.updateGender(gender);
         localUser.updator.addUserRating(localUser.userID,5);
 
         //Take the firebaseUser to the IntroActivity
@@ -97,6 +137,26 @@ public class CreateAccountActivity extends AppCompatActivity {
         /*Take the firebaseUser to the external camera activity to return a profile picture*/
         Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
         startActivityForResult(intent,CAMERA_PIC_REQUEST);
+    }
+
+    //endregion
+
+    //region Private Methods
+
+    private boolean validateAge(int birthYear){
+
+       int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+
+       if(currentYear - birthYear < 18) return false;
+
+        return true;
+    }
+
+    private boolean validateGender(String gender){
+
+        if(gender == null || gender.equals("")) return false;
+
+        return true;
     }
 
     //endregion

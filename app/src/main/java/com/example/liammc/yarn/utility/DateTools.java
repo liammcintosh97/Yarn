@@ -4,6 +4,7 @@ package com.example.liammc.yarn.utility;
 import android.util.Log;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -30,6 +31,18 @@ public final class DateTools
             Log.e("DateTools","Cannot parse date string");
             return 0L;
         }
+    }
+
+    public static String parse(int day, int month, int year){
+
+        String result;
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy", Locale.getDefault());
+        result = sdf.format(calendar.getTime());
+
+        return result;
     }
 
     public static Date stringToddMMYY(String dateString) {

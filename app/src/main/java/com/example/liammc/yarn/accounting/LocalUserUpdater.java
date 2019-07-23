@@ -265,6 +265,40 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
+    public void updateBirthDate(String birthDate){
+        //Write to the User database birth date
+        localUser.userDatabaseReference.child("birthDate").setValue(birthDate)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG,"terms write to database was a success");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG,"terms write to database was a failure -" + e);
+                    }
+                });
+    }
+
+    public void updateGender(String gender){
+        //Write to the User database birth date
+        localUser.userDatabaseReference.child("gender").setValue(gender)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG,"terms write to database was a success");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG,"terms write to database was a failure -" + e);
+                    }
+                });
+    }
+
     public void deleteUser() {
         //Deletes the from Firebase Authentication, database and storage
 

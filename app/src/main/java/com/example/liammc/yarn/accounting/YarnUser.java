@@ -16,6 +16,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.Calendar;
+
 
 public class YarnUser {
     /*This class defines a firebaseUser within the application*/
@@ -48,6 +50,9 @@ public class YarnUser {
     public String userName;
     public Bitmap profilePicture;
     public String email;
+    public String birthDate;
+    public int age;
+    public String gender;
     protected Iterable<DataSnapshot> ratings = null;
     public long meanRating;
     public Boolean termsAcceptance = null;
@@ -73,6 +78,8 @@ public class YarnUser {
         getUserProfilePicture();
         getUserRatings();
         getUserTermAcceptance();
+        getBirthDate();
+        getGender();
     }
 
     public void initDatabaseReferences(String _userID){
@@ -209,6 +216,53 @@ public class YarnUser {
         });
     }
 
+    private void getBirthDate(){
+        userDatabaseReference
+                .child("birthDate").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                //Try to cast the meanRating into a double
+                birthDate = (String) snapshot.getValue();
+                age =  calculateAge(birthDate);
+                Log.d(TAG,"Got firebaseUser birth date");
+
+                //Check if the firebaseUser is ready after getting the username
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //There was an error so log it.
+                Log.e(TAG,"Unable to get value from database");
+            }
+        });
+    }
+
+    private void getGender(){
+        userDatabaseReference
+                .child("gender").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                //Try to cast the meanRating into a double
+                gender = (String) snapshot.getValue();
+                Log.d(TAG,"Got firebaseUser gender");
+
+                //Check if the firebaseUser is ready after getting the username
+                if(checkReady()){
+                    readyListener.onReady();
+                    readyListener = null;
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //There was an error so log it.
+                Log.e(TAG,"Unable to get value from database");
+            }
+        });
+    }
+
     private boolean checkReady(){
         /*Checks is the firebaseUser is ready. The firebaseUser is considered ready when they have a picture, name,
           meanRating and terms acceptance*/
@@ -217,7 +271,10 @@ public class YarnUser {
                         profilePicture != null &&
                         userName != null &&
                         ratings != null &&
+                        birthDate != null &&
+                        gender != null &&
                         termsAcceptance != null;
+
 
         return ready;
     }
@@ -237,6 +294,14 @@ public class YarnUser {
 
         Log.d(TAG,"The user's mean rating is " + result);
         return result;
+    }
+
+    private int calculateAge(String birthDate){
+
+        int birthYear =  Integer.valueOf(birthDate.substring(6));
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+
+        return currentYear -  birthYear;
     }
     //endregion
 

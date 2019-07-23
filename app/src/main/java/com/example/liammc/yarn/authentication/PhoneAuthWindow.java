@@ -75,6 +75,7 @@ public class PhoneAuthWindow {
 
         //Get Country Code Picker
         countryCodePicker = mPhoneAuthView.findViewById(R.id.ccp);
+        countryCodePicker.setCountryForPhoneCode(61);
 
         initButtons(activity);
 

@@ -39,6 +39,8 @@ public class AccountActivity extends AppCompatActivity {
     private ImageButton profilePicture;
     private EditText profileNameInput;
     private TextView profileName;
+    private TextView genderValue;
+    private TextView ageValue;
     private ImageView[] stars = new ImageView[5];
     private Button editButton;
     private Button cancelButton;
@@ -85,6 +87,8 @@ public class AccountActivity extends AppCompatActivity {
         profilePicture = findViewById(R.id.profilePicture);
         profileNameInput = findViewById(R.id.userNameInput);
         profileName = findViewById(R.id.userName);
+        genderValue =  findViewById(R.id.genderValue);
+        ageValue = findViewById(R.id.ageValue);
 
         editButton = findViewById(R.id.editButton);
         cancelButton = findViewById(R.id.cancelButton);
@@ -219,6 +223,8 @@ public class AccountActivity extends AppCompatActivity {
             profileNameInput.setText(localUser.userName);
             profilePicture.setImageDrawable(
                     new BitmapDrawable(Resources.getSystem(),localUser.profilePicture));
+            genderValue.setText(localUser.gender);
+            ageValue.setText(String.valueOf(localUser.age));
         }
     }
 

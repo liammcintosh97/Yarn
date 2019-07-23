@@ -39,6 +39,8 @@ public class ChatActivity extends AppCompatActivity {
     //UI
     private View personInfo;
     private TextView personNameTextView;
+    private TextView ageTextView;
+    private TextView genderTextview;
     private ImageView personImageView;
     private ViewGroup stars;
 
@@ -53,7 +55,6 @@ public class ChatActivity extends AppCompatActivity {
     private TextView messageTextView;
     private Button startButton;
     private ViewGroup buttonBar;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +81,8 @@ public class ChatActivity extends AppCompatActivity {
 
         personInfo =  findViewById(R.id.personInfo);
         personNameTextView =  personInfo.findViewById(R.id.name);
+        ageTextView = personInfo.findViewById(R.id.ageValue);
+        genderTextview =  personInfo.findViewById(R.id.genderValue);
         personImageView =  personInfo.findViewById(R.id.profilePicture);
         stars = personInfo.findViewById(R.id.stars);
 
@@ -208,6 +211,9 @@ public class ChatActivity extends AppCompatActivity {
                         personInfo.setVisibility(View.VISIBLE);
 
                         personNameTextView.setText(otherUser.userName);
+                        ageTextView.setText(otherUser.age);
+                        genderTextview.setText(otherUser.gender);
+
                         personImageView.setImageBitmap(otherUser.profilePicture);
                         setStars();
                         startChat();

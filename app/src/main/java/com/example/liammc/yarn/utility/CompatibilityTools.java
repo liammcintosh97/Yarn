@@ -11,6 +11,7 @@ public final class CompatibilityTools {
     * OS that is running on the devise*/
 
     //region Public methods
+
     public static void setPasswordAutoFill(EditText passwordEditText) {
         /*Sets the password auto fill on a passed EditText*/
 
