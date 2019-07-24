@@ -2,17 +2,13 @@ package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import androidx.annotation.NonNull;
-
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.interfaces.AuthListener;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.example.liammc.yarn.yarnSupport.PasswordResetter;
 
 public class SignInActivity extends AuthActivity {
     /*This activity is used to sign the firebaseUser into Firebase*/

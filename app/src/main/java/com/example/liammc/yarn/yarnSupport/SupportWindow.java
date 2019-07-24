@@ -16,6 +16,8 @@ import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.networking.Mailer;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 
+import java.util.UUID;
+
 public class SupportWindow {
 
     private static String TAG = "SupportWindow";
@@ -35,7 +37,7 @@ public class SupportWindow {
     public SupportWindow(Activity activity, ViewGroup _parent){
         this.parentViewGroup = _parent;
         this.localUser =  LocalUser.getInstance();
-        this.mailer =  new Mailer();
+        this.mailer =  new Mailer("Yarn Support Case " + UUID.randomUUID().toString());
 
         this.initPopup(activity);
         this.initUI(activity);

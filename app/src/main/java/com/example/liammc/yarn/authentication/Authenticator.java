@@ -36,10 +36,10 @@ public class Authenticator {
     final String TAG = "Authenticator";
 
     //Constructor
-    Authenticator(FirebaseAuth _mAuth) { this.mAuth = _mAuth; }
+    public Authenticator(FirebaseAuth _mAuth) { this.mAuth = _mAuth; }
 
     //region Public Methods
-    void signUp(final Activity activity, String email, String password) {
+    public void signUp(final Activity activity, String email, String password) {
         /*This method signs up the firebaseUser to Firebase with an email and password*/
 
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -65,7 +65,7 @@ public class Authenticator {
 
     }
 
-    void login(final Activity activity, String email, String password, final AuthListener listener) {
+    public void login(final Activity activity, String email, String password, final AuthListener listener) {
         /*This method logs in the firebaseUser to Firebase with an email and password*/
 
         mAuth.signInWithEmailAndPassword(email, password)

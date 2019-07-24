@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.authentication.EmailUpdator;
-import com.example.liammc.yarn.authentication.PasswordUpdator;
+import com.example.liammc.yarn.yarnSupport.PasswordUpdator;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.yarnSupport.SupportWindow;

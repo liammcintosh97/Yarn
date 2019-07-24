@@ -3,29 +3,17 @@ package com.example.liammc.yarn.networking;
 import android.app.Activity;
 import android.content.Intent;
 
-import java.util.UUID;
-
 public class Mailer {
 
     private final String TAG = "Mailer";
 
     private final String to = "liam.ed.mc97@gmail.com";
     private String subject;
-    private String message;
     private Intent emailIntent;
 
-    public Mailer(){
-        this.initSubject();
+    public Mailer(String _subject){
+        this.subject = _subject;
     }
-
-    //region Init
-
-    private void initSubject(){
-        subject = "Yarn Support Case " + UUID.randomUUID().toString();
-    }
-
-
-    //endregion
 
     //region Public Methods
 

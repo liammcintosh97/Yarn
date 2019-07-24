@@ -1,4 +1,4 @@
-package com.example.liammc.yarn.authentication;
+package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
 import android.util.Log;
@@ -9,28 +9,25 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.networking.Mailer;
 import com.example.liammc.yarn.utility.CompatibilityTools;
-import com.example.liammc.yarn.utility.ErrorManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 
-import java.io.IOException;
+public class ReporterWindow {
 
-public class PasswordResetter {
-    private static String TAG = "PasswordUpdator";
-    private LocalUser localUser;
-    private Authenticator authenticator;
+    private final String TAG = "ReporterWindow";
+    private final YarnUser user;
 
     //UI
-    EditText emailInput;
+    EditText messageEditText;
     Button submitButton;
     Button cancelButton;
 
@@ -39,10 +36,9 @@ public class PasswordResetter {
     public static PopupWindow window;
     public View mainView;
 
-    public PasswordResetter(Activity activity, ViewGroup _parent){
+    public ReporterWindow(Activity activity, ViewGroup _parent, YarnUser _user){
         this.parentViewGroup = _parent;
-        this.localUser =  LocalUser.getInstance();
-        this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
+        this.user =  _user;
 
         this.initPopup(activity);
         this.initUI(activity);
@@ -54,7 +50,7 @@ public class PasswordResetter {
 
         // Initialize a new instance of LayoutInflater service
         LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.password_reset_window,parentViewGroup,false);
+        mainView = inflater.inflate(R.layout.report_window,parentViewGroup,false);
 
         // Initialize a new instance of popup window
         double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
@@ -71,9 +67,7 @@ public class PasswordResetter {
     private void initUI(Activity activity) {
         /*This method initializes the Phone auth window UI*/
 
-        emailInput =  mainView.findViewById(R.id.emailInput);
-
-        CompatibilityTools.setEmailAutoFill(emailInput);
+        messageEditText =  mainView.findViewById(R.id.messageInput);
 
         initButtons(activity);
     }
@@ -103,43 +97,10 @@ public class PasswordResetter {
     //region Button Methods
 
     private void onSubmitClick(final Activity activity){
+        Mailer mailer =  new Mailer("Yarn User Report - " + user.userID);
+        mailer.send(activity,messageEditText.getText().toString());
 
-        //Check if all the fields are full
-        if(!validateEmptyFields()){
-            Toast.makeText(activity,"Please fill in all fields",Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try{
-            //Validate the new password
-            final String email =  emailInput.getText().toString();
-
-            ErrorManager.validateEmail(email);
-
-            FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "Password reset email sent.");
-                                Toast.makeText(activity,"Password reset sent to  - " + email
-                                        ,Toast.LENGTH_LONG).show();
-                                dismiss();
-                            }
-                            else{
-                                Log.e(TAG,"Password reset email failed to send - "
-                                        + task.getException());
-                                Toast.makeText(activity,"Failed to send password reset email to  - " + email
-                                        ,Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    });
-
-        }catch(IOException e){
-            Toast.makeText(activity,e.getMessage(),Toast.LENGTH_SHORT).show();
-        }
-
-
+        flagUser(user);
     }
 
     private void onCancelSubmit(){
@@ -150,6 +111,22 @@ public class PasswordResetter {
 
     //region Public Methods
 
+    public void flagUser(YarnUser user){
+
+        DatabaseReference flagsRef =  user.userDatabaseReference.child("flags");
+
+        flagsRef.setValue(user.flags + 1, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+
+                if(databaseError == null){
+                    Log.d(TAG,"User flagging was successful");
+                }
+                else Log.e(TAG,"Flagging of the user failed - " + databaseError.getMessage());
+            }
+        });
+    }
+
     public void show() {
         /*Shows the Phone Auth window*/
         window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
@@ -158,17 +135,6 @@ public class PasswordResetter {
     public void dismiss() {
         /*Dismisses the Phone Auth window*/
         if(window.isShowing()) window.dismiss();
-    }
-
-    //endregion
-
-    //region private Methods
-
-    private boolean validateEmptyFields(){
-
-        if(emailInput.getText().toString().equals("")) return false;
-
-        return true;
     }
 
     //endregion

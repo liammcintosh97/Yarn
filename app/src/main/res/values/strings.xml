@@ -191,6 +191,20 @@
     <string name="support_cancelButton">Cancel</string>
     <string name="support_submitButton">Submit</string>
 
+    //Rate Activity
+    <string name="rateActivity_title">Rate Chat</string>
+    <string name="rateActivity_with">--------------- With ---------------</string>
+    <string name="rateActivity_user_name">John Doe</string>
+    <string name="rateActivity_report_button">Report User</string>
+    <string name="rateActivity_submit_button">Submit</string>
+    <string name="rateActivity_cancel_button">Cancel</string>
+
+    //Report Window
+    <string name="reportWindow_title">Report User</string>
+    <string name="reportWindow_instruction">Please tell us what happened?</string>
+    <string name="reportWindow_submitButton">Submit</string>
+    <string name="reportWindow_cancelButton">Button</string>
+
     //Misc
     <string name="lorem_ipsum" translatable="false" tools:ignore="Typos">Lorem ipsum dolor sit amet, sed in. Sollicitudin nisl donec dictumst tellus, luctus pretium. Eget ut nec sit. Gravida taciti faucibus bibendum velit id, urna ultricies nec viverra inventore, et sed in viverra posuere, vitae enim in. Praesent libero varius pellentesque ultrices, eget aenean, leo et, fames quis primis mi. Ac pellentesque ultrices lobortis nullam, eget urna dolorem lorem congue. Vel ultricies nullam erat pede quis viverra, suspendisse molestie, erat vitae morbi amet diam ut.
     Consequat donec velit habitant, malesuada nec vestibulum lorem, convallis nunc enim arcu sed aliquet, arcu nec. Per nibh, felis rutrum nulla pellentesque aliquet dolor, id nec posuere quis convallis magna. Ultricies arcu fermentum et justo in, convallis quam ut aenean fermentum. Felis erat nullam scelerisque, elit eleifend, id fusce nec vulputate, ipsum sit ipsum. Ut wisi, tellus ut porttitor a, sed nam. Eu nisl vel, lacus commodo, turpis eu orci donec elit amet eget, in conubia neque nec maecenas sollicitudin. Id rutrum in arcu odio, suspendisse lobortis, nunc viverra ipsum tortor tempor, justo quisque vel nunc scelerisque, sodales maecenas justo est nec.

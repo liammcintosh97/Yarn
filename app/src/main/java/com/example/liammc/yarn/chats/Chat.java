@@ -135,6 +135,13 @@ public class Chat
     public boolean getGuestReady(){return guestReady;}
 
     public void setGuestReady(boolean ready){ guestReady = ready;}
+
+    public YarnUser getOtherUser(){
+        if(guestUser.userID.equals(localUserID)) return guestUser;
+        else if(hostUser.userID.equals(localUserID)) return hostUser;
+
+        return null;
+    }
     //endregion
 
     //region Initialization
@@ -220,7 +227,6 @@ public class Chat
             readyListener.onReady(this);
         }
     }
-
     //endregion
 
     //region Public Static Methods

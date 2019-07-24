@@ -1,5 +1,6 @@
 package com.example.liammc.yarn.core;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +16,7 @@ import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.chats.Chat;
-import com.example.liammc.yarn.dialogs.RateDialog;
+import com.example.liammc.yarn.chats.ChatLogger;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
@@ -34,7 +35,6 @@ public class ChatActivity extends AppCompatActivity {
     private YarnUser otherUser;
     private YarnPlace currentYarnPlace;
     private TimeChangeReceiver timeChangeReceiver;
-    private RateDialog rateDialog;
 
     //UI
     private View personInfo;
@@ -64,7 +64,6 @@ public class ChatActivity extends AppCompatActivity {
         initReceivers();
         initChannels();
         initCurrentChat();
-        initRateDialog();
 
         if(currentChat == null){
             Log.e(TAG,"Current chat is null!");
@@ -173,9 +172,6 @@ public class ChatActivity extends AppCompatActivity {
         return true;
     }
 
-    private void initRateDialog(){
-        rateDialog = new RateDialog();
-    }
     //endregion
 
     //region Public Methods
@@ -318,7 +314,8 @@ public class ChatActivity extends AppCompatActivity {
     private void startChat(){
 
         long millisLength = DateTools.HHmmssStringToMillis(currentChat.chatLength);
-        rateDialog.init(currentChat,otherUser);
+
+        final  Activity activity =  this;
 
         new CountDownTimer(millisLength, 1000) {
 
@@ -328,7 +325,10 @@ public class ChatActivity extends AppCompatActivity {
 
             public void onFinish() {
                 Log.d(TAG,"The chat is finished");
-                rateDialog.show(getSupportFragmentManager(),TAG);
+                ChatLogger.getInstance().logChat(otherUser,currentChat);
+
+                Intent intent =  new Intent(activity, RateActivity.class);
+                activity.startActivity(intent);
             }
         }.start();
     }
