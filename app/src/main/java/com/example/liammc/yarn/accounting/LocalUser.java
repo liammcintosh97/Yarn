@@ -19,6 +19,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -229,33 +230,26 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
         try {
             //Get the location result
-            Task locationResult = mFusedLocationProviderClient.getLastLocation();
+            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
 
-            locationResult.addOnCompleteListener(activity,new OnCompleteListener() {
+            locationResult.addOnSuccessListener(activity, new OnSuccessListener<Location>() {
                 @Override
-                public void onComplete(@NonNull Task task) {
-                    //Runs when the application has finished getting the location result
-
-                    if (task.isSuccessful()) {
-                        //Getting the location result was successful
-
-                        //Get the lat lng from the result
-                        Location location =(Location)task.getResult();
+                public void onSuccess(Location location) {
+                    // Got last known location. In some rare situations this can be null.
+                    if (location != null) {
+                        // Logic to handle location object
                         LatLng latLng = new LatLng(location.getLatitude(),
                                 location.getLongitude());
 
                         //Pass it to the listeners to handle the results
                         if(listener != null) listener.onLocationReceived(latLng);
                         onLocationChanged(location);
-
-                    } else {
+                    }else {
                         //Getting the location was unsuccessful so log the error
-                        Log.d(TAG, "Current location is null");
-                        Log.e(TAG, "Exception: %s", task.getException());
+                        Log.e(TAG, "Current location is null");
                     }
                 }
             });
-
         } catch(SecurityException e)  {
             //There was an exception when trying to get the location result so log it
             Log.e("Exception: %s", e.getMessage());
@@ -271,6 +265,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                 profilePicture != null &&
                 userName != null &&
                 lastLocation != null &&
+                lastAddress != null &&
                 email != null &&
                 ratings != null &&
                 birthDate != null &&

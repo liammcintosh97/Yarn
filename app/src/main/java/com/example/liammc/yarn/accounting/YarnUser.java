@@ -50,7 +50,7 @@ public class YarnUser {
     public String userName;
     public Bitmap profilePicture;
     public String email;
-    public int flags = 0;
+    public Long flags = 0L;
     public String birthDate;
     public int age;
     public String gender;
@@ -271,7 +271,9 @@ public class YarnUser {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 //Try to cast the meanRating into a double
-                flags = (int) snapshot.getValue();
+
+                if(snapshot.getValue() == null) return;
+                flags = (Long) snapshot.getValue();
 
                 //Check if the firebaseUser is ready after getting the username
                 if(checkReady()){

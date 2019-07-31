@@ -17,10 +17,11 @@ public class Mailer {
 
     //region Public Methods
 
-    public void send(Activity activity, String message){
+    public void send(Activity activity, String message, int requestCode){
         setEmailIntent(message);
 
-        activity.startActivity(Intent.createChooser(emailIntent, "Select Email Sending App :"));
+        activity.startActivityForResult(Intent.createChooser(emailIntent, "Select Email Sending App :")
+        ,requestCode);
     }
 
     //endregion

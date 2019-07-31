@@ -95,7 +95,7 @@ public class SupportWindow {
     //region Button Methods
 
     private void onSubmitClick(final Activity activity){
-        mailer.send(activity,messageEditText.getText().toString());
+        mailer.send(activity,messageEditText.getText().toString(),-1);
     }
 
     private void onCancelSubmit(){

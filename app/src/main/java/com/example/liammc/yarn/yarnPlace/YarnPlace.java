@@ -204,6 +204,7 @@ public class YarnPlace {
 
                 // Get the photo metadata.
                 PhotoMetadata photoMetadata = place.getPhotoMetadatas().get(0);
+                List<PhotoMetadata> datas = place.getPhotoMetadatas();
 
                 // Get the attribution text.
                 String attributions = photoMetadata.getAttributions();

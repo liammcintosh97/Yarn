@@ -25,6 +25,7 @@ public class ReporterWindow {
 
     private final String TAG = "ReporterWindow";
     private final YarnUser user;
+    public final static int REPORT_REQUEST_CODE = 0;
 
     //UI
     EditText messageEditText;
@@ -33,7 +34,7 @@ public class ReporterWindow {
 
     //Window
     private final ViewGroup parentViewGroup;
-    public static PopupWindow window;
+    public PopupWindow window;
     public View mainView;
 
     public ReporterWindow(Activity activity, ViewGroup _parent, YarnUser _user){
@@ -67,7 +68,7 @@ public class ReporterWindow {
     private void initUI(Activity activity) {
         /*This method initializes the Phone auth window UI*/
 
-        messageEditText =  mainView.findViewById(R.id.messageInput);
+        messageEditText =  mainView.findViewById(R.id.message);
 
         initButtons(activity);
     }
@@ -98,7 +99,7 @@ public class ReporterWindow {
 
     private void onSubmitClick(final Activity activity){
         Mailer mailer =  new Mailer("Yarn User Report - " + user.userID);
-        mailer.send(activity,messageEditText.getText().toString());
+        mailer.send(activity,messageEditText.getText().toString(),REPORT_REQUEST_CODE);
 
         flagUser(user);
     }

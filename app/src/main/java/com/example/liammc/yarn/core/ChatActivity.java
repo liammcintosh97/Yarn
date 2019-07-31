@@ -207,7 +207,7 @@ public class ChatActivity extends AppCompatActivity {
                         personInfo.setVisibility(View.VISIBLE);
 
                         personNameTextView.setText(otherUser.userName);
-                        ageTextView.setText(otherUser.age);
+                        ageTextView.setText(String.valueOf(otherUser.age));
                         genderTextview.setText(otherUser.gender);
 
                         personImageView.setImageBitmap(otherUser.profilePicture);
@@ -313,11 +313,14 @@ public class ChatActivity extends AppCompatActivity {
 
     private void startChat(){
 
+        //TODO change debug length upon release
+
         long millisLength = DateTools.HHmmssStringToMillis(currentChat.chatLength);
+        long debugLength = 1000;
 
         final  Activity activity =  this;
 
-        new CountDownTimer(millisLength, 1000) {
+        new CountDownTimer(debugLength, 1000) {
 
             public void onTick(long millisUntilFinished) {
 
@@ -328,6 +331,7 @@ public class ChatActivity extends AppCompatActivity {
                 ChatLogger.getInstance().logChat(otherUser,currentChat);
 
                 Intent intent =  new Intent(activity, RateActivity.class);
+                intent.putExtra("chatID",currentChat.chatID);
                 activity.startActivity(intent);
             }
         }.start();

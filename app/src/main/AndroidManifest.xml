@@ -20,6 +20,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <provider android:authorities="com.facebook.app.FacebookContentProvider{212630036311409}"
+            android:name="com.facebook.FacebookContentProvider"
+            android:exported="true"/>
+
         <activity android:name=".core.RateActivity"></activity>
         <activity android:name=".core.WhereToActivity" />
         <activity android:name=".core.ChatActivity" />

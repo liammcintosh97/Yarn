@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".core.RateActivity">
@@ -61,7 +62,7 @@
         app:layout_constraintVertical_bias="0.0">
 
         <ImageView
-            android:id="@+id/profilePIcture"
+            android:id="@+id/profilePicture"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:srcCompat="@tools:sample/avatars[0]" />
@@ -92,36 +93,63 @@
         app:layout_constraintTop_toBottomOf="@+id/userLayout"
         app:layout_constraintVertical_bias="0.0" />
 
+    <LinearLayout
+        android:id="@+id/socialMedias"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ratingBar">
+
+        <ImageButton
+            android:id="@+id/btn_fb_login"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="15dp"
+            android:background="@null"
+            android:contentDescription="@string/signUp_facebookButtonContentDescription"
+            android:onClick="onPostFacebookPressed"
+            app:srcCompat="@color/com_facebook_blue" />
+
+        <ImageButton
+            android:id="@+id/btn_tw_login"
+            android:layout_width="52dp"
+            android:layout_height="50dp"
+            android:layout_margin="15dp"
+            android:background="@null"
+            android:contentDescription="@string/signUp_facebookButtonContentDescription"
+            android:onClick="onPostTwitterPressed"
+            app:srcCompat="@color/tw__composer_blue" />
+
+    </LinearLayout>
+
     <Button
         android:id="@+id/reportButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="onReportUserPressed"
         android:text="@string/rateActivity_report_button"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/buttonBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ratingBar"
+        app:layout_constraintTop_toBottomOf="@+id/socialMedias"
         app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
         android:id="@+id/buttonBar"
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:orientation="horizontal"
-        style="?android:attr/buttonBarStyle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/reportButton"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/submitButton"
