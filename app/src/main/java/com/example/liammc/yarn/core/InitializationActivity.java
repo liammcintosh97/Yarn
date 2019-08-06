@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-public class InitializationActivity extends AppCompatActivity {
+public class InitializationActivity extends YarnActivity {
     /*This Activity is used for initializes application systems and downloading needed data. This
     * activity must be run first before the firebaseUser is taken to the MapsActivity otherwise the
     * application may not function as expected. The Initialization Activity runs through like this.
@@ -42,15 +42,11 @@ public class InitializationActivity extends AppCompatActivity {
 
     private final int SEARCH_RADIUS = 1000;
     private String TAG =  "InitializationActivity";
-    FusedLocationProviderClient mFusedLocationProviderClient;
-    Geocoder geocoder;
-    FirebaseAuth userAuth;
-    LocalUser localUser;
-    Notifier notifier;
-    Recorder recorder;
     JoinedDownloader joinedDownloader;
     NearbyChatFinder nearbyChatFinder;
-    TimeChangeReceiver timeChangeReceiver;
+
+    //UI
+    TextView progressMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,36 +54,30 @@ public class InitializationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_initilization);
 
         //Initialize the required objects and the Local firebaseUser
-        initLocalUser();
         init();
+        initLocalUser();
     }
 
     //region Init
 
     private void init(){
-        geocoder = new Geocoder(this, Locale.getDefault());
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
         joinedDownloader = new JoinedDownloader();
+        progressMessage =  findViewById(R.id.progressMessage);
     }
 
-    private void initLocalUser(){
+    @Override
+    public void initLocalUser(){
         /*Initializes the Local User and it's ready listener*/
 
-        //Init the location client
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        //Get the Auth
-        userAuth = FirebaseAuth.getInstance();
+        super.initLocalUser();
 
         //Initializes the Local User's variables and systems
-        localUser = LocalUser.getInstance();
-        localUser.initUserAuth(userAuth);
         localUser.initDatabaseReferences(userAuth.getUid());
         localUser.initUser();
+        localUser.initTypes();
 
         localUser.initUserLocation(this);
-        localUser.getUserLocation(this,mFusedLocationProviderClient,null);
+        localUser.getUserLocation(this,locationProviderClient,null);
 
         //Initialize the Local User's Ready Listener
         initLocalUserReadyListener();
@@ -95,7 +85,7 @@ public class InitializationActivity extends AppCompatActivity {
 
     private void initLocalUserReadyListener(){
 
-        setProgressMessage("Setting up firebaseUser");
+        progressMessage.setText("Setting up firebaseUser");
 
         //Set the ready listener
         localUser.setReadyListener(new ReadyListener() {
@@ -111,13 +101,10 @@ public class InitializationActivity extends AppCompatActivity {
         });
     }
 
-    private void initNotifier(){
-        notifier = Notifier.getInstance();
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
-    }
+    @Override
+    protected void initRecorder(){
+        super.initRecorder();
 
-    private void initRecorder(){
-        recorder = Recorder.getInstance();
         recorder.initPlaceClient(this);
         recorder.chatList.clear();
         recorder.recordedYarnPlaces.clear();
@@ -227,14 +214,14 @@ public class InitializationActivity extends AppCompatActivity {
     private void downloadJoinedYarnPlaces(){
         //Downloads all the Yarn Places with joined chats
         final Activity activity =  this;
-        setProgressMessage("Getting needed data");
+        progressMessage.setText("Getting needed data");
 
         joinedDownloader.getJoinedYarnPlaces(activity,geocoder,new ReadyListener() {
             @Override
             public void onReady() {
                 /*This runs once the joined Downloader is ready and has downloaded all of it's data.
                 * Then the application must get all the chat data with the nearby Chat Finder*/
-                setProgressMessage("Getting nearby Chats");
+                progressMessage.setText("Getting nearby Chats");
 
 
                 initNearbyChatFinder();
@@ -250,14 +237,6 @@ public class InitializationActivity extends AppCompatActivity {
 
         Intent myIntent = new Intent(getBaseContext(),   MapsActivity.class);
         startActivity(myIntent);
-    }
-
-    private void setProgressMessage(String message){
-
-        TextView progressMessage = findViewById(R.id.progressMessage);
-
-        progressMessage.setText(message);
-        Log.d(TAG,message);
     }
 
     //endregion

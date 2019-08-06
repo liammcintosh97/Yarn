@@ -4,6 +4,7 @@ import android.graphics.Color;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -23,15 +24,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-public class ChatPlannerActivity extends AppCompatActivity{
+public class ChatPlannerActivity extends YarnActivity{
     /*The Chat Planner activity is were the User interacts with the chats that they have created
     or joined. They also get a feed of recently made chats that are near by them.
      */
 
     private final String TAG = "ChatPlannerActivity";
-    Recorder recorder;
-    Notifier notifier;
-    TimeChangeReceiver timeChangeReceiver;
 
     //UI
     public ViewGroup parentViewGroup;
@@ -46,10 +44,8 @@ public class ChatPlannerActivity extends AppCompatActivity{
         setContentView(R.layout.activity_chat_planner);
 
         initUI();
-        initNotifier();
         initEvents();
-        initReceivers();
-        initChannels();
+        initNotifierSuggestionListener();
         initSuggestions();
     }
 
@@ -92,8 +88,9 @@ public class ChatPlannerActivity extends AppCompatActivity{
             public void onDayClick(Date dateClicked) {
                 /*When the firebaseUser clicks on a day show what events are happening*/
 
-                eventWindow = new EventWindow(plannerActivity,dateClicked);
-                eventWindow.show(dateClicked);
+                eventWindow = new EventWindow(plannerActivity
+                        ,(ViewGroup) plannerActivity.findViewById(R.id.parentView),dateClicked);
+                eventWindow.show(Gravity.CENTER);
             }
 
             @Override
@@ -106,15 +103,13 @@ public class ChatPlannerActivity extends AppCompatActivity{
         });
     }
 
-    private void initNotifier() {
+    private void initNotifierSuggestionListener() {
         /*initializes the notifier by getting it's instance and setting required listeners*/
-
-        notifier = Notifier.getInstance();
 
         notifier.setSuggestionListener(new Notifier.SuggestionListener() {
             @Override
             public void onSuggestionAdded(Suggestion suggestion) {
-               /*When a new suggestion is added to the Notifier the application must update the
+               /*When a new suggestion is added to the Notifier the application must updateInfoWindow the
                Suggestion Scroll view by adding a new elementView
                 */
 
@@ -125,8 +120,6 @@ public class ChatPlannerActivity extends AppCompatActivity{
 
     private void initEvents() {
         /*Initialise all the events in the Calendar from the recorded Chats*/
-
-        recorder = Recorder.getInstance();
 
         if(recorder.recordedChats != null && recorder.recordedChats.size() > 0) {
 
@@ -159,17 +152,6 @@ public class ChatPlannerActivity extends AppCompatActivity{
             Log.d(TAG,"There are no recorded chats");
         }
 
-    }
-
-    private void initReceivers(){
-
-        //Registers the time change receiver
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
-    }
-
-    private void initChannels(){
-        Notifier.getInstance().createNotificationChannel(this);
     }
 
     private void initSuggestions(){

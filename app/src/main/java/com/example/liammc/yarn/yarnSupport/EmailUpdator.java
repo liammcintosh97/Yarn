@@ -1,4 +1,4 @@
-package com.example.liammc.yarn.authentication;
+package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
 import android.view.Gravity;
@@ -14,13 +14,15 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.authentication.Authenticator;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.interfaces.AuthListener;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
 
 import java.io.IOException;
 
-public class EmailUpdator {
+public class EmailUpdator extends YarnWindow {
 
     private static String TAG = "EmailUpdator";
     private LocalUser localUser;
@@ -33,46 +35,23 @@ public class EmailUpdator {
     Button submitButton;
     Button cancelButton;
 
-    //Window
-    private final ViewGroup parentViewGroup;
-    public static PopupWindow window;
-    public View mainView;
+    public EmailUpdator(Activity _activity, ViewGroup _parent){
+        super(_activity,_parent,R.layout.email_update_window);
 
-    public EmailUpdator(Activity activity, ViewGroup _parent){
-        this.parentViewGroup = _parent;
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
 
-        this.initPopup(activity);
-        this.initUI(activity);
+        this.initUI(_activity);
     }
 
     //region Init
 
-    private void initPopup(Activity activity) {
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.email_update_window,parentViewGroup,false);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mainView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
-    }
-
     private void initUI(Activity activity) {
         /*This method initializes the Phone auth window UI*/
 
-        passwordInput =  mainView.findViewById(R.id.emailInput);
-        newEmailInput =  mainView.findViewById(R.id.newEmailInput);
-        confirmNewEmailInput =  mainView.findViewById(R.id.confirmNewEmailInput);
+        passwordInput =  getContentView().findViewById(R.id.emailInput);
+        newEmailInput =  getContentView().findViewById(R.id.newEmailInput);
+        confirmNewEmailInput =  getContentView().findViewById(R.id.confirmNewEmailInput);
 
         CompatibilityTools.setPasswordAutoFill(passwordInput);
         CompatibilityTools.setEmailAutoFill(newEmailInput);
@@ -84,8 +63,8 @@ public class EmailUpdator {
     private void initButtons(final Activity activity){
         /*This method initializes the phone auth buttons*/
 
-        submitButton =  mainView.findViewById(R.id.submitButton);
-        cancelButton =  mainView.findViewById(R.id.cancelButton);
+        submitButton =  getContentView().findViewById(R.id.submitButton);
+        cancelButton =  getContentView().findViewById(R.id.cancelButton);
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,7 +109,7 @@ public class EmailUpdator {
                     , new AuthListener() {
                         @Override
                         public void onAuth() {
-                            //If the user logged in correctly update their password
+                            //If the user logged in correctly updateInfoWindow their password
                             localUser.updator.updateUserEmail(newEmail
                                     , new AuthListener() {
                                         @Override
@@ -144,7 +123,7 @@ public class EmailUpdator {
 
                                         @Override
                                         public void onError(String message) {
-                                            //The password update failed
+                                            //The password updateInfoWindow failed
                                             Toast.makeText(activity,message
                                                     ,Toast.LENGTH_SHORT).show();
                                         }
@@ -166,20 +145,6 @@ public class EmailUpdator {
 
     private void onCancelSubmit(){
         dismiss();
-    }
-
-    //endregion
-
-    //region Public Methods
-
-    public void show() {
-        /*Shows the Phone Auth window*/
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
-
-    public void dismiss() {
-        /*Dismisses the Phone Auth window*/
-        if(window.isShowing()) window.dismiss();
     }
 
     //endregion

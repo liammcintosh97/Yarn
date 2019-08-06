@@ -93,7 +93,7 @@ public class PhoneAuth extends Authenticator {
     public void goToAccountSetup(Activity activity) {
         /*This overriding method goes to account Setup but also dismisses the Phone Authentication
         window*/
-        window.dismissPhoneAuth();
+        window.dismiss();
         super.goToAccountSetup(activity);
     }
 
@@ -101,7 +101,7 @@ public class PhoneAuth extends Authenticator {
     public void goToInitialization(Activity activity) {
         /*This overriding method goes to account Setup but also dismisses the Phone Authentication
         window*/
-        window.dismissPhoneAuth();
+        window.dismiss();
         super.goToInitialization(activity);
     }
 

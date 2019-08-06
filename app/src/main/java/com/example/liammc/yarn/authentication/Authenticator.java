@@ -102,7 +102,7 @@ public class Authenticator {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in firebaseUser's information
+                            // Sign in success, updateInfoWindow UI with the signed-in firebaseUser's information
                             Log.d(TAG, "authenticator:success");
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();

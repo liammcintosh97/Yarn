@@ -5,6 +5,7 @@
     android:id="@+id/parentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center|start|center_horizontal|top|center_vertical"
     android:background="@android:color/background_light"
     android:gravity="center"
     android:orientation="vertical"

@@ -1,6 +1,7 @@
 package com.example.liammc.yarn.finders;
 
 import android.content.Intent;
+import android.location.Location;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -8,6 +9,7 @@ import android.widget.Button;
 import androidx.cardview.widget.CardView;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
@@ -36,6 +38,7 @@ public class SearchPlaceFinder{
     PlacesClient placesClient;
     MapsActivity mapsActivity;
     Intent searchIntent;
+    LocalUser localUser;
 
     //UI
     public AutocompleteSupportFragment autocompleteSupportFragment;
@@ -50,6 +53,7 @@ public class SearchPlaceFinder{
     public SearchPlaceFinder(MapsActivity _mapsActivity,FinderType type, FinderCallback _listener) {
         this.listener = _listener;
         this.mapsActivity = _mapsActivity;
+        this.localUser = LocalUser.getInstance();
 
         this.init();
         if(type == FinderType.WIDGET)this.initSearchWidget();
@@ -73,8 +77,13 @@ public class SearchPlaceFinder{
 
         placesClient = Places.createClient(mapsActivity);
 
-        //Get the country
-        country = mapsActivity.getResources().getConfiguration().locale.getCountry();
+        //Get the country from GPS
+        if(localUser.checkReady()){
+            country =  localUser.lastAddress.getCountryCode();
+        }
+        //Get country from settings if it's null
+        if(country == null )country = mapsActivity.getResources().getConfiguration()
+                .locale.getCountry();
 
         //Set the type fields
         placeFields = Arrays.asList(Place.Field.ID, Place.Field.NAME,

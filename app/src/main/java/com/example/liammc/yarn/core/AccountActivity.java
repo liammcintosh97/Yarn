@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -15,25 +15,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.authentication.EmailUpdator;
-import com.example.liammc.yarn.yarnSupport.PasswordUpdator;
-import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.yarnSupport.EmailUpdator;
+import com.example.liammc.yarn.yarnSupport.PasswordUpdater;
 import com.example.liammc.yarn.yarnSupport.SupportWindow;
-import com.google.firebase.auth.FirebaseAuth;
 
-public class AccountActivity extends AppCompatActivity {
+public class AccountActivity extends YarnActivity {
     /*This activity is where the firebaseUser interacts with their account and settings*/
 
     private final int CAMERA_PIC_REQUEST = 1;
     private final String TAG = "AccountActivity";
 
-    LocalUser localUser;
-    TimeChangeReceiver timeChangeReceiver;
-
     //UI
-    private PasswordUpdator passwordUpdator;
+    private PasswordUpdater passwordUpdater;
     private EmailUpdator emailUpdator;
     private SupportWindow supportWindow;
     private ImageButton profilePicture;
@@ -51,13 +44,7 @@ public class AccountActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        //Get local firebaseUser
-        localUser = LocalUser.getInstance();
-        localUser.initUserAuth(FirebaseAuth.getInstance());
-
         initUI();
-        initReceivers();
-        initChannels();
     }
 
     @Override
@@ -78,7 +65,6 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-
     //region init
 
     private void initUI(){
@@ -96,7 +82,7 @@ public class AccountActivity extends AppCompatActivity {
 
         ViewGroup main =  findViewById(R.id.main);
 
-        passwordUpdator =  new PasswordUpdator(this,main);
+        passwordUpdater =  new PasswordUpdater(this,main);
         emailUpdator =  new EmailUpdator(this,main);
         supportWindow =  new SupportWindow(this,main);
 
@@ -125,17 +111,6 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-    private void initReceivers(){
-
-        //Registers the time change receiver
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
-    }
-
-    private void initChannels(){
-        Notifier.getInstance().createNotificationChannel(this);
-    }
-
     //endregion
 
     //region Button Methods
@@ -151,7 +126,7 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     public void onUpdatePressed(View view){
-        /*When the firebaseUser presses update it gets the Input and sets the User's info*/
+        /*When the firebaseUser presses updateInfoWindow it gets the Input and sets the User's info*/
 
         profileName.setText(profileNameInput.getText().toString());
 
@@ -181,14 +156,14 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     public void onUpdatePasswordButton(View view){
-        passwordUpdator.show();
+        passwordUpdater.show(Gravity.CENTER);
     }
 
     public void onUpdateEmailButton(View view){
-        emailUpdator.show();
+        emailUpdator.show(Gravity.CENTER);
     }
 
-    public void onSupportButtonPress(View view){ supportWindow.show(); }
+    public void onSupportButtonPress(View view){ supportWindow.show(Gravity.CENTER); }
 
     //endregion
 

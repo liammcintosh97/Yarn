@@ -24,26 +24,21 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.twitter.sdk.android.core.Twitter;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends YarnActivity {
     /*This is the main activity for the application and is the first things that is run when the firebaseUser
     opens the app. It introduces the firebaseUser to a log in and sign in button
      */
 
     private static final String CHANNEL_ID = "mainActivity";
     private static final int PERMISSION_REQUEST_CODE =1;
-    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         /*Runs when the activity is created*/
+        super.onCreate(savedInstanceState);
 
         Twitter.initialize(this);
-
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mAuth = FirebaseAuth.getInstance();
-        Notifier.getInstance().createNotificationChannel(this);
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
         //debugSignIn();
@@ -84,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/
 
-        FirebaseUser user = mAuth.getCurrentUser();
+        FirebaseUser user = userAuth.getCurrentUser();
 
         return user!= null;
     }
@@ -96,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Activity act = this;
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        userAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {

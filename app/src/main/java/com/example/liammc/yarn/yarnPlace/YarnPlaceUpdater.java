@@ -224,8 +224,8 @@ public class YarnPlaceUpdater
             addChildListener();
 
             //Update the Info Window
-            if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.window.isShowing())
-                yarnPlace.infoWindow.update();
+            if(yarnPlace.infoWindow != null && yarnPlace.infoWindow.isShowing())
+                yarnPlace.infoWindow.updateInfoWindow();
 
             //Record the chat if this local user is in it
             if(chat.checkForUserInChat(localUserID)){

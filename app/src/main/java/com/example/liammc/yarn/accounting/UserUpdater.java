@@ -8,7 +8,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 
 public class UserUpdater {
-    /*This class is used to update the Local User*/
+    /*This class is used to updateInfoWindow the Local User*/
 
     private final String TAG = "UserUpdater";
     private YarnUser user;

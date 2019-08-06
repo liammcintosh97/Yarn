@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.core.MapsActivity;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;
@@ -25,24 +26,21 @@ import java.util.HashMap;
 import java.util.Locale;
 
 
-public class ChatCreator {
+public class ChatCreator extends YarnWindow {
     /*The Chat Creator is used  by the user when they want to create new chats. It is is used in
     conjunction with the Yarn Place Object and it's Info Window*/
 
     private final String TAG = "ChatCreator";
     private final MapsActivity mapsActivity;
 
-    public PopupWindow window;
     public TimeDialog timePicker;
     public DateDialog datepicker;
     public DurationDialog durationPicker;
-    public View mChatCreatorView;
 
     String localUserID;
     private YarnPlace yarnPlace;
 
     //UI
-    private final ViewGroup parentViewGroup;
     TextView placeName;
     Button dateButton;
     Button timeButton;
@@ -54,9 +52,11 @@ public class ChatCreator {
     public String chatPlaceName;
     public String chatPlaceAddress;
 
-    public ChatCreator(MapsActivity mapsActivity, String localUserID, YarnPlace _yarnPlace) {
-        this.parentViewGroup = mapsActivity.findViewById(R.id.constraintLayout);
-        this.mapsActivity = mapsActivity;
+    public ChatCreator(MapsActivity _mapsActivity,ViewGroup _parent, String localUserID, YarnPlace _yarnPlace) {
+
+        super(_mapsActivity,_parent,R.layout.popup_chat_creator);
+
+        this.mapsActivity = _mapsActivity;
         this.localUserID = localUserID;
         this.yarnPlace = _yarnPlace;
 
@@ -66,37 +66,18 @@ public class ChatCreator {
     //region init
 
     private void init(){
-        initWindow();
         initUIReferences();
         initButtons();
-    }
-
-    private void initWindow() {
-        /*This method initializes the window for the Chat Creator*/
-
-        // Initialize a new instance of LayoutInflater service
-        mChatCreatorView = inflate(R.layout.popup_chat_creator);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mChatCreatorView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
     }
 
     private void initUIReferences(){
         /*This method gets the UI references from the layout*/
 
-        placeName = mChatCreatorView.findViewById(R.id.placeName);
-        dateButton = mChatCreatorView.findViewById(R.id.dateButton);
-        timeButton = mChatCreatorView.findViewById(R.id.timeButton);
-        durationButton = mChatCreatorView.findViewById(R.id.durationButton);
-        createChatButton = mChatCreatorView.findViewById(R.id.createChatButton);
+        placeName = getContentView().findViewById(R.id.placeName);
+        dateButton = getContentView().findViewById(R.id.dateButton);
+        timeButton = getContentView().findViewById(R.id.timeButton);
+        durationButton = getContentView().findViewById(R.id.durationButton);
+        createChatButton = getContentView().findViewById(R.id.createChatButton);
     }
 
     private void initButtons(){
@@ -211,7 +192,8 @@ public class ChatCreator {
         placeName.setText(_placeName);
     }
 
-    public void show() {
+    @Override
+    public void show(int gravity) {
         /*This method shows the Chat Creator to the firebaseUser*/
         init();
 
@@ -221,24 +203,7 @@ public class ChatCreator {
 
         updateUI(chatPlaceName);
 
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
-
-    public void dismiss() {
-        /*This method dismisses the Chat Creator*/
-
-        if(window != null && window.isShowing()) window.dismiss();
-    }
-
-    //endregion
-
-    //region Private Methods
-
-    private View inflate(int layoutID) {
-        /*Inflates the given layout ID*/
-
-        LayoutInflater inflater = mapsActivity.getLayoutInflater();
-        return inflater.inflate(layoutID,null);
+        super.show(gravity);
     }
 
     //endregion

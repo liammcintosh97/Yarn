@@ -1,6 +1,5 @@
 package com.example.liammc.yarn.core;
 
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -9,13 +8,9 @@ import android.widget.TextView;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.Notification;
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 
-public class NotificationsActivity extends AppCompatActivity {
+public class NotificationsActivity extends YarnActivity {
     /*This Activity is the used for displaying internal notifications to the firebaseUser*/
-
-    Notifier notifier;
-    TimeChangeReceiver timeChangeReceiver;
 
     //UI
     public TextView defaultText;
@@ -27,10 +22,9 @@ public class NotificationsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notifications);
 
         initUI();
-        initNotifier();
-        initReceivers();
-        initChannels();
+        initNotifierListeners();
         initNotifications();
+
     }
 
     @Override
@@ -49,10 +43,8 @@ public class NotificationsActivity extends AppCompatActivity {
         defaultText = findViewById(R.id.defaultText);
     }
 
-    private void initNotifier() {
+    private void initNotifierListeners() {
         /*Initializes the Notifier for the activity*/
-
-        notifier = Notifier.getInstance();
 
         notifier.setNotificationListener(new Notifier.NotificationListener() {
             @Override
@@ -60,17 +52,6 @@ public class NotificationsActivity extends AppCompatActivity {
                 addNotification(notification);
             }
         });
-    }
-
-    private void initReceivers() {
-        /*Initializes the Time Change Receiver*/
-
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver, TimeChangeReceiver.intentFilter);
-    }
-
-    private void initChannels(){
-        Notifier.getInstance().createNotificationChannel(this);
     }
 
     private void initNotifications(){

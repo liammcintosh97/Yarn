@@ -108,7 +108,7 @@ public class TimeChangeReceiver {
 
             if(touchedYarnPlace != null){
                 InfoWindow window = touchedYarnPlace.infoWindow;
-                if(window.window.isShowing())window.update();
+                if(window.isShowing())window.updateInfoWindow();
             }
         }
 

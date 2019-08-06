@@ -3,16 +3,13 @@ package com.example.liammc.yarn.yarnPlace;
 import android.content.Intent;
 import android.graphics.Point;
 import android.net.Uri;
-import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -20,7 +17,7 @@ import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.core.MapsActivity;
-import com.example.liammc.yarn.utility.CompatibilityTools;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
@@ -28,7 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 
 
-public class InfoWindow {
+public class InfoWindow extends YarnWindow {
     /*This class is the popup window that shows the user information about the Yarn Place that they
     have clicked on
      */
@@ -39,14 +36,8 @@ public class InfoWindow {
     public ChatCreator chatCreator;
     private ArrayList<InfoElement> infoElements = new ArrayList<>();
 
-    //Window
-    public PopupWindow window;
-    public int windowWidth;
-    public int windowHeight;
-
     //UI
-    private ViewGroup parentViewGroup;
-    private View infoWindow;
+    private static final int layoutID = R.layout.info_window;
     private TextView placeNameTitle;
     private ImageView placePicture;
     private Button googleMapsButton;
@@ -54,44 +45,19 @@ public class InfoWindow {
     public ScrollView chatScrollView;
     public LinearLayout chatScrollViewElements;
 
-    public InfoWindow(MapsActivity mapsActivity, YarnPlace _yarnPlace){
-        this.mapsActivity = mapsActivity;
+    public InfoWindow(MapsActivity _mapsActivity, ViewGroup _parent, YarnPlace _yarnPlace){
+        super(_mapsActivity,_parent,layoutID,0.6,0.5);
+
+        this.mapsActivity = _mapsActivity;
         this.yarnPlace = _yarnPlace;
-        this.parentViewGroup = mapsActivity.findViewById(R.id.map);
 
-        this.chatCreator =  new ChatCreator(mapsActivity, LocalUser.getInstance().userID,yarnPlace);
+        this.chatCreator =  new ChatCreator(mapsActivity,(ViewGroup)mapsActivity
+                .findViewById(R.id.constraintLayout),LocalUser.getInstance().userID,yarnPlace);
 
-        this.init();
+        this.initUI();
     }
 
     //region init
-
-    private void init() {
-        /*This method intializes the popup window for showing information about the yarn place
-        to the firebaseUser
-         */
-
-        initWindow();
-        initUI();
-    }
-
-    private void initWindow() {
-        /*This method initializes the popup window object*/
-
-        infoWindow = inflate(R.layout.info_window);
-
-        // Initialize a new instance of popup window
-        DisplayMetrics dm = new DisplayMetrics();
-        mapsActivity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-        window = new PopupWindow(infoWindow,(int)(dm.widthPixels* 0.6),
-                (int)(dm.heightPixels * 0.5));
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.update();
-        window.setClippingEnabled(true);
-
-        CompatibilityTools.setPopupElevation(window,0.5f);
-    }
 
     private void initUI() {
         /*This method gets all the references to the different View objects that this class
@@ -99,13 +65,15 @@ public class InfoWindow {
         initializes text.
          */
 
-        placeNameTitle = infoWindow.findViewById(R.id.placeTilte);
-        placePicture = infoWindow.findViewById(R.id.placePicture);
-        googleMapsButton = infoWindow.findViewById(R.id.googleMapsButton);
-        createChatButton = infoWindow.findViewById(R.id.createChatButton);
-        chatScrollView = infoWindow.findViewById(R.id.chatScrollView);
-        chatScrollViewElements = chatScrollView.findViewById(R.id.elements);
+        setOutsideTouchable(false);
+        setFocusable(false);
 
+        placeNameTitle = getContentView().findViewById(R.id.placeTilte);
+        placePicture = getContentView().findViewById(R.id.placePicture);
+        googleMapsButton = getContentView().findViewById(R.id.googleMapsButton);
+        createChatButton = getContentView().findViewById(R.id.createChatButton);
+        chatScrollView = getContentView().findViewById(R.id.chatScrollView);
+        chatScrollViewElements = chatScrollView.findViewById(R.id.elements);
 
         googleMapsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,7 +102,7 @@ public class InfoWindow {
         /* This method is called when the firebaseUser clicks on the create chat button. It brings the firebaseUser
          * to another window which allows them to create a chat*/
 
-        chatCreator.show();
+        chatCreator.show(Gravity.CENTER);
     }
 
     private void OnGoogleMapsPressed() {
@@ -152,20 +120,16 @@ public class InfoWindow {
 
     //region Public Methods
 
-    public boolean show(GoogleMap map) {
+    public boolean show(GoogleMap map,int gravity) {
         /*This method shows the info window to the firebase User*/
         if(!yarnPlace.checkReady()) return false;
-        update();
 
-        setPlacePhoto();
-        measureWindow();
+        super.show(gravity);
 
-        //Show the window
-        if (!window.isShowing()) {
-            window.showAtLocation(parentViewGroup, Gravity.NO_GRAVITY, 0, 0);
-        }
-
+        updateInfoWindow();
         updatePosition(map);
+        setPlacePhoto();
+
         return true;
     }
 
@@ -174,7 +138,7 @@ public class InfoWindow {
         marker
          */
 
-        if (yarnPlace.marker != null && window != null) {
+        if (yarnPlace.marker != null) {
             // marker is visible
             if (map.getProjection().getVisibleRegion().latLngBounds.contains(yarnPlace.marker.getPosition())) {
 
@@ -182,7 +146,7 @@ public class InfoWindow {
                 LatLng markerLatLng = yarnPlace.marker.getPosition();
                 Point p = projection.toScreenLocation(markerLatLng);
 
-                window.update(p.x,p.y,-1,-1);
+                update(p.x,p.y,-1,-1);
                 return true;
             } else { // marker outside screen
                 dismiss();
@@ -193,13 +157,7 @@ public class InfoWindow {
         return false;
     }
 
-    public void dismiss() {
-        /*This method dismisses the info window*/
-
-        if(window != null && window.isShowing()) window.dismiss();
-    }
-
-    public void update(){
+    public void updateInfoWindow(){
         /*This Method loops over all the chats in the Yarn Place and then adds them to the scroll
         view
          */
@@ -252,37 +210,16 @@ public class InfoWindow {
         }
     }
 
-
     //endregion
 
     //region Private Methods
 
-    private View inflate(int layoutID ) {
-        /*Inflates the given layout ID*/
-
-        LayoutInflater inflater = mapsActivity.getLayoutInflater();
-        return inflater.inflate(layoutID,null);
-    }
-
-    private void measureWindow() {
-        /*Measures the width and height of the pop up window*/
-
-        Display display = mapsActivity.getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        infoWindow.measure(size.x, size.y);
-
-        windowWidth = infoWindow.getMeasuredWidth();
-        windowHeight = infoWindow.getMeasuredHeight();
-    }
-
     private void setPlacePhoto() {
         //Sets the image view to the Place Photo
 
-        ImageView imageView = infoWindow.findViewById(R.id.placePicture);
+        ImageView imageView = getContentView().findViewById(R.id.placePicture);
         imageView.setImageBitmap(yarnPlace.placePhoto);
     }
-
 
     //endregion
 }

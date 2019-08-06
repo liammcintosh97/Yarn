@@ -30,7 +30,7 @@ import java.util.Locale;
 public class LocalUser extends YarnUser implements LocationSource, LocationListener {
     /*This class is used to describe a local Yarn User. The local firebaseUser is the firebaseUser that is interacting
     with the application. Local User extends YarnUser and functions in the same way with some
-    exceptions and functionality. The LocalUser class allows the application to update the firebaseUser on
+    exceptions and functionality. The LocalUser class allows the application to updateInfoWindow the firebaseUser on
     Firebase and also track their location*/
 
     //region singleton pattern
@@ -93,6 +93,13 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     public LocalUserUpdater updator;
 
     //region Init
+
+    public void initTypes(){
+        types.add(PlaceType.CAFE);
+        types.add(PlaceType.BAR);
+        types.add(PlaceType.RESTAURANT);
+        types.add(PlaceType.NIGHT_CLUB);
+    }
 
     public void initUserLocation(Activity activity) {
         /*Initialises the firebaseUser location services so that the application can track them*/

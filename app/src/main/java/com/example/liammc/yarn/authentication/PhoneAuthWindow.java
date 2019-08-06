@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
 import com.example.liammc.yarn.R;
@@ -19,18 +20,14 @@ import com.hbb20.CountryCodePicker;
 
 import java.io.IOException;
 
-public class PhoneAuthWindow {
+public class PhoneAuthWindow extends YarnWindow {
     /*This Class is the window interface used for logging the firebaseUser into Firebase with a phone*/
 
     private static String TAG = "PhoneAuthWindow";
     public PhoneAuth auth;
 
-    //Window
-    private final ViewGroup parentViewGroup;
-    public static PopupWindow window;
-    public View mPhoneAuthView;
-
     //UI
+    private static final int layoutID = R.layout.popup_sign_up_phone;
     private Button sendPhoneCodeButton;
     private Button resendPhoneCodeButton;
     private Button verifyPhoneButton;
@@ -39,42 +36,22 @@ public class PhoneAuthWindow {
     private EditText phoneNumberInput;
     private CountryCodePicker countryCodePicker;
 
-    PhoneAuthWindow(Activity activity,ViewGroup _parent) {
-        this.parentViewGroup = _parent;
-
-        this.initPopup(activity);
-        this.initUI(activity);
+    PhoneAuthWindow(Activity _activity,ViewGroup _parent) {
+        super(_activity,_parent,layoutID);
+        this.initUI(_activity);
     }
 
     //region Init
-
-    private void initPopup(Activity activity) {
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mPhoneAuthView = inflater.inflate(R.layout.popup_sign_up_phone,parentViewGroup,false);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mPhoneAuthView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
-    }
 
     private void initUI(Activity activity) {
         /*This method initializes the Phone auth window UI*/
 
         //Get Phone Inputs
-        phoneCodeInput = mPhoneAuthView.findViewById(R.id.phoneCodeInput);
-        phoneNumberInput = mPhoneAuthView.findViewById(R.id.phoneNumberInput);
+        phoneCodeInput = getContentView().findViewById(R.id.phoneCodeInput);
+        phoneNumberInput = getContentView().findViewById(R.id.phoneNumberInput);
 
         //Get Country Code Picker
-        countryCodePicker = mPhoneAuthView.findViewById(R.id.ccp);
+        countryCodePicker = getContentView().findViewById(R.id.ccp);
         countryCodePicker.setCountryForPhoneCode(61);
 
         initButtons(activity);
@@ -91,10 +68,10 @@ public class PhoneAuthWindow {
         /*This method initializes the phone auth buttons*/
 
         //Get Phone buttons
-        closePhoneAuthButton = mPhoneAuthView.findViewById(R.id.closePhoneButton);
-        sendPhoneCodeButton = mPhoneAuthView.findViewById(R.id.sendPhoneCodeButton);
-        verifyPhoneButton = mPhoneAuthView.findViewById(R.id.verifyPhoneCodeButton);
-        resendPhoneCodeButton = mPhoneAuthView.findViewById(R.id.resendPhoneCodeButton);
+        closePhoneAuthButton = getContentView().findViewById(R.id.closePhoneButton);
+        sendPhoneCodeButton = getContentView().findViewById(R.id.sendPhoneCodeButton);
+        verifyPhoneButton = getContentView().findViewById(R.id.verifyPhoneCodeButton);
+        resendPhoneCodeButton = getContentView().findViewById(R.id.resendPhoneCodeButton);
 
         //Set up the listeners for all the buttons
         sendPhoneCodeButton.setOnClickListener(new View.OnClickListener() {
@@ -194,15 +171,11 @@ public class PhoneAuthWindow {
 
     private void OnClosePhoneAuthPressed() {
         /*Runs when the firebaseUser presses the close Phone Auth button*/
-        dismissPhoneAuth();
+        super.dismiss();
     }
     //endregion
 
     //region Private Methods
-    void ShowAuth() {
-        /*Shows the Phone Auth window*/
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
 
     void ShowVerify() {
         /*Shows the UI needed to verify the phone number*/
@@ -218,9 +191,5 @@ public class PhoneAuthWindow {
         resendPhoneCodeButton.setVisibility(View.VISIBLE);
     }
 
-    void dismissPhoneAuth() {
-        /*Dismisses the Phone Auth window*/
-        if(window.isShowing()) window.dismiss();
-    }
     //endregion
 }

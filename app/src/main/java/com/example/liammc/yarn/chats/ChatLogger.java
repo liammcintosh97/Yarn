@@ -71,7 +71,7 @@ public class ChatLogger {
                 }
                 //Completed with an error
                 else{
-                    Log.e(TAG,"There was an error when trying to update " + valueType + " - "
+                    Log.e(TAG,"There was an error when trying to updateInfoWindow " + valueType + " - "
                     + databaseError.getMessage());
                 }
 

@@ -1,79 +1,55 @@
 package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.Toast;
-
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.authentication.Authenticator;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.interfaces.AuthListener;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
 
 import java.io.IOException;
 
-public class PasswordUpdator {
+public class PasswordUpdater extends YarnWindow {
+    //The Password Updator is used when the the user wants to updateInfoWindow their password
 
-    private static String TAG = "PasswordUpdator";
+    private static String TAG = "PasswordUpdater";
     private LocalUser localUser;
     private Authenticator authenticator;
 
     //UI
-    EditText passwordInput;
-    EditText newPasswordInput;
-    EditText confirmNewPasswordInput;
-    Button submitButton;
-    Button cancelButton;
+    private final static int layoutID = R.layout.password_update_window;
+    private EditText passwordInput;
+    private EditText newPasswordInput;
+    private EditText confirmNewPasswordInput;
+    private Button submitButton;
+    private Button cancelButton;
 
-    //Window
-    private final ViewGroup parentViewGroup;
-    public static PopupWindow window;
-    public View mainView;
 
-    public PasswordUpdator(Activity activity, ViewGroup _parent){
-        this.parentViewGroup = _parent;
+    public PasswordUpdater(Activity _activity, ViewGroup _parent){
+        super(_activity,_parent,layoutID);
+
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
 
-        this.initPopup(activity);
-        this.initUI(activity);
+        this.initUI(_activity);
     }
 
     //region Init
 
-    private void initPopup(Activity activity) {
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.password_update_window,parentViewGroup,false);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mainView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
-    }
-
     private void initUI(Activity activity) {
-        /*This method initializes the Phone auth window UI*/
+        /*This method initializes the Password Updater window UI*/
 
-        passwordInput =  mainView.findViewById(R.id.emailInput);
-        newPasswordInput =  mainView.findViewById(R.id.newPasswordInput);
-        confirmNewPasswordInput =  mainView.findViewById(R.id.confirmNewPasswordInput);
+        passwordInput =  getContentView().findViewById(R.id.emailInput);
+        newPasswordInput =  getContentView().findViewById(R.id.newPasswordInput);
+        confirmNewPasswordInput =  getContentView().findViewById(R.id.confirmNewPasswordInput);
 
         CompatibilityTools.setPasswordAutoFill(passwordInput);
         CompatibilityTools.setPasswordAutoFill(newPasswordInput);
@@ -83,10 +59,10 @@ public class PasswordUpdator {
     }
 
     private void initButtons(final Activity activity){
-        /*This method initializes the phone auth buttons*/
+        /*This method initializes the Password Updater window buttons*/
 
-        submitButton =  mainView.findViewById(R.id.submitButton);
-        cancelButton =  mainView.findViewById(R.id.cancelButton);
+        submitButton =  getContentView().findViewById(R.id.submitButton);
+        cancelButton =  getContentView().findViewById(R.id.cancelButton);
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,6 +83,7 @@ public class PasswordUpdator {
     //region Button Methods
 
     private void onSubmitClick(final Activity activity){
+        //This method submits the new password when the user clicks the submit button
 
         //Check if all the fields are full
         if(!validateEmptyFields()){
@@ -119,12 +96,12 @@ public class PasswordUpdator {
             ErrorManager.validatePassword(newPasswordInput.getText().toString(),
                     confirmNewPasswordInput.getText().toString());
 
-            //log the user
+            //log in the user
             authenticator.login(activity, localUser.email, passwordInput.getText().toString()
                     , new AuthListener() {
                         @Override
                         public void onAuth() {
-                            //If the user logged in correctly update their password
+                            //If the user logged in correctly updateInfoWindow their password
                             localUser.updator.updatePassword(newPasswordInput.getText().toString()
                                     , new AuthListener() {
                                         @Override
@@ -137,7 +114,7 @@ public class PasswordUpdator {
 
                                         @Override
                                         public void onError(String message) {
-                                            //The password update failed
+                                            //The password updateInfoWindow failed
                                             Toast.makeText(activity,message
                                                     ,Toast.LENGTH_SHORT).show();
                                         }
@@ -160,21 +137,8 @@ public class PasswordUpdator {
     }
 
     private void onCancelSubmit(){
+        /*This method dismisses the window when the user presses the cancel button*/
         dismiss();
-    }
-
-    //endregion
-
-    //region Public Methods
-
-    public void show() {
-        /*Shows the Phone Auth window*/
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
-
-    public void dismiss() {
-        /*Dismisses the Phone Auth window*/
-        if(window.isShowing()) window.dismiss();
     }
 
     //endregion
@@ -182,7 +146,7 @@ public class PasswordUpdator {
     //region private Methods
 
     private boolean validateEmptyFields(){
-
+        //This method validates all the password fields
         if(passwordInput.getText().toString().equals("")||
         newPasswordInput.getText().toString().equals("")||
         confirmNewPasswordInput.getText().toString().equals("")) return false;

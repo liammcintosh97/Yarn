@@ -1,10 +1,9 @@
 package com.example.liammc.yarn.core;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,18 +16,14 @@ import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.authentication.SocialPoster;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.yarnSupport.ReporterWindow;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.share.Sharer;
 
-public class RateActivity extends AppCompatActivity {
+public class RateActivity extends YarnActivity {
 
     private final String TAG =  "RateActivity";
     private final int FB_POST_REQUEST_CODE = 1;
     private final int TW_POST_REQUEST_CODE = 2;
     private YarnUser otherUser;
     private Chat chat;
-    private Recorder recorder;
     private SocialPoster socialPoster;
 
     //UI
@@ -48,11 +43,9 @@ public class RateActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(reporterWindow.window.isShowing()){
+        if(reporterWindow.isShowing()){
             reporterWindow.dismiss();
         }
-
-
     }
 
 
@@ -69,7 +62,6 @@ public class RateActivity extends AppCompatActivity {
     //region Init
 
     private void init(){
-        recorder =  Recorder.getInstance();
         chat =  recorder.getRecordedChat(getIntent().getStringExtra("chatID"));
         otherUser =  chat.getOtherUser();
 
@@ -112,7 +104,7 @@ public class RateActivity extends AppCompatActivity {
     }
 
     public void onReportUserPressed(View v){
-        reporterWindow.show();
+        reporterWindow.show(Gravity.CENTER);
     }
 
     public void onPostFacebookPressed(View v){

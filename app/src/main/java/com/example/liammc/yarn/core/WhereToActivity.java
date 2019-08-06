@@ -23,10 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class WhereToActivity extends AppCompatActivity {
+public class WhereToActivity extends YarnActivity {
 
-    LocalUser localUser;
-    TimeChangeReceiver timeChangeReceiver;
     ArrayList<WhereToElement> elements = new ArrayList<>();
 
     //Finders
@@ -50,21 +48,13 @@ public class WhereToActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_where_to);
 
-        initLocalUser();
-        initReceivers();
-        initChannels();
+
         initUI();
         initFinderCallback();
         initFinders();
     }
 
     //region Initialisation
-
-    private void initLocalUser() {
-        /*This method initializes the Local firebaseUser*/
-
-        localUser = LocalUser.getInstance(this);
-    }
 
     private void initUI(){
         searchButton = findViewById(R.id.searchButton);
@@ -73,22 +63,8 @@ public class WhereToActivity extends AppCompatActivity {
         scrollViewElements.removeAllViews();
 
         initCheckBoxes();
+        initTypes();
         clearElements();
-    }
-
-    private void initReceivers(){
-
-        timeChangeReceiver = new TimeChangeReceiver(this);
-
-        try {
-            registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
-        } catch(IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void initChannels(){
-        Notifier.getInstance().createNotificationChannel(this);
     }
 
     private void initCheckBoxes() {
@@ -203,6 +179,16 @@ public class WhereToActivity extends AppCompatActivity {
                 getResources().getString(R.string.google_place_key), (int)localUser.searchRadius, finderCallback);
     }
 
+    private void initTypes(){
+
+        for(String type: localUser.types){
+            if(type.equals(PlaceType.CAFE)) cafeCheckBox.setChecked(true);
+            if(type.equals(PlaceType.RESTAURANT)) restaurantCheckBox.setChecked(true);
+            if(type.equals(PlaceType.BAR)) barCheckBox.setChecked(true);
+            if(type.equals(PlaceType.NIGHT_CLUB)) nightClubCheckBox.setChecked(true);
+        }
+    }
+
     //endregion
 
     //region Buttons Methods
@@ -257,14 +243,13 @@ public class WhereToActivity extends AppCompatActivity {
 
     private void updateUserTypes(){
 
-        ArrayList<String> types = new ArrayList<>();
+        ArrayList<String> types = localUser.types;
+        types.clear();
 
         if(cafeCheckBox.isChecked()) types.add(PlaceType.CAFE);
         if(barCheckBox.isChecked()) types.add(PlaceType.BAR);
         if(restaurantCheckBox.isChecked()) types.add(PlaceType.RESTAURANT);
         if(nightClubCheckBox.isChecked()) types.add(PlaceType.NIGHT_CLUB);
-
-        localUser.types = types;
     }
 
     private boolean removePlace(String placeID){

@@ -4,6 +4,7 @@ import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -160,7 +161,7 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     protected void onSignInPhoneButtonPressed(View view) {
-        mPhoneAuthWindow.ShowAuth();
+        mPhoneAuthWindow.show(Gravity.CENTER);
     }
 
     //endregion

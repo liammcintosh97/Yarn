@@ -36,9 +36,9 @@ public class SignUpActivity extends AuthActivity {
     public void onBackPressed() {
         /*Runs when the firebaseUser presses the back button on their device*/
 
-        if(PhoneAuthWindow.window.isShowing()) {
+        if(mPhoneAuthWindow.isShowing()) {
             /*If the phone auth window is showing dismiss it*/
-            PhoneAuthWindow.window.dismiss();
+            mPhoneAuthWindow.dismiss();
         }
         else super.onBackPressed();
     }
@@ -49,8 +49,8 @@ public class SignUpActivity extends AuthActivity {
         /*Initializes the sign up UI*/
 
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
-        phoneNumberInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneNumberInput);
-        codeInput = mPhoneAuthWindow.mPhoneAuthView.findViewById(R.id.phoneCodeInput);
+        phoneNumberInput = mPhoneAuthWindow.getContentView().findViewById(R.id.phoneNumberInput);
+        codeInput = mPhoneAuthWindow.getContentView().findViewById(R.id.phoneCodeInput);
 
         CompatibilityTools.setPasswordAutoFill(confirmPasswordInput);
         CompatibilityTools.setNumberAutoFill(phoneNumberInput);
@@ -93,7 +93,7 @@ public class SignUpActivity extends AuthActivity {
         /*Checks if the User is signed in*/
 
         //Dismiss the Phone auth
-        mPhoneAuthWindow.dismissPhoneAuth();
+        mPhoneAuthWindow.dismiss();
 
         if(mCurrentUser != null) {
             /*The current firebaseUser isn't null so they are logged in. Take the firebaseUser to the account

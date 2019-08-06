@@ -5,24 +5,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.location.Geocoder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.interfaces.ReadyListener;
-import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.userInput.CameraController;
 import com.example.liammc.yarn.userInput.RadiusBar;
 import com.example.liammc.yarn.userInput.SearchRadius;
@@ -30,8 +25,6 @@ import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -42,15 +35,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
     /*This is main Activity in the whole application and where the firebaseUser will spend most of their
     time. Here the firebaseUser will be searching and interacting with Yarn Places, using the map and
     transitioning to different parts of the application */
@@ -64,22 +54,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Google Services
     GoogleMap mMap;
-    Geocoder geocoder;
 
     //Finders
     NearbyChatFinder nearbyChatFinder;
     SearchPlaceFinder searchPlaceFinder;
 
-    //Map Data
-    public LocalUser localUser;
-
     //User Interaction
     YarnPlace touchedYarnPlace;
-    Notifier notifier;
-    Recorder recorder;
-
-    //Receivers
-    TimeChangeReceiver timeChangeReceiver;
 
     //User Input
     public SearchRadius searchRadius;
@@ -96,13 +77,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        //Initialize some internal variables needed for certain processes
-        recorder = Recorder.getInstance();
-        geocoder = new Geocoder(this, Locale.getDefault());
-
-        initReceivers();
-        initChannels();
     }
 
     @Override
@@ -130,7 +104,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
         }
-        else{}
 
         //Initialize the Map Listeners and services
         initMarkerListener();
@@ -193,26 +166,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //region Init
 
-    private void initLocalUser() {
+    @Override
+    protected void initLocalUser() {
         /*This method initializes the Local firebaseUser*/
-
-        localUser = LocalUser.getInstance(this);
+        super.initLocalUser();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setLocationSource(localUser);
             mMap.setMyLocationEnabled(true);
         }
-    }
-
-    private void initReceivers(){
-
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        registerReceiver(timeChangeReceiver.receiver,TimeChangeReceiver.intentFilter);
-    }
-
-    private void initChannels(){
-        Notifier.getInstance().createNotificationChannel(this);
     }
 
     //region Finders
@@ -293,7 +256,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //The firebaseUser has already touched a yarn place so we need to dismiss it
                 if(touchedYarnPlace != null) {
 
-                    if(touchedYarnPlace.infoWindow.window.isShowing()) {
+                    if(touchedYarnPlace.infoWindow.isShowing()) {
                         touchedYarnPlace.infoWindow.dismiss();
                         touchedYarnPlace = null;
                     }
@@ -323,7 +286,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onCameraMove() {
                 /*Runs when the camera moves*/
 
-                /*If the firebaseUser has touched a Yarn Place the application must update it's info window
+                /*If the firebaseUser has touched a Yarn Place the application must updateInfoWindow it's info window
                 position*/
                 if(touchedYarnPlace != null) {
                     if(!touchedYarnPlace.infoWindow.updatePosition(mMap)) touchedYarnPlace = null;
@@ -341,7 +304,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 /*Runs when the firebaseUser clicks on the map*/
 
                 //If a Yarn Place Info Window is showing then dismiss it
-                if(touchedYarnPlace != null && touchedYarnPlace.infoWindow.window.isShowing())
+                if(touchedYarnPlace != null && touchedYarnPlace.infoWindow.isShowing())
                 {
                     touchedYarnPlace.infoWindow.dismiss();
                     touchedYarnPlace = null;

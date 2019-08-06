@@ -7,6 +7,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import androidx.annotation.NonNull;
 import android.util.Log;
+import android.view.ViewGroup;
 
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.R;
@@ -177,7 +178,8 @@ public class YarnPlace {
         /*This method initializes the Yarn Place on a google maps and enables the firebaseUser to
         interact with it
          */
-        infoWindow = new InfoWindow(mapsActivity,this);
+        ViewGroup parent = mapsActivity.findViewById(R.id.map);
+        infoWindow = new InfoWindow(mapsActivity,parent,this);
 
         double lat = Double.parseDouble(placeMap.get("lat"));
         double lng = Double.parseDouble( placeMap.get("lng"));

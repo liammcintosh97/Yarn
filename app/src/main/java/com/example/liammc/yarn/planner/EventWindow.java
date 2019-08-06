@@ -1,25 +1,21 @@
 package com.example.liammc.yarn.planner;
 
-import android.app.Activity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ImageView;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.core.ChatPlannerActivity;
 import com.example.liammc.yarn.core.Recorder;
-import com.example.liammc.yarn.utility.CompatibilityTools;
+import com.example.liammc.yarn.core.YarnWindow;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-public class EventWindow {
+public class EventWindow extends YarnWindow {
 
     private final String TAG = "EventWindow";
     public final ChatPlannerActivity plannerActivity;
@@ -28,12 +24,13 @@ public class EventWindow {
     private final Date date;
 
     //UI
-    public View parentView;
-    public PopupWindow window;
+    private static final int layoutID = R.layout.chat_window;
     public LinearLayout chatScrollElements;
 
 
-    public EventWindow(ChatPlannerActivity _plannerActivity, Date _date){
+    public EventWindow(ChatPlannerActivity _plannerActivity, ViewGroup _parent, Date _date){
+
+        super(_plannerActivity, _parent,layoutID,0.75,0.90);
         this.plannerActivity = _plannerActivity;
         this.date = _date;
 
@@ -44,39 +41,22 @@ public class EventWindow {
 
     private void init(){
         recorder =  Recorder.getInstance();
-        parentView = inflate(R.layout.chat_window,false);
-
-        chatScrollElements = parentView.findViewById(R.id.elements);
-
-        initWindow();
-    }
-
-    private void initWindow(){
-        /*Creates a new window instance and set's its characteristics*/
-
-        DisplayMetrics dm = new DisplayMetrics();
-        plannerActivity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-        window = new PopupWindow(parentView,(int)(dm.widthPixels * 0.75), (int)(dm.heightPixels * 0.90));
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.update();
-        window.setOutsideTouchable(true);
-        window.setClippingEnabled(true);
-
-        CompatibilityTools.setPopupElevation(window,10.0f);
+        chatScrollElements = getContentView().findViewById(R.id.chatScrollView)
+                .findViewById(R.id.elements);
     }
 
     //endregion
 
     //region Public Methods
 
-    public void show(Date date) {
+    @Override
+    public void show(int gravity) {
         /*Shows the Events that are on the passed date*/
-        window.showAtLocation(plannerActivity.parentViewGroup,Gravity.CENTER,0,0);
-        update();
+
+        updateEventWindow(gravity);
     }
 
-    public void update(){
+    public void updateEventWindow(int gravity){
         //Clear the scroll view
         chatScrollElements.removeAllViews();
         eventChats.clear();
@@ -101,22 +81,9 @@ public class EventWindow {
             }
 
             //Show the window to the firebaseUser
-            if (!window.isShowing()) {
-                window.showAtLocation(plannerActivity.parentViewGroup, Gravity.CENTER, 0, 0);
-                Log.d(TAG,"Showing event window");
-            }
+            super.show(gravity);
         }
         else Log.d(TAG,"No chats on this date");
-    }
-
-    public boolean dismiss() {
-        /*Dismisses the event Window*/
-
-        if(window != null && window.isShowing()){
-            window.dismiss();
-            return true;
-        }
-        else return false;
     }
 
     public void removeChat(String removedChatID) {
@@ -135,19 +102,6 @@ public class EventWindow {
                 }
             }
         }
-    }
-
-    //endregion
-
-    //region private
-
-    private View inflate(int layoutID, boolean attachToRoot){
-        /*Inflates the layout that has the passed layoutID*/
-
-        LayoutInflater inflater = (LayoutInflater) plannerActivity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(layoutID,plannerActivity.parentViewGroup,attachToRoot);
-
-        return view;
     }
 
     //endregion

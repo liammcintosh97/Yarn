@@ -2,21 +2,18 @@ package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.authentication.Authenticator;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -25,54 +22,33 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 
-public class PasswordResetter {
-    private static String TAG = "PasswordUpdator";
+public class PasswordResetter extends YarnWindow {
+    private static String TAG = "PasswordUpdater";
     private LocalUser localUser;
     private Authenticator authenticator;
 
     //UI
+    private static final int layotuID  = R.layout.password_reset_window;
     EditText emailInput;
     Button submitButton;
     Button cancelButton;
 
-    //Window
-    private final ViewGroup parentViewGroup;
-    public static PopupWindow window;
-    public View mainView;
 
-    public PasswordResetter(Activity activity, ViewGroup _parent){
-        this.parentViewGroup = _parent;
+    public PasswordResetter(Activity _activity, ViewGroup _parent){
+        super(_activity,_parent,layotuID);
+
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
 
-        this.initPopup(activity);
-        this.initUI(activity);
+        this.initUI(_activity);
     }
 
     //region Init
 
-    private void initPopup(Activity activity) {
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.password_reset_window,parentViewGroup,false);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mainView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
-    }
-
     private void initUI(Activity activity) {
-        /*This method initializes the Phone auth window UI*/
+        /*This method initializes the Password Resetter window UI*/
 
-        emailInput =  mainView.findViewById(R.id.emailInput);
+        emailInput =  getContentView().findViewById(R.id.emailInput);
 
         CompatibilityTools.setEmailAutoFill(emailInput);
 
@@ -80,10 +56,10 @@ public class PasswordResetter {
     }
 
     private void initButtons(final Activity activity){
-        /*This method initializes the phone auth buttons*/
+        /*This method initializes the Password Resetter  buttons*/
 
-        submitButton =  mainView.findViewById(R.id.submitButton);
-        cancelButton =  mainView.findViewById(R.id.cancelButton);
+        submitButton =  getContentView().findViewById(R.id.submitButton);
+        cancelButton =  getContentView().findViewById(R.id.cancelButton);
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,6 +80,9 @@ public class PasswordResetter {
     //region Button Methods
 
     private void onSubmitClick(final Activity activity){
+        /*This method runs when the user presses the submit button. It sends a Password reset email
+        to the email that the user inputs
+         */
 
         //Check if all the fields are full
         if(!validateEmptyFields()){
@@ -144,21 +123,9 @@ public class PasswordResetter {
     }
 
     private void onCancelSubmit(){
+        /*This method runs when the user presses the cancel button. It dismisses the window
+         */
         dismiss();
-    }
-
-    //endregion
-
-    //region Public Methods
-
-    public void show() {
-        /*Shows the Phone Auth window*/
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
-
-    public void dismiss() {
-        /*Dismisses the Phone Auth window*/
-        if(window.isShowing()) window.dismiss();
     }
 
     //endregion
@@ -166,7 +133,7 @@ public class PasswordResetter {
     //region private Methods
 
     private boolean validateEmptyFields(){
-
+        /*This method validates the required fields*/
         if(emailInput.getText().toString().equals("")) return false;
 
         return true;

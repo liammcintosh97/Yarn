@@ -24,17 +24,15 @@ import com.example.liammc.yarn.utility.DateTools;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends YarnActivity {
     /*The Chat Activity is used when the user clicks on a chat from the Info Window or in the
     Event window. Its a way of displaying Chat information, seeing who has joined and starting the chat
      */
 
     private final String TAG = "ChatActivity";
     private Chat currentChat;
-    private LocalUser localUser;
     private YarnUser otherUser;
     private YarnPlace currentYarnPlace;
-    private TimeChangeReceiver timeChangeReceiver;
 
     //UI
     private View personInfo;
@@ -61,8 +59,6 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        initReceivers();
-        initChannels();
         initCurrentChat();
 
         if(currentChat == null){
@@ -102,25 +98,6 @@ public class ChatActivity extends AppCompatActivity {
         update();
 
         if(currentChat.chatActive) startChat();
-    }
-
-    private void initReceivers(){
-        /*Initializes the time change receiver*/
-
-        timeChangeReceiver = new TimeChangeReceiver(this);
-        try {
-            unregisterReceiver(timeChangeReceiver.receiver);
-            registerReceiver(timeChangeReceiver.receiver, TimeChangeReceiver.intentFilter);
-        }
-        catch (IllegalArgumentException e){
-            Log.e(TAG,"Could not register receiver because it's already been registered");
-        }
-    }
-
-    private void initChannels(){
-        /*Initializes all required channels*/
-
-        Notifier.getInstance().createNotificationChannel(this);
     }
 
     private void initCurrentChat(){

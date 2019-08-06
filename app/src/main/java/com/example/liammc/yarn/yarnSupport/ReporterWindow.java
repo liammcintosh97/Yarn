@@ -16,68 +16,44 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.YarnUser;
+import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.networking.Mailer;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 
-public class ReporterWindow {
+public class ReporterWindow extends YarnWindow {
+    /*The reporter window is used to report other users after a chat is completed*/
 
     private final String TAG = "ReporterWindow";
     private final YarnUser user;
     public final static int REPORT_REQUEST_CODE = 0;
 
     //UI
-    EditText messageEditText;
-    Button submitButton;
-    Button cancelButton;
+    private final static int layoutID = R.layout.report_window;
+    private EditText messageEditText;
+    private Button submitButton;
+    private Button cancelButton;
 
-    //Window
-    private final ViewGroup parentViewGroup;
-    public PopupWindow window;
-    public View mainView;
-
-    public ReporterWindow(Activity activity, ViewGroup _parent, YarnUser _user){
-        this.parentViewGroup = _parent;
+    public ReporterWindow(Activity _activity, ViewGroup _parent, YarnUser _user){
+        super(_activity,_parent,layoutID);
         this.user =  _user;
 
-        this.initPopup(activity);
-        this.initUI(activity);
+        this.initUI(_activity);
     }
 
     //region Init
-
-    private void initPopup(Activity activity) {
-
-        // Initialize a new instance of LayoutInflater service
-        LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        mainView = inflater.inflate(R.layout.report_window,parentViewGroup,false);
-
-        // Initialize a new instance of popup window
-        double width =  ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-        double height = ConstraintLayout.LayoutParams.MATCH_PARENT  ;
-
-        window = new PopupWindow(mainView, (int) width, (int) height,true);
-        window.setAnimationStyle(R.style.popup_window_animation_phone);
-        window.setOutsideTouchable(true);
-        window.update();
-
-        CompatibilityTools.setPopupElevation(window,5.0f);
-    }
-
     private void initUI(Activity activity) {
-        /*This method initializes the Phone auth window UI*/
-
-        messageEditText =  mainView.findViewById(R.id.message);
-
+        /*This method initializes the reporter window UI*/
+        messageEditText =  getContentView().findViewById(R.id.message);
         initButtons(activity);
     }
 
     private void initButtons(final Activity activity){
-        /*This method initializes the phone auth buttons*/
+        /*This method initializes the reporter window buttons*/
 
-        submitButton =  mainView.findViewById(R.id.submitButton);
-        cancelButton =  mainView.findViewById(R.id.cancelButton);
+        submitButton =  getContentView().findViewById(R.id.submitButton);
+        cancelButton =  getContentView().findViewById(R.id.cancelButton);
 
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,12 +68,16 @@ public class ReporterWindow {
             }
         });
     }
-
     //endregion
 
     //region Button Methods
 
     private void onSubmitClick(final Activity activity){
+        /*This method is called when the user presses the submit buttons.
+        It submits the written message by passing the string to an instance of the
+        the mailer class. It also flags the user
+         */
+
         Mailer mailer =  new Mailer("Yarn User Report - " + user.userID);
         mailer.send(activity,messageEditText.getText().toString(),REPORT_REQUEST_CODE);
 
@@ -105,6 +85,7 @@ public class ReporterWindow {
     }
 
     private void onCancelSubmit(){
+        /*This method dismisses the window when the user presses the cancel button*/
         dismiss();
     }
 
@@ -113,29 +94,22 @@ public class ReporterWindow {
     //region Public Methods
 
     public void flagUser(YarnUser user){
+        /*This method increments the flags variable that's in the user's part of the database*/
 
+        //Get the database reference for the user
         DatabaseReference flagsRef =  user.userDatabaseReference.child("flags");
 
         flagsRef.setValue(user.flags + 1, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
 
+                //Log the system to the outcome of the value updateInfoWindow
                 if(databaseError == null){
                     Log.d(TAG,"User flagging was successful");
                 }
                 else Log.e(TAG,"Flagging of the user failed - " + databaseError.getMessage());
             }
         });
-    }
-
-    public void show() {
-        /*Shows the Phone Auth window*/
-        window.showAtLocation(parentViewGroup, Gravity.CENTER, 0, 0);
-    }
-
-    public void dismiss() {
-        /*Dismisses the Phone Auth window*/
-        if(window.isShowing()) window.dismiss();
     }
 
     //endregion

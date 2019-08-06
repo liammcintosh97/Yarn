@@ -3,6 +3,7 @@ package com.example.liammc.yarn.chats;
 import android.app.Activity;
 import androidx.annotation.NonNull;
 import android.util.Log;
+import android.view.Gravity;
 
 import com.example.liammc.yarn.core.ChatActivity;
 import com.example.liammc.yarn.core.ChatPlannerActivity;
@@ -186,14 +187,14 @@ public class ChatUpdator {
         ChatPlannerActivity plannerActivity = (ChatPlannerActivity)activity;
         EventWindow eventWindow = plannerActivity.eventWindow;
 
-        if(eventWindow != null && eventWindow.window.isShowing()) eventWindow.update();
+        if(eventWindow != null && eventWindow.isShowing()) eventWindow.updateEventWindow(Gravity.CENTER);
     }
 
     private void updateInfoWindow(){
         InfoWindow infoWindow = chat.yarnPlace.infoWindow;
 
-        if(infoWindow != null && infoWindow.window.isShowing()){
-            chat.yarnPlace.infoWindow.update();
+        if(infoWindow != null && infoWindow.isShowing()){
+            chat.yarnPlace.infoWindow.updateInfoWindow();
         }
     }
 

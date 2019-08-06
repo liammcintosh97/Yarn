@@ -2,6 +2,8 @@ package com.example.liammc.yarn.userInput;
 
 
 
+import android.view.Gravity;
+
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
@@ -46,22 +48,21 @@ public class CameraController {
     public void focusOnYarnPlace(YarnPlace yarnPlace){
 
         if(yarnPlace != null){
-            if(yarnPlace.infoWindow.window.isShowing()) yarnPlace.infoWindow.dismiss();
+            if(yarnPlace.infoWindow.isShowing()) yarnPlace.infoWindow.dismiss();
         }
 
         moveToLatLng(yarnPlace.marker.getPosition(),15);
-        yarnPlace.infoWindow.show(mMap);
+        yarnPlace.infoWindow.show(mMap, Gravity.START | Gravity.LEFT | Gravity.TOP);
     }
 
     public void moveToLatLng(LatLng latLng, int zoom) {
         /*Focuses the camera on a LatLng position*/
 
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
-
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng)
                 .zoom(zoom)
-                .tilt(40)
+                .tilt(0)
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }

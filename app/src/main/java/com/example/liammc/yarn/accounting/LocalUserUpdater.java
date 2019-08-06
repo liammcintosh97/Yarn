@@ -50,7 +50,7 @@ public class LocalUserUpdater extends UserUpdater {
     public void updateUserName(String userName) {
         /*This method updates the firebaseUser's name in Firebase Authentication and in the database*/
 
-        //Creates a profile update request
+        //Creates a profile updateInfoWindow request
         UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(userName)
                 .build();
@@ -60,15 +60,15 @@ public class LocalUserUpdater extends UserUpdater {
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        //Runs when the update completes
+                        //Runs when the updateInfoWindow completes
 
                         if (task.isSuccessful()) {
-                            //Log when the update is successful
+                            //Log when the updateInfoWindow is successful
                             Log.d(TAG, "User name updated.");
                         }
                         else{
-                            //Log when the update is a failure
-                            Log.e(TAG, "User name update failed - " + task.getException());
+                            //Log when the updateInfoWindow is a failure
+                            Log.e(TAG, "User name updateInfoWindow failed - " + task.getException());
                         }
                     }
                 });
@@ -176,7 +176,7 @@ public class LocalUserUpdater extends UserUpdater {
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
-                            //Email update was successful
+                            //Email updateInfoWindow was successful
                             Log.d(TAG, "User email address updated.");
 
                             //Send email verification to new email
@@ -203,7 +203,7 @@ public class LocalUserUpdater extends UserUpdater {
                                                             @Override
                                                             public void onFailure(@NonNull Exception e) {
                                                                 Log.d(TAG,"email write to database was a failure -" + e);
-                                                                authListener.onError("Error updating email - Couldn't update database");
+                                                                authListener.onError("Error updating email - Couldn't updateInfoWindow database");
                                                             }
                                                         });*/
                                             }
@@ -234,7 +234,7 @@ public class LocalUserUpdater extends UserUpdater {
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
-                            //Email update was successful
+                            //Email updateInfoWindow was successful
                             Log.d(TAG, "User password updated.");
                             _authListener.onAuth();
                         }
