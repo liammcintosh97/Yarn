@@ -5,6 +5,8 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +14,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.IntroActivity;
 import com.example.liammc.yarn.authentication.Authenticator;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
@@ -24,13 +27,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.twitter.sdk.android.core.Twitter;
 
-public class MainActivity extends YarnActivity {
+public class MainActivity extends AppCompatActivity {
     /*This is the main activity for the application and is the first things that is run when the firebaseUser
     opens the app. It introduces the firebaseUser to a log in and sign in button
      */
 
     private static final String CHANNEL_ID = "mainActivity";
     private static final int PERMISSION_REQUEST_CODE =1;
+    private SharedPreferences prefs = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +45,23 @@ public class MainActivity extends YarnActivity {
         setContentView(R.layout.activity_main);
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
+        prefs = getSharedPreferences("com.example.liammc.yarn", MODE_PRIVATE);
+
         //debugSignIn();
 
         //Got to Initialization if the firebaseUser is signed in
         if(isSignedIn()) GoToInitialization();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (prefs.getBoolean("firstrun", true)) {
+            prefs.edit().putBoolean("firstrun", false).apply();
+            goToIntroduction();
+        }
+    }
 
     //region Buttons Methods
 
@@ -72,6 +87,11 @@ public class MainActivity extends YarnActivity {
         startActivity(myIntent);
     }
 
+    public void goToIntroduction(){
+        Intent intent = new Intent(getBaseContext(), IntroActivity.class);
+        startActivity(intent);
+    }
+
     //endregion
 
     //region Private Methods
@@ -79,7 +99,7 @@ public class MainActivity extends YarnActivity {
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/
 
-        FirebaseUser user = userAuth.getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         return user!= null;
     }
@@ -88,6 +108,7 @@ public class MainActivity extends YarnActivity {
 
         String email = "challenger@live.com";
         String password = "123456";
+        FirebaseAuth userAuth = FirebaseAuth.getInstance();
 
         final Activity act = this;
 

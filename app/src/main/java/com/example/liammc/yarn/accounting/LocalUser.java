@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.utility.AddressTools;
+import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -104,32 +105,40 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     public void initUserLocation(Activity activity) {
         /*Initialises the firebaseUser location services so that the application can track them*/
 
-        geocoder = new Geocoder(activity, Locale.getDefault());
+        if(geocoder == null){
+            geocoder = new Geocoder(activity, Locale.getDefault());
+        }
 
-        locationManager = (LocationManager) activity.getSystemService(Activity.LOCATION_SERVICE);
+        if(locationManager == null){
+            locationManager = (LocationManager) activity.getSystemService(Activity.LOCATION_SERVICE);
+        }
 
         // Specify Location Provider criteria
-        criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
-        criteria.setAltitudeRequired(false);
-        criteria.setBearingRequired(false);
-        criteria.setSpeedRequired(false);
-        criteria.setCostAllowed(true);
+        if(criteria == null){
+            criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_FINE);
+            criteria.setPowerRequirement(Criteria.POWER_LOW);
+            criteria.setAltitudeRequired(false);
+            criteria.setBearingRequired(false);
+            criteria.setSpeedRequired(false);
+            criteria.setCostAllowed(true);
+        }
 
-        locationManager = (LocationManager) activity
-                .getSystemService(Activity.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(criteria, true);
+        if(locationManager == null) {
+            locationManager = (LocationManager) activity
+                    .getSystemService(Activity.LOCATION_SERVICE);
+        }
+        if(provider == null) provider = locationManager.getBestProvider(criteria, true);
     }
 
     public void initUserAuth(FirebaseAuth auth){
         /*Initializes the firebaseUser's auth and then gets their email from Firebase*/
 
-        firebaseAuth = auth;
-        firebaseUser = auth.getCurrentUser();
-        getEmail(firebaseAuth);
+        if(firebaseAuth == null) firebaseAuth = auth;
+        if(firebaseUser == null) firebaseUser = auth.getCurrentUser();
+        if(email == null) getEmail(firebaseAuth);
 
-        updator = new LocalUserUpdater(this);
+        if(updator == null)updator = new LocalUserUpdater(this);
     }
     //endregion
 
@@ -215,25 +224,12 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
     //region Public Methods
 
-    public void readyUser(Activity activity){
-
-        //Init the location client
-        FusedLocationProviderClient mFusedLocationProviderClient =
-                LocationServices.getFusedLocationProviderClient(activity);
-
-
-        //Initializes the Local User's variables and systems
-        initDatabaseReferences(firebaseAuth.getUid());
-        initUser();
-
-        initUserLocation(activity);
-        getUserLocation(activity,mFusedLocationProviderClient,null);
-    }
-
     public void getUserLocation(Activity activity,
                                 FusedLocationProviderClient mFusedLocationProviderClient,
                                 final locationReceivedListener listener) {
       /*This method is used to manually get the most accurate location at the time*/
+
+        PermissionTools.requestPermissions(activity, 1);
 
         try {
             //Get the location result
@@ -243,10 +239,13 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                 @Override
                 public void onSuccess(Location location) {
                     // Got last known location. In some rare situations this can be null.
-                    if (location != null) {
+                    lastLocation =  location;
+
+                    //TODO case for when location cant be received
+                    if (lastLocation != null) {
                         // Logic to handle location object
-                        LatLng latLng = new LatLng(location.getLatitude(),
-                                location.getLongitude());
+                        LatLng latLng = new LatLng(lastLocation.getLatitude(),
+                                lastLocation.getLongitude());
 
                         //Pass it to the listeners to handle the results
                         if(listener != null) listener.onLocationReceived(latLng);
@@ -263,21 +262,19 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
         }
     }
 
+    @Override
     public boolean checkReady(){
         /*Checks if the Local User is ready. The local firebaseUser is considered ready when they have a
         picture, name, location, email, meanRating and terms acceptance
          */
 
-        boolean ready = readyListener != null &&
-                profilePicture != null &&
-                userName != null &&
+        boolean parentReady = super.checkReady();
+
+        boolean ready = parentReady &&
                 lastLocation != null &&
                 lastAddress != null &&
-                email != null &&
-                ratings != null &&
-                birthDate != null &&
-                gender != null &&
-                termsAcceptance != null;
+                email != null;
+
 
         return ready;
     }

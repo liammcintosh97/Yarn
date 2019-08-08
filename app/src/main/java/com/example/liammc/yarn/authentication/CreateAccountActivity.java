@@ -15,6 +15,9 @@ import android.widget.Toast;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
 import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.accounting.TermsActivity;
+import com.example.liammc.yarn.core.InitializationActivity;
+import com.example.liammc.yarn.core.YarnActivity;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.DateTools;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,11 +25,10 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Calendar;
 
-public class CreateAccountActivity extends AppCompatActivity {
+public class CreateAccountActivity extends YarnActivity {
     /*This activity is used when the firebaseUser creates an Account*/
 
     private static final int CAMERA_PIC_REQUEST = 1;
-    private LocalUser localUser;
 
     private Bitmap profilePictureBitmap;
     private EditText userNameInput;
@@ -39,15 +41,6 @@ public class CreateAccountActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_account);
-
-        //Gte the Firebase firebaseUser and auth
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-
-        //Get the Local User
-        localUser = LocalUser.getInstance();
-        localUser.initUserAuth(auth);
-        localUser.initDatabaseReferences(currentUser.getUid());
 
         initUI();
     }
@@ -128,9 +121,8 @@ public class CreateAccountActivity extends AppCompatActivity {
         localUser.updator.updateGender(gender);
         localUser.updator.addUserRating(localUser.userID,5);
 
-        //Take the firebaseUser to the IntroActivity
-        Intent intent = new Intent(getBaseContext(), IntroActivity.class);
-        startActivity(intent);
+        //Take the firebaseUser to the TermsActivity
+        goToInitializationActivity();
     }
 
     public void onProfilePictureButtonPress(View view) {
@@ -142,6 +134,11 @@ public class CreateAccountActivity extends AppCompatActivity {
     //endregion
 
     //region Private Methods
+
+    private void goToInitializationActivity(){
+        Intent intent = new Intent(getBaseContext(), InitializationActivity.class);
+        startActivity(intent);
+    }
 
     private boolean validateAge(int birthYear){
 

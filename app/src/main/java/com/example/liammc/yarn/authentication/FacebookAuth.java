@@ -105,7 +105,7 @@ class FacebookAuth extends Authenticator {
                             Log.d(TAG, "signInWithCredential:success");
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if(isNew) goToAccountSetup(activity);
+                            if(isNew) goToTermsAcceptance(activity);
                             else goToInitialization(activity);
 
 

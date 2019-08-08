@@ -98,7 +98,7 @@ public class SignUpActivity extends AuthActivity {
         if(mCurrentUser != null) {
             /*The current firebaseUser isn't null so they are logged in. Take the firebaseUser to the account
             Set up */
-            mAuthenticator.goToAccountSetup(this);
+            mAuthenticator.goToTermsAcceptance(this);
         }
 
     }

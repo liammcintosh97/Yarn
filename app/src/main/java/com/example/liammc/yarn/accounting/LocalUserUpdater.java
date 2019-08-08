@@ -47,7 +47,7 @@ public class LocalUserUpdater extends UserUpdater {
 
     //region Public Methods
 
-    public void updateUserName(String userName) {
+    public void updateUserName(final String userName) {
         /*This method updates the firebaseUser's name in Firebase Authentication and in the database*/
 
         //Creates a profile updateInfoWindow request
@@ -65,6 +65,7 @@ public class LocalUserUpdater extends UserUpdater {
                         if (task.isSuccessful()) {
                             //Log when the updateInfoWindow is successful
                             Log.d(TAG, "User name updated.");
+                            localUser.userName = userName;
                         }
                         else{
                             //Log when the updateInfoWindow is a failure
@@ -89,7 +90,7 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
-    public void updateUserProfilePicture(Activity activity, Bitmap profilePictureBitmap) {
+    public void updateUserProfilePicture(Activity activity, final Bitmap profilePictureBitmap) {
         /*This method updates the firebaseUser's profile picture with the passed bitmap. To complete this
          * complex process first the bitmap must be compressed and the URI must be extracted. Then
          * The URI must be uploaded to Firebase storage. Once that is completed the firebaseUser profile is
@@ -135,6 +136,8 @@ public class LocalUserUpdater extends UserUpdater {
                                                                 if (task.isSuccessful()) {
                                                                     Log.d(TAG, "User " +
                                                                             "profile updated.");
+                                                                    localUser.profilePicture
+                                                                            = profilePictureBitmap;
                                                                 }
                                                             }
                                                         });
@@ -188,6 +191,7 @@ public class LocalUserUpdater extends UserUpdater {
                                                 //Verification email sent
                                                 Log.d(TAG, "Verification email sent.");
 
+                                                localUser.email = email;
                                                 authListener.onAuth();
                                                 /*
                                                 //Update the email in Firebase Database
@@ -246,15 +250,17 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
-    public void updateTermsAcceptance(boolean acceptance) {
+    public void updateTermsAcceptance(final boolean acceptance) {
         /*Updates the firebaseUser's term acceptance*/
 
         //Write to the User database firebaseUser name
+        //TODO change terms Acceptance name
         localUser.userDatabaseReference.child("TermsAcceptance").setValue(acceptance)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG,"terms write to database was a success");
+                        localUser.termsAcceptance = acceptance;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -265,12 +271,13 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
-    public void updateBirthDate(String birthDate){
+    public void updateBirthDate(final String birthDate){
         //Write to the User database birth date
         localUser.userDatabaseReference.child("birthDate").setValue(birthDate)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        localUser.birthDate = birthDate;
                         Log.d(TAG,"terms write to database was a success");
                     }
                 })
@@ -282,13 +289,14 @@ public class LocalUserUpdater extends UserUpdater {
                 });
     }
 
-    public void updateGender(String gender){
+    public void updateGender(final String gender){
         //Write to the User database birth date
         localUser.userDatabaseReference.child("gender").setValue(gender)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG,"terms write to database was a success");
+                        localUser.gender = gender;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {

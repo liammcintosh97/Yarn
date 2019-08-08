@@ -72,7 +72,7 @@ public class SearchPlaceFinder{
         //Initialize Places
         if (!Places.isInitialized()) {
             Places.initialize(mapsActivity.getApplicationContext(),
-                    mapsActivity.getResources().getString(R.string.google_place_android_key));
+                    mapsActivity.getResources().getString(R.string.Yarn_API_Key));
         }
 
         placesClient = Places.createClient(mapsActivity);

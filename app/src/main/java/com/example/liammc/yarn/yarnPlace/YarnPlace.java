@@ -103,7 +103,7 @@ public class YarnPlace {
         Context context = activity.getApplicationContext();
 
         // Initialize Places.
-        Places.initialize(context,context.getResources().getString(R.string.google_place_android_key));
+        Places.initialize(context,context.getResources().getString(R.string.Yarn_API_Key));
 
         // Create a new Places client instance.
         placesClient = Places.createClient(context);

@@ -8,6 +8,8 @@ import android.util.Log;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,25 +48,27 @@ public class YarnUser {
     public DatabaseReference userDatabaseReference;
 
     //User info
-    public String userID;
-    public String userName;
-    public Bitmap profilePicture;
-    public String email;
-    public Long flags = 0L;
-    public String birthDate;
-    public int age;
-    public String gender;
+    public String userID = null;
+    public String userName = null;
+    public Bitmap profilePicture = null;
+    public String email = null;
+    public Long flags = null;
+    public String birthDate = null;
+    public Integer age = null;
+    public String gender = null;
     protected Iterable<DataSnapshot> ratings = null;
     public long meanRating;
     public Boolean termsAcceptance = null;
 
     //region Constructors
     public YarnUser(){
+        //Used for Local Users
+        initDatabaseReferences(FirebaseAuth.getInstance().getCurrentUser().getUid());
         updator = new UserUpdater(this);
     }
 
     public YarnUser(String _userID) {
-
+        //Used for networked users
         initDatabaseReferences(_userID);
         initUser();
         updator = new UserUpdater(this);
@@ -75,22 +79,27 @@ public class YarnUser {
     public void initUser(){
         /*Initializes the firebaseUser's information by getting it from Firebase*/
 
-        getUserName();
-        getUserProfilePicture();
-        getUserRatings();
-        getUserTermAcceptance();
-        getBirthDate();
-        getGender();
-        getFlags();
+        if(userName == null)getUserName();
+        if(profilePicture == null)getUserProfilePicture();
+        if(ratings == null)getUserRatings();
+        if(termsAcceptance == null)getUserTermAcceptance();
+        if(birthDate == null)getBirthDate();
+        if(age == null && birthDate != null) age = calculateAge(birthDate);
+        if(gender == null)getGender();
+        if(flags == null)getFlags();
     }
 
     public void initDatabaseReferences(String _userID){
         /*Initialize the database references*/
 
-        userID = _userID;
+        if(userID == null) userID = _userID;
 
-        userStorageReference = FirebaseStorage.getInstance().getReference().child("Users").child(userID);
-        userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
+        if(userStorageReference == null){
+            userStorageReference = FirebaseStorage.getInstance().getReference().child("Users").child(userID);
+        }
+        if(userDatabaseReference == null){
+            userDatabaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(userID);
+        }
     }
     //endregion
 
@@ -201,7 +210,7 @@ public class YarnUser {
                 is added*/
 
                 //Get the data
-                 termsAcceptance = (boolean)snapshot.getValue();
+                termsAcceptance = (boolean)snapshot.getValue();
                 Log.d(TAG,"Got terms acceptance");
 
                 //Check if the firebaseUser is ready after getting the username
@@ -289,7 +298,7 @@ public class YarnUser {
         });
     }
 
-    private boolean checkReady(){
+    public boolean checkReady(){
         /*Checks is the firebaseUser is ready. The firebaseUser is considered ready when they have a picture, name,
           meanRating and terms acceptance*/
 
@@ -298,6 +307,7 @@ public class YarnUser {
                         userName != null &&
                         ratings != null &&
                         birthDate != null &&
+                        age != null &&
                         gender != null &&
                         termsAcceptance != null;
 

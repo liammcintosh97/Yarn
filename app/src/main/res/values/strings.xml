@@ -4,10 +4,7 @@
     <string name="title_activity_maps">Map</string>
 
     //Google
-    <string name="google_place_android_key">AIzaSyDJugIcIH8Pmr6M3Vj_poooPuxPfl1BBO4</string>
-    <string name="google_place_key">AIzaSyDInIjo7RGKGGMB0YhHLMDUMsDmZQviOwE</string>
-    <string name="google_geo_coding_key">AIzaSyBn7fiuXUVjM66h4iWp0txhxjxEC0tjUVw</string>
-    <string name="google_geo_location_key">AIzaSyAX3LevyOPcYKQEWG8hV9xdnG_jEdncGrw</string>
+    <string name="Yarn_API_Key">AIzaSyA4CZWebxZaLBnYw0RDK066EPY943eoIAw</string>
 
     //Facebook
     <string name="facebook_app_id">212630036311409</string>

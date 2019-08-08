@@ -90,11 +90,11 @@ public class PhoneAuth extends Authenticator {
     //region Public Methods
 
     @Override
-    public void goToAccountSetup(Activity activity) {
+    public void goToTermsAcceptance(Activity activity) {
         /*This overriding method goes to account Setup but also dismisses the Phone Authentication
         window*/
         window.dismiss();
-        super.goToAccountSetup(activity);
+        super.goToTermsAcceptance(activity);
     }
 
     @Override

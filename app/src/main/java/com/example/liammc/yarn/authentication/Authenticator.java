@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.liammc.yarn.accounting.TermsActivity;
 import com.example.liammc.yarn.core.InitializationActivity;
 import com.example.liammc.yarn.interfaces.AuthListener;
 import com.google.firebase.auth.AuthCredential;
@@ -51,7 +52,7 @@ public class Authenticator {
                         if (task.isSuccessful()) {
                            /*Sign up is successful so go to account set up*/
                             Log.d(TAG, "createUserWithEmail:success");
-                            goToAccountSetup(activity);
+                            goToTermsAcceptance(activity);
                         } else {
                             //Sign up failed so notify the firebaseUser
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -106,7 +107,7 @@ public class Authenticator {
                             Log.d(TAG, "authenticator:success");
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            if(isNew) goToAccountSetup(activity);
+                            if(isNew) goToTermsAcceptance(activity);
                             else goToInitialization(activity);
 
                         } else {
@@ -120,10 +121,10 @@ public class Authenticator {
                 });
     }
 
-    protected void goToAccountSetup(Activity activity) {
+    protected void goToTermsAcceptance(Activity activity) {
         //Takes the firebaseUser to the Account Set Up activity
 
-        Intent myIntent = new Intent(activity.getBaseContext(),   CreateAccountActivity.class);
+        Intent myIntent = new Intent(activity.getBaseContext(),   TermsActivity.class);
         activity.startActivity(myIntent);
     }
 

@@ -12,25 +12,24 @@ import android.view.View;
 
 import com.example.liammc.yarn.core.InitializationActivity;
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.core.MainActivity;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class IntroActivity extends FragmentActivity {
     /*This Activity is the intro into Yarn for the user after they first sign up*/
 
-    private static final int NUM_PAGES = 4;
+    private static final int NUM_PAGES = 3;
 
     private ViewPager mPager;
     PagerAdapter mPagerAdapter;
-
-    private LocalUser localUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
 
+        //TODO move intro to when the user first opens the application
         initPager();
-        initLocalUser();
     }
 
     @Override
@@ -55,11 +54,13 @@ public class IntroActivity extends FragmentActivity {
         mPager.setAdapter(mPagerAdapter);
     }
 
-    private void initLocalUser(){
-        /*Initializes the Local User*/
+    //endregion
 
-        localUser = LocalUser.getInstance();
-        localUser.initUserAuth(FirebaseAuth.getInstance());
+    //region Private Methods
+
+    public void goToMainActivity(){
+        Intent intent = new Intent(getBaseContext(), MainActivity.class);
+        startActivity(intent);
     }
 
     //endregion
@@ -67,14 +68,7 @@ public class IntroActivity extends FragmentActivity {
     //region Buttons
 
     public void onSkipPressed(View view) {
-        mPager.setCurrentItem(NUM_PAGES);
-    }
-
-    public void onAcceptPressed(View view) {
-        localUser.updator.updateTermsAcceptance(true);
-
-        Intent myIntent = new Intent(getBaseContext(),   InitializationActivity.class);
-        startActivity(myIntent);
+        goToMainActivity();
     }
 
     //endregion
@@ -91,8 +85,9 @@ public class IntroActivity extends FragmentActivity {
             /*Determines the pages of slider by returning particular fragments*/
 
             if(position == NUM_PAGES - 1) {
-                //The user is on the last page so show the TermsFragment
-                return new TermsFragment();
+                //The user is on the last page so go back to the Main Activity
+                goToMainActivity();
+                return new Fragment();
             }
             else {
                 //The user is on any other page so show the IntroFragment

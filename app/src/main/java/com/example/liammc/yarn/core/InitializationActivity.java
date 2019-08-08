@@ -69,10 +69,10 @@ public class InitializationActivity extends YarnActivity {
     public void initLocalUser(){
         /*Initializes the Local User and it's ready listener*/
 
+        //Initializes the Local User's variables and systems
+        //localUser.initDatabaseReferences(userAuth.getUid());
         super.initLocalUser();
 
-        //Initializes the Local User's variables and systems
-        localUser.initDatabaseReferences(userAuth.getUid());
         localUser.initUser();
         localUser.initTypes();
 

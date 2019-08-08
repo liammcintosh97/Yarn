@@ -167,16 +167,16 @@ public class WhereToActivity extends YarnActivity {
         /*Initializes the Nearby By Place Finder*/
 
         cafeFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.google_place_key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
 
         barFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.google_place_key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
 
         resturantFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.google_place_key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
 
         nightClubFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.google_place_key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
     }
 
     private void initTypes(){

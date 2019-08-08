@@ -34,8 +34,7 @@ public class YarnActivity extends AppCompatActivity {
         initGeocoder();
         initLocationProviderClient();
         initFirebaseAuth();
-        if(!(this instanceof MainActivity) &&
-                !(this instanceof InitializationActivity) &&
+        if(!(this instanceof InitializationActivity) &&
                 !(this instanceof  MapsActivity)) initLocalUser();
         initReceivers();
         initNotifier();

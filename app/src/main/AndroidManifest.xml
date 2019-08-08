@@ -7,7 +7,7 @@
          location permissions for the 'MyLocation' functionality.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COURSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -79,6 +79,7 @@
         <activity android:name=".core.ChatPlannerActivity" />
         <activity android:name=".core.NotificationsActivity" />
         <activity android:name=".core.AccountActivity" />
+        <activity android:name=".accounting.TermsActivity"/>
     </application>
 
 </manifest>

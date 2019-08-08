@@ -136,7 +136,7 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
             InfoWindow info = touchedYarnPlace.infoWindow;
             ChatCreator creator = info.chatCreator;
 
-            if(creator.window.isShowing()) creator.dismiss();
+            if(creator.isShowing()) creator.dismiss();
 
             else info.dismiss();
         }
