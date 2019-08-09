@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="@string/rateActivity_user_name"
+            android:text="@string/chatActivity_RatingTitle"
             android:textSize="24sp" />
     </LinearLayout>
 
@@ -134,7 +134,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="onReportUserPressed"
-        android:text="@string/rateActivity_report_button"
+        android:text="@string/report_user_button"
         app:layout_constraintBottom_toTopOf="@+id/buttonBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -158,7 +158,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onSubmitRatingPressed"
-            android:text="@string/rateActivity_submit_button" />
+            android:text="@string/submit_button" />
 
         <Button
             android:id="@+id/cancelButton"
@@ -167,7 +167,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="onCancelPressed"
-            android:text="@string/rateActivity_cancel_button" />
+            android:text="@string/cancel_button" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

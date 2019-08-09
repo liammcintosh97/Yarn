@@ -2,12 +2,10 @@ package com.example.liammc.yarn.notifications;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.chats.Chat;
@@ -51,7 +49,7 @@ public class Notification
         activity = _activity;
 
         //Inflate the notification
-        view = inflate(R.layout.notfication_element);
+        view = inflate(R.layout.element_notification);
 
         //Set button
         removeButton = view.findViewById(R.id.closeNotification);

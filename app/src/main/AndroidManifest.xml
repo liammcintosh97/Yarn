@@ -50,7 +50,7 @@
 
         <activity
             android:name=".core.MapsActivity"
-            android:label="@string/title_activity_maps" />
+            android:label="@string/map_title" />
         <activity android:name=".accounting.IntroActivity" />
 
         <meta-data

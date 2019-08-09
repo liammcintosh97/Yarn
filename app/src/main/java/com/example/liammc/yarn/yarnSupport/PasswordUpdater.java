@@ -25,7 +25,7 @@ public class PasswordUpdater extends YarnWindow {
     private Authenticator authenticator;
 
     //UI
-    private final static int layoutID = R.layout.password_update_window;
+    private final static int layoutID = R.layout.window_password_update;
     private EditText passwordInput;
     private EditText newPasswordInput;
     private EditText confirmNewPasswordInput;

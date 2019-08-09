@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="5dp"
-            android:text="@string/whereToElement_placeName"
+            android:text="@string/place_name"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -63,7 +63,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_weight="0.25"
-                    android:text="@string/whereToElement_chats"
+                    android:text="@string/chats"
                     android:textStyle="bold" />
 
                 <TextView

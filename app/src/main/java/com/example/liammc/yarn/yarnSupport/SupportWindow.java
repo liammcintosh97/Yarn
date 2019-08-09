@@ -19,7 +19,7 @@ public class SupportWindow extends YarnWindow {
     private Mailer mailer;
 
     //UI
-    private final static int layoutID = R.layout.support_window;
+    private final static int layoutID = R.layout.window_support;
     EditText messageEditText;
     Button submitButton;
     Button cancelButton;

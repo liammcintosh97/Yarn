@@ -39,7 +39,7 @@ public class InfoElement {
     private void initUI(){
         //This method initializes the UI element objects, sets the buttons callbacks
 
-        elementView = inflate(R.layout.info_window_scroll_view_element);
+        elementView = inflate(R.layout.elemant_chat_info);
 
         joinButton = elementView.findViewById(R.id.joinChatButton);
         joinButton.setOnClickListener(new View.OnClickListener() {

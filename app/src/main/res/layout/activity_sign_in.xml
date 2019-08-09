@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:ems="10"
-            android:hint="@string/signIn_emailHint"
+            android:hint="@string/email"
             android:inputType="textEmailAddress"
             tools:ignore="Autofill" />
 
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:ems="10"
-            android:hint="@string/signIn_passwordHint"
+            android:hint="@string/password"
             android:inputType="textPassword"
             tools:ignore="Autofill" />
 
@@ -75,7 +75,7 @@
             android:layout_gravity="center"
             android:layout_margin="8dp"
             android:onClick="onSignInEmailButtonPressed"
-            android:text="@string/signIn_button" />
+            android:text="@string/sign_in_button" />
     </LinearLayout>
 
     <LinearLayout

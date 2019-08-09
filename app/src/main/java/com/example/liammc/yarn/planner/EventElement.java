@@ -52,7 +52,7 @@ public class EventElement {
 
     private void initUI(){
         //Inflate the elementView and add it to the event window scroll view
-        parentView = inflate(R.layout.chat_window_scroll_view_element,false);
+        parentView = inflate(R.layout.element_event,false);
 
         //Set the elementView's button listeners
         parentView.findViewById(R.id.cancelChatButton).setOnClickListener(new View.OnClickListener() {

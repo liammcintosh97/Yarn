@@ -2,23 +2,18 @@ package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.networking.Mailer;
-import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 
@@ -30,7 +25,7 @@ public class ReporterWindow extends YarnWindow {
     public final static int REPORT_REQUEST_CODE = 0;
 
     //UI
-    private final static int layoutID = R.layout.report_window;
+    private final static int layoutID = R.layout.window_reporter;
     private EditText messageEditText;
     private Button submitButton;
     private Button cancelButton;

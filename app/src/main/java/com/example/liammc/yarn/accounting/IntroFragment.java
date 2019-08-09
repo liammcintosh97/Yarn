@@ -22,7 +22,7 @@ public class IntroFragment extends Fragment {
         // Inflate the layout for this fragment
 
         ViewGroup rootView = (ViewGroup) inflater.inflate(
-                R.layout.intro_fragment_page, container, false);
+                R.layout.fragment_introduction, container, false);
 
         return rootView;
     }

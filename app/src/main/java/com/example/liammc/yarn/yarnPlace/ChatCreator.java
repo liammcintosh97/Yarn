@@ -1,15 +1,10 @@
 package com.example.liammc.yarn.yarnPlace;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.util.Log;
-import android.view.Gravity;
 
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.chats.Chat;
@@ -19,7 +14,6 @@ import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;
-import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.DateTools;
 
 import java.util.HashMap;
@@ -54,7 +48,7 @@ public class ChatCreator extends YarnWindow {
 
     public ChatCreator(MapsActivity _mapsActivity,ViewGroup _parent, String localUserID, YarnPlace _yarnPlace) {
 
-        super(_mapsActivity,_parent,R.layout.popup_chat_creator);
+        super(_mapsActivity,_parent,R.layout.window_chat_creator);
 
         this.mapsActivity = _mapsActivity;
         this.localUserID = localUserID;

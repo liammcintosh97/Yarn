@@ -1,16 +1,11 @@
 package com.example.liammc.yarn.yarnSupport;
 
 import android.app.Activity;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.Toast;
-
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
@@ -36,7 +31,7 @@ public class EmailUpdator extends YarnWindow {
     Button cancelButton;
 
     public EmailUpdator(Activity _activity, ViewGroup _parent){
-        super(_activity,_parent,R.layout.email_update_window);
+        super(_activity,_parent,R.layout.window_email_updator);
 
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);

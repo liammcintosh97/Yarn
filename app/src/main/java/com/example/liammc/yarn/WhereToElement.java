@@ -49,7 +49,7 @@ public class WhereToElement {
 
     private void initUI(){
 
-        elementView =  inflate(R.layout.where_to_element);
+        elementView =  inflate(R.layout.element_where_to);
 
         goToButton = elementView.findViewById(R.id.goButton);
         goToButton.setOnClickListener(new View.OnClickListener() {

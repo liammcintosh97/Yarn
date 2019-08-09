@@ -21,7 +21,7 @@ public class Suggestion extends Notification {
         activity = _activity;
 
         //Inflate the elementView and add it to the suggestion scroll view
-        view = inflate(R.layout.chat_suggestion_element);
+        view = inflate(R.layout.element_chat_suggestion);
 
         //Set the elementView's button listeners
         removeButton = view.findViewById(R.id.removeSuggestionButton);

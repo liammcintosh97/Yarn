@@ -1,7 +1,6 @@
 package com.example.liammc.yarn.planner;
 
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -24,7 +23,7 @@ public class EventWindow extends YarnWindow {
     private final Date date;
 
     //UI
-    private static final int layoutID = R.layout.chat_window;
+    private static final int layoutID = R.layout.window_chat;
     public LinearLayout chatScrollElements;
 
 

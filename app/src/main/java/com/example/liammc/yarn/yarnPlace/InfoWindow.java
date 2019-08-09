@@ -3,7 +3,6 @@ package com.example.liammc.yarn.yarnPlace;
 import android.content.Intent;
 import android.graphics.Point;
 import android.net.Uri;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +36,7 @@ public class InfoWindow extends YarnWindow {
     private ArrayList<InfoElement> infoElements = new ArrayList<>();
 
     //UI
-    private static final int layoutID = R.layout.info_window;
+    private static final int layoutID = R.layout.window_place_info;
     private TextView placeNameTitle;
     private ImageView placePicture;
     private Button googleMapsButton;

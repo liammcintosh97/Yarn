@@ -28,7 +28,7 @@ public class PasswordResetter extends YarnWindow {
     private Authenticator authenticator;
 
     //UI
-    private static final int layotuID  = R.layout.password_reset_window;
+    private static final int layotuID  = R.layout.window_password_reset;
     EditText emailInput;
     Button submitButton;
     Button cancelButton;

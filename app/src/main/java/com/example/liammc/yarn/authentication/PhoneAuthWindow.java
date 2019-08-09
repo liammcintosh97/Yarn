@@ -1,19 +1,14 @@
 package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.core.YarnWindow;
-import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.ErrorManager;
 import com.example.liammc.yarn.R;
 import com.hbb20.CountryCodePicker;
@@ -27,7 +22,7 @@ public class PhoneAuthWindow extends YarnWindow {
     public PhoneAuth auth;
 
     //UI
-    private static final int layoutID = R.layout.popup_sign_up_phone;
+    private static final int layoutID = R.layout.window_phone_sign_up;
     private Button sendPhoneCodeButton;
     private Button resendPhoneCodeButton;
     private Button verifyPhoneButton;

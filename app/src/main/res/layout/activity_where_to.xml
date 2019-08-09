@@ -65,13 +65,13 @@
                     android:id="@+id/cafeCheckBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/whereToActivity_cafeCheckBox" />
+                    android:text="@string/cafes" />
 
                 <CheckBox
                     android:id="@+id/barsCheckBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/whereToActivity_barCheckBox" />
+                    android:text="@string/bars" />
 
             </LinearLayout>
 
@@ -86,13 +86,13 @@
                     android:id="@+id/resturantsCheckBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/whereToActivity_restaurantCheckBox" />
+                    android:text="@string/restaurants" />
 
                 <CheckBox
                     android:id="@+id/nightClubsCheckBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/whereToActivity_nightClubCheckBox" />
+                    android:text="@string/night_clubs" />
             </LinearLayout>
 
         </LinearLayout>
@@ -104,7 +104,7 @@
             android:layout_marginTop="10dp"
             android:layout_weight="1.0"
             android:onClick="onSearchPressed"
-            android:text="@string/whereToActivity_searchButton" />
+            android:text="@string/search_button" />
 
     </LinearLayout>
 
