@@ -53,6 +53,9 @@ public class InitializationActivity extends YarnActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initilization);
 
+        //TODO stop user from going back
+        //TODO set time out for data downloading
+
         //Initialize the required objects and the Local firebaseUser
         init();
         initLocalUser();

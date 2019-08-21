@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
@@ -34,7 +34,7 @@ public class AccountActivity extends YarnActivity {
     private TextView profileName;
     private TextView genderValue;
     private TextView ageValue;
-    private ImageView[] stars = new ImageView[5];
+    private RatingBar ratingBar;
     private Button editButton;
     private Button cancelButton;
     private Button updateButton;
@@ -82,33 +82,22 @@ public class AccountActivity extends YarnActivity {
 
         ViewGroup main =  findViewById(R.id.main);
 
-        passwordUpdater =  new PasswordUpdater(this,main);
-        emailUpdator =  new EmailUpdator(this,main);
-        supportWindow =  new SupportWindow(this,main);
+        passwordUpdater =  new PasswordUpdater(this,main,0.75,0.75);
+        emailUpdator =  new EmailUpdator(this,main,0.75,0.75);
+        supportWindow =  new SupportWindow(this,main,0.75,0.75);
 
-        initStars();
+        initRatingBar();
         setEditable(false);
     }
 
-    private void initStars() {
+    private void initRatingBar() {
         /*Initializes the stars*/
 
-        //Get star references
-        stars[0] = findViewById(R.id.star);
-        stars[1] = findViewById(R.id.star1);
-        stars[2] = findViewById(R.id.star2);
-        stars[3] = findViewById(R.id.star3);
-        stars[4] = findViewById(R.id.star4);
+        ratingBar =  findViewById(R.id.ratingBar);
 
-        //Set all the stars to invisible
-        for(int i = 0; i < stars.length; i++){
-            stars[i].setVisibility(View.INVISIBLE);
-        }
+        ratingBar.setMax(5);
+        ratingBar.setRating((int)localUser.meanRating);
 
-        //Show the firebaseUser's meanRating by setting the visibility of the stars
-        for(int i = 0; i < localUser.meanRating; i++){
-            stars[i].setVisibility(View.VISIBLE);
-        }
     }
 
     //endregion

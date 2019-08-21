@@ -1,11 +1,15 @@
 package com.example.liammc.yarn.core;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 
 import com.example.liammc.yarn.R;
@@ -15,6 +19,7 @@ public class YarnWindow extends PopupWindow {
     //This is the parent class for all popup windows in the Yarn application
 
     private ViewGroup parent;
+    private ImageButton closeButton;
 
     public YarnWindow(Activity _activity, ViewGroup _parent,int _layoutID,double _widthM
             ,double _heightM){
@@ -22,6 +27,7 @@ public class YarnWindow extends PopupWindow {
         super(initMainView(_layoutID,_activity,_parent), initWidth(_activity,_widthM)
                 ,initHeight(_activity,_heightM),true);
         this.initWindow();
+        this.initCloseButton();
         this.parent =  _parent;
     }
 
@@ -72,6 +78,17 @@ public class YarnWindow extends PopupWindow {
         update();
 
         CompatibilityTools.setPopupElevation(this,5.0f);
+    }
+
+    private void initCloseButton(){
+        closeButton =  getContentView().findViewById(R.id.closebutton);
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
     }
 
     //endregion

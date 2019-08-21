@@ -23,7 +23,7 @@ public class EventWindow extends YarnWindow {
     private final Date date;
 
     //UI
-    private static final int layoutID = R.layout.window_chat;
+    private static final int layoutID = R.layout.window_events;
     public LinearLayout chatScrollElements;
 
 

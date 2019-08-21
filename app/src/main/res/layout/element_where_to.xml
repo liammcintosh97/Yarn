@@ -18,6 +18,7 @@
             android:layout_height="match_parent"
             android:padding="5dp"
             android:text="@string/place_name"
+            android:textColor="@color/color_accent_1"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -84,6 +85,8 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_weight="1.0"
-        android:text="@string/whereToElement_goButton" />
+        android:background="@drawable/button_google"
+        android:text="@string/whereToElement_goButton"
+        android:textColor="@color/color_white" />
 
 </LinearLayout>

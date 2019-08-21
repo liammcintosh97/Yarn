@@ -67,6 +67,8 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
     CameraController cameraController;
     RadiusBar radiusBar;
 
+    //TODO fix refreash and focus on user buttons
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         /*This is run when the activity is created*/

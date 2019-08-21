@@ -1,6 +1,8 @@
 package com.example.liammc.yarn.authentication;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,14 +27,19 @@ public class PhoneAuthWindow extends YarnWindow {
     private static final int layoutID = R.layout.window_phone_sign_up;
     private Button sendPhoneCodeButton;
     private Button resendPhoneCodeButton;
-    private Button verifyPhoneButton;
-    private Button closePhoneAuthButton;
-    private EditText phoneCodeInput;
+    private View verifyLayout;
+    private Button verifyButton;
+    private EditText verifyCodeInput;
     private EditText phoneNumberInput;
     private CountryCodePicker countryCodePicker;
 
     PhoneAuthWindow(Activity _activity,ViewGroup _parent) {
         super(_activity,_parent,layoutID);
+        this.initUI(_activity);
+    }
+
+    PhoneAuthWindow(Activity _activity,ViewGroup _parent,double widthM, double heightM) {
+        super(_activity,_parent,layoutID,widthM,heightM);
         this.initUI(_activity);
     }
 
@@ -42,7 +49,8 @@ public class PhoneAuthWindow extends YarnWindow {
         /*This method initializes the Phone auth window UI*/
 
         //Get Phone Inputs
-        phoneCodeInput = getContentView().findViewById(R.id.phoneCodeInput);
+        verifyLayout = getContentView().findViewById(R.id.verifyLayout);
+        verifyCodeInput =  verifyLayout.findViewById(R.id.phoneCodeInput);
         phoneNumberInput = getContentView().findViewById(R.id.phoneNumberInput);
 
         //Get Country Code Picker
@@ -52,20 +60,19 @@ public class PhoneAuthWindow extends YarnWindow {
         initButtons(activity);
 
         //Initialize visibilities
-        phoneCodeInput.setVisibility(View.INVISIBLE);
-        verifyPhoneButton.setVisibility(View.INVISIBLE);
+        verifyLayout.setVisibility(View.INVISIBLE);
 
         sendPhoneCodeButton.setVisibility(View.VISIBLE);
         resendPhoneCodeButton.setVisibility(View.INVISIBLE);
+
     }
 
     private void initButtons(final Activity activity){
         /*This method initializes the phone auth buttons*/
 
         //Get Phone buttons
-        closePhoneAuthButton = getContentView().findViewById(R.id.closePhoneButton);
+        verifyButton =  verifyLayout.findViewById(R.id.verifyPhoneCodeButton);
         sendPhoneCodeButton = getContentView().findViewById(R.id.sendPhoneCodeButton);
-        verifyPhoneButton = getContentView().findViewById(R.id.verifyPhoneCodeButton);
         resendPhoneCodeButton = getContentView().findViewById(R.id.resendPhoneCodeButton);
 
         //Set up the listeners for all the buttons
@@ -83,14 +90,7 @@ public class PhoneAuthWindow extends YarnWindow {
             }
         });
 
-        closePhoneAuthButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnClosePhoneAuthPressed();
-            }
-        });
-
-        verifyPhoneButton.setOnClickListener(new View.OnClickListener() {
+        verifyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 OnVerifyPhonePressed(activity);
@@ -149,7 +149,7 @@ public class PhoneAuthWindow extends YarnWindow {
     private void OnVerifyPhonePressed(Activity activity) {
         /*Runs when the firebaseUser presses the verify phone number button*/
 
-        String code  = phoneCodeInput.getText().toString();
+        String code  = verifyCodeInput.getText().toString();
 
         try {
             //Validate the phone code
@@ -163,11 +163,6 @@ public class PhoneAuthWindow extends YarnWindow {
                     Toast.LENGTH_SHORT).show();
         }
     }
-
-    private void OnClosePhoneAuthPressed() {
-        /*Runs when the firebaseUser presses the close Phone Auth button*/
-        super.dismiss();
-    }
     //endregion
 
     //region Private Methods
@@ -175,8 +170,7 @@ public class PhoneAuthWindow extends YarnWindow {
     void ShowVerify() {
         /*Shows the UI needed to verify the phone number*/
 
-        phoneCodeInput.setVisibility(View.VISIBLE);
-        verifyPhoneButton.setVisibility(View.VISIBLE);
+        verifyLayout.setVisibility(View.VISIBLE);
     }
 
     void ShowResend() {

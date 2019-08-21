@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="searchRadiusFill">#1e0073ff</color>
-    <color name="searchRadiusStroke">#3c0073ff</color>
+    <color name="color_white">#F3F3F3</color>
+    <color name="color_red">#B71656</color>
+    <color name="color_transparent_background">#40311405</color>
+
+    <color name="color_primary_1">#1697B7</color>
+    <color name="color_primary_2">#30C3CD</color>
+
+    <color name="color_accent_1">#F3AD78</color>
+    <color name="color_accent_2">#E8804C</color>
+
+    <color name="search_radius_fill">#1e0073ff</color>
+    <color name="search_radius_stroke">#3c0073ff</color>
 </resources>

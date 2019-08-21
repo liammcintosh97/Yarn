@@ -45,6 +45,7 @@ public class SearchPlaceFinder{
     Button searchButton;
     CardView searchBar;
 
+    //TODO empty search breaks app
 
     List<Place.Field> placeFields;
     String country;

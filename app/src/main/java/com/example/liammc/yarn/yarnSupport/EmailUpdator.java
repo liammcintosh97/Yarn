@@ -30,8 +30,8 @@ public class EmailUpdator extends YarnWindow {
     Button submitButton;
     Button cancelButton;
 
-    public EmailUpdator(Activity _activity, ViewGroup _parent){
-        super(_activity,_parent,R.layout.window_email_updator);
+    public EmailUpdator(Activity _activity, ViewGroup _parent,double widthM, double heightM){
+        super(_activity,_parent,R.layout.window_email_updator,widthM,heightM);
 
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);

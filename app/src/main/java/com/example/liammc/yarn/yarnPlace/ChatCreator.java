@@ -34,6 +34,10 @@ public class ChatCreator extends YarnWindow {
     String localUserID;
     private YarnPlace yarnPlace;
 
+    //TODO stop users from creating chats in the past
+    //TODO limit users to selecting meet time ever hour or half past
+    //TODO limit user to selecting duration from a set list
+
     //UI
     TextView placeName;
     Button dateButton;
@@ -46,9 +50,10 @@ public class ChatCreator extends YarnWindow {
     public String chatPlaceName;
     public String chatPlaceAddress;
 
-    public ChatCreator(MapsActivity _mapsActivity,ViewGroup _parent, String localUserID, YarnPlace _yarnPlace) {
+    public ChatCreator(MapsActivity _mapsActivity,ViewGroup _parent, String localUserID,double widthM
+                       ,double heightM,YarnPlace _yarnPlace) {
 
-        super(_mapsActivity,_parent,R.layout.window_chat_creator);
+        super(_mapsActivity,_parent,R.layout.window_chat_creator,widthM,heightM);
 
         this.mapsActivity = _mapsActivity;
         this.localUserID = localUserID;

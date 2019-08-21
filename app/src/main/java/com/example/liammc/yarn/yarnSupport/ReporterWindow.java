@@ -24,14 +24,17 @@ public class ReporterWindow extends YarnWindow {
     private final YarnUser user;
     public final static int REPORT_REQUEST_CODE = 0;
 
+    //TODO Submitting user crashes
+
     //UI
     private final static int layoutID = R.layout.window_reporter;
     private EditText messageEditText;
     private Button submitButton;
     private Button cancelButton;
 
-    public ReporterWindow(Activity _activity, ViewGroup _parent, YarnUser _user){
-        super(_activity,_parent,layoutID);
+    public ReporterWindow(Activity _activity, ViewGroup _parent, YarnUser _user,double widthM
+            ,double heightM){
+        super(_activity,_parent,layoutID,widthM,heightM);
         this.user =  _user;
 
         this.initUI(_activity);

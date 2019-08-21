@@ -33,8 +33,8 @@ public class PasswordUpdater extends YarnWindow {
     private Button cancelButton;
 
 
-    public PasswordUpdater(Activity _activity, ViewGroup _parent){
-        super(_activity,_parent,layoutID);
+    public PasswordUpdater(Activity _activity, ViewGroup _parent,double widthM, double heightM){
+        super(_activity,_parent,layoutID,widthM,heightM);
 
         this.localUser =  LocalUser.getInstance();
         this.authenticator =  new Authenticator(this.localUser.firebaseAuth);

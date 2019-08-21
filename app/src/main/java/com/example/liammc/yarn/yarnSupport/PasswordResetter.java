@@ -24,9 +24,6 @@ import java.io.IOException;
 
 public class PasswordResetter extends YarnWindow {
     private static String TAG = "PasswordUpdater";
-    private LocalUser localUser;
-    private Authenticator authenticator;
-
     //UI
     private static final int layotuID  = R.layout.window_password_reset;
     EditText emailInput;
@@ -34,12 +31,8 @@ public class PasswordResetter extends YarnWindow {
     Button cancelButton;
 
 
-    public PasswordResetter(Activity _activity, ViewGroup _parent){
-        super(_activity,_parent,layotuID);
-
-        this.localUser =  LocalUser.getInstance();
-        this.authenticator =  new Authenticator(this.localUser.firebaseAuth);
-
+    public PasswordResetter(Activity _activity, ViewGroup _parent,double widthM,double heightM){
+        super(_activity,_parent,layotuID,widthM,heightM);
         this.initUI(_activity);
     }
 

@@ -1,12 +1,10 @@
 package com.example.liammc.yarn.userInput;
 
 import android.util.Log;
-import android.widget.SeekBar;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
-import com.example.liammc.yarn.interfaces.NearbyPlaceCallback;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -47,8 +45,8 @@ public class SearchRadius {
         circle = map.addCircle(new CircleOptions()
                 .center(localUser.lastLatLng)
                 .radius(localUser.SEARCH_RADIUS_DEFAULT)
-                .strokeColor(R.color.searchRadiusStroke)
-                .fillColor(R.color.searchRadiusFill));
+                .strokeColor(R.color.search_radius_stroke)
+                .fillColor(R.color.search_radius_fill));
 
     }
 

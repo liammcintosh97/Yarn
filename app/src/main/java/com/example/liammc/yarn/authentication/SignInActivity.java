@@ -27,7 +27,7 @@ public class SignInActivity extends AuthActivity {
         initUI();
 
         passwordResetter  = new PasswordResetter(this,
-                (ViewGroup) findViewById(R.id.mainConstraintLayout));
+                (ViewGroup) findViewById(R.id.mainConstraintLayout),0.75,0.75);
     }
 
 

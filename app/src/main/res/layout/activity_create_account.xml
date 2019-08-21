@@ -15,6 +15,7 @@
         android:layout_marginEnd="8dp"
         android:text="@string/app_name"
         android:textAlignment="center"
+        android:textColor="@color/color_accent_2"
         android:textSize="50sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -54,50 +55,50 @@
         app:layout_constraintTop_toBottomOf="@+id/signInTitle">
 
         <LinearLayout
-            android:id="@+id/inputs1"
-            android:layout_width="wrap_content"
+            android:id="@+id/profilePictureLayout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/tw__composer_tweet_btn_radius"
-            android:orientation="horizontal">
+            android:layout_margin="10dp"
+            android:layout_weight="@dimen/google_1x"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:id="@+id/profilePictureLayout"
+            <TextView
+                android:id="@+id/profilePicture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_gravity="center"
+                android:text="@string/profile_picture"
+                android:textSize="20sp" />
 
-                <TextView
-                    android:id="@+id/profilePicture"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:text="@string/createAccount_profilePictureHint"
-                    android:textSize="20sp" />
+            <ImageButton
+                android:id="@+id/profilePictureButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/button"
+                android:contentDescription="@string/createAccount_profilePictureDescription"
+                android:onClick="onProfilePictureButtonPress"
+                android:scaleType="fitXY"
+                android:src="@drawable/com_facebook_profile_picture_blank_square" />
+        </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/profilePictureButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_margin="10dp"
-                    android:contentDescription="@string/createAccount_profilePictureDescription"
-                    android:onClick="onProfilePictureButtonPress"
-                    tools:src="@tools:sample/avatars" />
-            </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="0.5"
                 android:orientation="vertical">
 
                 <EditText
                     android:id="@+id/userNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:ems="10"
                     android:hint="@string/createAccount_userNameHint"
                     android:inputType="textPersonName"
                     android:textSize="20sp" />
@@ -106,68 +107,65 @@
                     android:id="@+id/genderLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
+                    android:layout_marginTop="20dp"
                     android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/genderTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        android:text="@string/createAccount_genderHint"
+                        android:text="@string/gender"
                         android:textSize="20sp" />
 
                     <Spinner
                         android:id="@+id/genderSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_margin="10dp" />
+                        android:layout_marginTop="10dp" />
                 </LinearLayout>
             </LinearLayout>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/birthDateInput"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="@dimen/tw__composer_tweet_btn_radius"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/birthDate"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/birthDateInput"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="@string/createAccount_birthDateHint"
-                android:textSize="20sp" />
+                android:orientation="vertical">
 
-            <DatePicker
-                android:id="@+id/birthDatePicker"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1.0"
-                android:calendarViewShown="false"
-                android:datePickerMode="spinner"
-                android:endYear="2100"
-                android:orientation="vertical"
-                android:startYear="1900" />
+                <TextView
+                    android:id="@+id/birthDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/createAccount_birthDateHint"
+                    android:textSize="20sp" />
+
+                <DatePicker
+                    android:id="@+id/birthDatePicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:calendarViewShown="false"
+                    android:datePickerMode="spinner"
+                    android:endYear="2100"
+                    android:orientation="vertical"
+                    android:startYear="1900" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
 
     <Button
         android:id="@+id/createAccountButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginLeft="64dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginRight="64dp"
         android:layout_marginBottom="16dp"
+        android:background="@drawable/button_1"
         android:onClick="onCreateAccountButtonPress"
         android:text="@string/createAccount_button"
+        android:textColor="@color/color_white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

@@ -79,6 +79,8 @@ public class Chat
     public String chatLength;
     public Boolean chatActive = null;
 
+    //TODO Chat Activity not behaving correctly (See email from Jarred)
+
     //region Constructors
 
     public Chat(YarnPlace _place,HashMap<String, String> chatMap, ChatReadyListener _readyListener) {

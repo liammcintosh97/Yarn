@@ -79,6 +79,8 @@ public class YarnPlace {
     public Marker marker;
     PlacesClient placesClient;
 
+    //TODO system for removing marks from map
+
     //Misc
     private boolean yarnPlaceUpdaterReady = false;
 

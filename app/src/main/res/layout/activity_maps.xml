@@ -18,84 +18,81 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="1.0"
         tools:context=".core.MapsActivity" />
 
     <LinearLayout
         android:id="@+id/topInterface"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:orientation="vertical"
+        android:layout_marginRight="8dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        android:baselineAligned="false">
 
         <LinearLayout
-            android:id="@+id/searchLayout"
+            android:id="@+id/leftInterface"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:layout_weight="1.0"
+            android:orientation="vertical">
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/searchBar"
+            <LinearLayout
+                android:id="@+id/searchLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.25"
-                android:visibility="visible">
+                android:orientation="horizontal">
 
-                <fragment
-                    android:id="@+id/autocomplete_fragment"
-                    android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/searchBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:layout="@layout/places_autocomplete_search_bar" />
+                    android:layout_margin="2dp"
+                    android:layout_weight="0.25"
+                    android:visibility="visible">
 
-            </androidx.cardview.widget.CardView>
+                    <fragment
+                        android:id="@+id/autocomplete_fragment"
+                        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        tools:layout="@layout/places_autocomplete_search_bar" />
 
-            <Button
-                android:id="@+id/searchButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:onClick="onSearchButtonPressed"
-                android:text="@string/maps_searchButton"
-                android:visibility="gone" />
+                </androidx.cardview.widget.CardView>
 
-            <Button
-                android:id="@+id/whereToGo"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:onClick="onWhereToPressed"
-                android:text="@string/maps_whereToGoButton" />
+                <Button
+                    android:id="@+id/searchButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="2dp"
+                    android:layout_weight="0.5"
+                    android:onClick="onSearchButtonPressed"
+                    android:text="@string/search_button"
+                    android:visibility="gone" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/buttonBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="396dp">
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/radius"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.25"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="0.5"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/textView6"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:layout_marginLeft="2dp"
                     android:layout_weight="0"
-                    android:paddingTop="15dp"
+                    android:gravity="center"
                     android:text="@string/maps_100m"
                     android:textAlignment="center" />
 
@@ -103,47 +100,77 @@
                     android:id="@+id/radiusBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.25"
-                    android:paddingTop="15dp" />
+                    android:layout_gravity="center"
+                    android:layout_weight="1.0"
+                    android:thumbTint="@color/color_primary_2"/>
 
                 <TextView
                     android:id="@+id/textView7"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="2dp"
                     android:layout_weight="0"
-                    android:paddingTop="15dp"
+                    android:gravity="center"
                     android:text="@string/maps_10km"
                     android:textAlignment="center" />
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/refreashButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.80"
-                android:onClick="onRefreshButtonPressed"
-                app:srcCompat="@android:drawable/stat_notify_sync_noanim"
-                tools:layout_marginRight="0dp" />
-
-            <ImageButton
-                android:id="@+id/focusOnUserButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.80"
-                android:onClick="onFocusOnUserPressed"
-                app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/rightInterface"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.7"
+            android:orientation="vertical">
 
+            <Button
+                android:id="@+id/whereToGo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:background="@drawable/button"
+                android:onClick="onWhereToPressed"
+                android:text="@string/maps_whereToGoButton"
+                android:textColor="@color/color_white" />
+
+            <LinearLayout
+                android:id="@+id/others"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="2dp"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/refreashButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="2dp"
+                    android:layout_weight="0.5"
+                    android:background="@drawable/button_1"
+                    android:onClick="onRefreshButtonPressed"
+                    android:src="@android:drawable/stat_notify_sync_noanim" />
+
+                <ImageButton
+                    android:id="@+id/focusOnUserButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dp"
+                    android:layout_weight="0.5"
+                    android:background="@drawable/button_1"
+                    android:onClick="onFocusOnUserPressed"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayout2"
+        android:id="@+id/buttonBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@android:color/background_light"
+        android:background="@color/color_white"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -158,7 +185,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="3"
             android:onClick="onAccountPressed"
-            android:text="@string/map_accountButton" />
+            android:text="@string/map_accountButton"
+            android:textColor="@color/color_primary_2" />
 
         <Button
             android:id="@+id/notificationsButton"
@@ -167,7 +195,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:onClick="onNotificationsPressed"
-            android:text="@string/notifications_button" />
+            android:text="@string/notifications_button"
+            android:textColor="@color/color_primary_2" />
 
         <Button
             android:id="@+id/chatPlannerButton"
@@ -177,7 +206,8 @@
             android:layout_weight="1"
             android:onClick="onChatPlannerPressed"
             android:text="@string/map_chatPlannerButton"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textColor="@color/color_primary_2" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

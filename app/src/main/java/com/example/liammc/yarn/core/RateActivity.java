@@ -42,6 +42,13 @@ public class RateActivity extends YarnActivity {
     }
 
     @Override
+    protected void onStop(){
+        super.onStop();
+
+        onSubmitRatingPressed(null);
+    }
+
+    @Override
     public void onBackPressed() {
         if(reporterWindow.isShowing()){
             reporterWindow.dismiss();
@@ -66,7 +73,7 @@ public class RateActivity extends YarnActivity {
         otherUser =  chat.getOtherUser();
 
         reporterWindow =  new ReporterWindow(this,(ViewGroup)findViewById(R.id.mainLayout)
-                ,otherUser);
+                ,otherUser,0.75,0.75);
 
         socialPoster =  new SocialPoster(this);
     }
@@ -79,6 +86,7 @@ public class RateActivity extends YarnActivity {
 
         ratingBar.setMax(5);
         ratingBar.setNumStars(5);
+        ratingBar.setRating(5);
         profilePicture.setImageBitmap(otherUser.profilePicture);
         userName.setText(otherUser.userName);
     }

@@ -44,6 +44,9 @@ public class InfoWindow extends YarnWindow {
     public ScrollView chatScrollView;
     public LinearLayout chatScrollViewElements;
 
+    //TODO make infowindow go behind other UI elements
+    //TODO make infowindow clip behind screen
+
     public InfoWindow(MapsActivity _mapsActivity, ViewGroup _parent, YarnPlace _yarnPlace){
         super(_mapsActivity,_parent,layoutID,0.6,0.5);
 
@@ -51,7 +54,8 @@ public class InfoWindow extends YarnWindow {
         this.yarnPlace = _yarnPlace;
 
         this.chatCreator =  new ChatCreator(mapsActivity,(ViewGroup)mapsActivity
-                .findViewById(R.id.constraintLayout),LocalUser.getInstance().userID,yarnPlace);
+                .findViewById(R.id.constraintLayout),LocalUser.getInstance().userID,0.9
+                ,0.9,yarnPlace);
 
         this.initUI();
     }

@@ -3,22 +3,25 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/element0"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/colorPrimaryDark">
+    android:layout_height="wrap_content">
 
     <LinearLayout
         android:id="@+id/contents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:background="@color/colorPrimaryDark">
+        android:background="@color/color_primary_2">
 
         <Button
             android:id="@+id/chatDetails"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_weight="0.5"
-            android:text="@string/chatPlanner_chatWindow_default_text" />
+            android:text="@string/chatPlanner_chatWindow_default_text"
+            android:textColor="@color/color_white"
+            android:textSize="10sp" />
 
         <LinearLayout
             android:id="@+id/people"
@@ -31,6 +34,7 @@
                 android:id="@+id/hostImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginBottom="1dp"
                 android:layout_weight="0.5"
                 app:srcCompat="@drawable/com_facebook_profile_picture_blank_square" />
 
@@ -49,8 +53,10 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="0.1"
+            android:background="@drawable/button_2"
             android:text="@string/chatPlanner_cancelChat_button"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/color_white"
+            android:textSize="10sp" />
 
     </LinearLayout>
 

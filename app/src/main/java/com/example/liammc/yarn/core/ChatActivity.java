@@ -3,13 +3,13 @@ package com.example.liammc.yarn.core;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.CountDownTimer;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.R;
@@ -18,8 +18,6 @@ import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.chats.ChatLogger;
 import com.example.liammc.yarn.interfaces.ReadyListener;
-import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.utility.DateTools;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 
@@ -40,7 +38,7 @@ public class ChatActivity extends YarnActivity {
     private TextView ageTextView;
     private TextView genderTextview;
     private ImageView personImageView;
-    private ViewGroup stars;
+    private RatingBar ratingBar;
 
     private TextView placeTitleTextView;
     private ImageView placeImageView;
@@ -53,6 +51,8 @@ public class ChatActivity extends YarnActivity {
     private TextView messageTextView;
     private Button startButton;
     private ViewGroup buttonBar;
+
+    //TODO fix formatting of meeting time
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +79,7 @@ public class ChatActivity extends YarnActivity {
         ageTextView = personInfo.findViewById(R.id.ageValue);
         genderTextview =  personInfo.findViewById(R.id.genderValue);
         personImageView =  personInfo.findViewById(R.id.profilePicture);
-        stars = personInfo.findViewById(R.id.stars);
+        ratingBar = personInfo.findViewById(R.id.ratingBar);
 
         placeTitleTextView = findViewById(R.id.placeTitle);
         placeImageView =  findViewById(R.id.placeImage);
@@ -173,7 +173,7 @@ public class ChatActivity extends YarnActivity {
         if(!currentChat.hostUser.userID.equals(localUser.userID)) otherUser = currentChat.hostUser;
         else otherUser = currentChat.guestUser;
 
-        if(!currentChat.chatActive) personInfo.setVisibility(View.INVISIBLE);
+        if(!currentChat.chatActive) personInfo.setVisibility(View.GONE);
 
         if(otherUser != null ){
             otherUser.setReadyListener(new ReadyListener() {
@@ -188,7 +188,7 @@ public class ChatActivity extends YarnActivity {
                         genderTextview.setText(otherUser.gender);
 
                         personImageView.setImageBitmap(otherUser.profilePicture);
-                        setStars();
+                        setRatingBar();
                         startChat();
                     }
                 }
@@ -274,18 +274,11 @@ public class ChatActivity extends YarnActivity {
 
     //region Private Methods
 
-    private void setStars(){
+    private void setRatingBar(){
         /*This method sets all the starts to match the other user's meanRating*/
 
-        //Set all the starts to invisible
-        for(int i = 0; i < stars.getChildCount(); i++){
-            stars.getChildAt(i).setVisibility(View.INVISIBLE);
-        }
-
-        //Set the stars to match the meanRating of thr user
-        for(int i = 0; i < otherUser.meanRating; i++){
-            stars.getChildAt(i).setVisibility(View.VISIBLE);
-        }
+        ratingBar.setMax(5);
+        ratingBar.setNumStars((int)localUser.meanRating);
     }
 
     private void startChat(){

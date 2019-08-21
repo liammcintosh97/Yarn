@@ -130,7 +130,7 @@
 
     //Chat Creator
     <string name="chatCreator_create_button">Create</string>
-    <string name="chatCreator_place_discription">Create a chat here? -  </string>
+    <string name="chatCreator_place_discription">Create a chat here?</string>
     <string name="chatCreator_duration_button">Duration</string>
 
     //Yarn Place Info

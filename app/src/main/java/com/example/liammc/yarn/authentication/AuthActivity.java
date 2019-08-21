@@ -96,7 +96,7 @@ public class AuthActivity extends AppCompatActivity {
 
         parentViewGroup = findViewById(R.id.mainConstraintLayout);
 
-        mPhoneAuthWindow = new PhoneAuthWindow(this,parentViewGroup);
+        mPhoneAuthWindow = new PhoneAuthWindow(this,parentViewGroup,0.75,0.75);
         mPhoneAuth.window = mPhoneAuthWindow;
         mPhoneAuthWindow.auth = mPhoneAuth;
     }

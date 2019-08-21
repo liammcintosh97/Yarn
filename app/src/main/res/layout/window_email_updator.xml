@@ -3,71 +3,59 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
-    android:orientation="vertical" >
+    android:background="@drawable/button_1"
+    android:orientation="vertical">
+
+    <ImageButton
+        android:id="@+id/closebutton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/button_2"
+        android:scaleType="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     <TextView
-        android:id="@+id/textView8"
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
+
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
         android:text="@string/update_email_button"
-        android:textColor="@color/browser_actions_bg_grey"
-        android:textSize="50sp"
+        android:textColor="@color/color_white"
+        android:textSize="34sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/closebutton"
         app:layout_constraintVertical_bias="0.0" />
 
     <LinearLayout
-        android:id="@+id/buttonBar"
-        style="?android:attr/buttonBarStyle"
+        android:id="@+id/linearLayout4"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/browser_actions_bg_grey"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/submitButton"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/submit_button" />
-
-        <Button
-            android:id="@+id/cancelButton"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/cancel_button" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginLeft="64dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginRight="64dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/buttonBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView8">
+        app:layout_constraintTop_toBottomOf="@+id/title">
 
         <LinearLayout
             android:id="@+id/passwordLayout"
@@ -83,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:text="@string/password"
-                android:textColor="@color/browser_actions_bg_grey"
+                android:textColor="@color/color_white"
                 android:textSize="24sp" />
 
             <EditText
@@ -92,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPassword"
-                android:textColor="@color/browser_actions_bg_grey" />
+                android:textColor="@color/color_white" />
         </LinearLayout>
 
         <LinearLayout
@@ -108,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:text="@string/email_update_newEmailInput"
-                android:textColor="@color/browser_actions_bg_grey"
+                android:textColor="@color/color_white"
                 android:textSize="24sp" />
 
             <EditText
@@ -117,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPassword|textEmailAddress"
-                android:textColor="@color/browser_actions_bg_grey" />
+                android:textColor="@color/color_white" />
 
         </LinearLayout>
 
@@ -134,7 +122,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:text="@string/email_update_confirmNewEmailInput"
-                android:textColor="@color/browser_actions_bg_grey"
+                android:textColor="@color/color_white"
                 android:textSize="24sp" />
 
             <EditText
@@ -143,8 +131,42 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:inputType="textPassword|textEmailAddress"
-                android:textColor="@color/browser_actions_bg_grey" />
+                android:textColor="@color/color_white" />
         </LinearLayout>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonBar"
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@color/color_white"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
+        app:layout_constraintVertical_bias="1.0">
+
+        <Button
+            android:id="@+id/submitButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/submit_button"
+            android:textColor="@color/color_accent_1" />
+
+        <Button
+            android:id="@+id/cancelButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancel_button"
+            android:textColor="@color/color_accent_1" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

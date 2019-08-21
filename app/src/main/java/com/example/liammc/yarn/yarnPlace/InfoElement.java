@@ -120,6 +120,7 @@ public class InfoElement {
         chat.acceptChat(infoWindow.mapsActivity, LocalUser.getInstance());
         Recorder.getInstance().recordChat(chat);
         infoWindow.dismiss();
+        onPressedChat(null);
     }
 
     private void onPressedChat(View view){

@@ -37,6 +37,8 @@ public class CreateAccountActivity extends YarnActivity {
 
     private String[] genderOptions = new String[]{"Male", "Female", "Rather not say"};
 
+    //TODO create date picker dialog
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

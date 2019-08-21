@@ -25,8 +25,8 @@ public class SupportWindow extends YarnWindow {
     Button cancelButton;
 
 
-    public SupportWindow(Activity _activity, ViewGroup _parent){
-        super(_activity,_parent,layoutID);
+    public SupportWindow(Activity _activity, ViewGroup _parent,double widthM, double heightM){
+        super(_activity,_parent,layoutID,widthM,heightM);
 
         this.mailer =  new Mailer("Yarn Support Case " + UUID.randomUUID().toString());
         this.initUI(_activity);

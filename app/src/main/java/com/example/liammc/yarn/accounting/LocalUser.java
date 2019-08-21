@@ -47,11 +47,6 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
         types.add(PlaceType.RESTAURANT);
     }
 
-    public static LocalUser getInstance(Activity _activity){
-        instance.activity = _activity;
-        return instance;
-    }
-
     public static LocalUser getInstance(){ return instance; }
     //endregion
 
