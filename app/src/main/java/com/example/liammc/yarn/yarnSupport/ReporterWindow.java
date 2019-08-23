@@ -24,7 +24,6 @@ public class ReporterWindow extends YarnWindow {
     private final YarnUser user;
     public final static int REPORT_REQUEST_CODE = 0;
 
-    //TODO Submitting user crashes
 
     //UI
     private final static int layoutID = R.layout.window_reporter;

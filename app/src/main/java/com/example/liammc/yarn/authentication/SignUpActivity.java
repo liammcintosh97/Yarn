@@ -19,6 +19,8 @@ public class SignUpActivity extends AuthActivity {
     EditText phoneNumberInput;
     EditText codeInput;
 
+    //TODO Error that allows you to bypass sign up sequence
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

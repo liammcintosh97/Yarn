@@ -53,6 +53,7 @@ public class ChatActivity extends YarnActivity {
     private ViewGroup buttonBar;
 
     //TODO fix formatting of meeting time
+    //TODO Add a Yarn Wave
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

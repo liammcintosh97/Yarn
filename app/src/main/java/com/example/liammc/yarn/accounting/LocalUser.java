@@ -41,10 +41,10 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     private LocalUser(){
         searchRadius =  SEARCH_RADIUS_DEFAULT;
 
-        types.add(PlaceType.BAR);
-        types.add(PlaceType.CAFE);
-        types.add(PlaceType.NIGHT_CLUB);
-        types.add(PlaceType.RESTAURANT);
+        types[0] = PlaceType.BAR;
+        types[1] = PlaceType.CAFE;
+        types[2] = PlaceType.NIGHT_CLUB;
+        types[3] = PlaceType.RESTAURANT;
     }
 
     public static LocalUser getInstance(){ return instance; }
@@ -62,7 +62,7 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
     private final String TAG = "Local User";
     private Activity activity;
-    public ArrayList<String> types = new ArrayList<>();
+    public String[] types = new String[4];
 
     //Local User Location;
     OnLocationChangedListener locationChangedListener;
@@ -91,10 +91,10 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
     //region Init
 
     public void initTypes(){
-        types.add(PlaceType.CAFE);
-        types.add(PlaceType.BAR);
-        types.add(PlaceType.RESTAURANT);
-        types.add(PlaceType.NIGHT_CLUB);
+        types[0] = (PlaceType.CAFE);
+        types[1] = (PlaceType.BAR);
+        types[2] = (PlaceType.RESTAURANT);
+        types[3] = (PlaceType.NIGHT_CLUB);
     }
 
     public void initUserLocation(Activity activity) {

@@ -9,8 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.PopupWindow;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.utility.CompatibilityTools;
@@ -19,13 +22,18 @@ public class YarnWindow extends PopupWindow {
     //This is the parent class for all popup windows in the Yarn application
 
     private ViewGroup parent;
+    private FrameLayout parentForeground;
     private ImageButton closeButton;
+    private Activity activity;
+
+    //TODO faded background 
 
     public YarnWindow(Activity _activity, ViewGroup _parent,int _layoutID,double _widthM
             ,double _heightM){
 
         super(initMainView(_layoutID,_activity,_parent), initWidth(_activity,_widthM)
                 ,initHeight(_activity,_heightM),true);
+        this.activity = _activity;
         this.initWindow();
         this.initCloseButton();
         this.parent =  _parent;
@@ -35,6 +43,7 @@ public class YarnWindow extends PopupWindow {
 
         super(initMainView(_layoutID,_activity,_parent),ViewGroup.LayoutParams.MATCH_PARENT
                 ,ViewGroup.LayoutParams.MATCH_PARENT,true);
+        this.activity =  _activity;
         this.initWindow();
         this.parent =  _parent;
     }
@@ -98,6 +107,11 @@ public class YarnWindow extends PopupWindow {
     public void show(int gravity) {
         //This method shows the window relative to the parent view
         if(!isShowing()) showAtLocation(parent, gravity, 0, 0);
+    }
+
+    @Override
+    public void dismiss(){
+        super.dismiss();
     }
 
     //endregion

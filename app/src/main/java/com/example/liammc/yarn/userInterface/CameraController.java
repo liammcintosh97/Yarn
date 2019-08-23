@@ -1,14 +1,11 @@
-package com.example.liammc.yarn.userInput;
+package com.example.liammc.yarn.userInterface;
 
 
 
 import android.view.Gravity;
 
 import com.example.liammc.yarn.accounting.LocalUser;
-import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -24,25 +21,24 @@ public class CameraController {
     private LocalUser localUser;
     private RadiusBar radiusBar;
 
-    public CameraController(GoogleMap _mMap,RadiusBar _radiusBar){
+    public CameraController(GoogleMap _mMap){
         this.mMap = _mMap;
-        this.radiusBar = _radiusBar;
         this.localUser = LocalUser.getInstance();
     }
 
+    //region Init Methods
+
+    public void init(RadiusBar r){
+        radiusBar = r;
+    }
+
+    //endregion
+
     //region Public Methods
 
-    public void focusOnUser(MapsActivity mapsActivity){
+    public void focusOnUser(LatLng latLng){
 
-        FusedLocationProviderClient mFusedLocationProviderClient
-                = LocationServices.getFusedLocationProviderClient(mapsActivity);
-
-        localUser.getUserLocation(mapsActivity, mFusedLocationProviderClient, new LocalUser.locationReceivedListener() {
-            @Override
-            public void onLocationReceived(LatLng latLng) {
-                if(radiusBar != null) moveToLatLng(latLng, (int)radiusBar.calculateCameraZoom());
-            }
-        });
+        if(radiusBar != null) moveToLatLng(latLng, (int)radiusBar.calculateCameraZoom());
     }
 
     public void focusOnYarnPlace(YarnPlace yarnPlace){

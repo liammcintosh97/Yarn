@@ -207,14 +207,16 @@ public class YarnPlace {
                 final Place place = fetchPlaceResponse.getPlace();
 
                 // Get the photo metadata.
-                PhotoMetadata photoMetadata = place.getPhotoMetadatas().get(0);
-                List<PhotoMetadata> datas = place.getPhotoMetadatas();
+                List<PhotoMetadata> photoMetadata = place.getPhotoMetadatas();
+
+                //TODO case if photo cant be found
+                if(photoMetadata == null) return;
 
                 // Get the attribution text.
-                String attributions = photoMetadata.getAttributions();
+                String attributions = photoMetadata.get(0).getAttributions();
 
                 // Create a FetchPhotoRequest.
-                FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata)
+                FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata.get(0))
                         .build();
 
                 placesClient.fetchPhoto(photoRequest).addOnSuccessListener(new OnSuccessListener<FetchPhotoResponse>() {

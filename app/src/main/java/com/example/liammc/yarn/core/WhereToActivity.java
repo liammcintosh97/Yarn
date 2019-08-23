@@ -4,9 +4,13 @@ import android.app.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -17,10 +21,12 @@ import com.example.liammc.yarn.finders.NearbyPlaceFinder;
 import com.example.liammc.yarn.interfaces.NearbyPlaceCallback;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.userInterface.LoadingSymbol;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class WhereToActivity extends YarnActivity {
@@ -41,7 +47,10 @@ public class WhereToActivity extends YarnActivity {
     CheckBox cafeCheckBox;
     CheckBox restaurantCheckBox;
     CheckBox nightClubCheckBox;
+    LoadingSymbol loadingSymbol;
 
+    //TODO list places by closest order
+    //TODO check for duplicates
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +67,7 @@ public class WhereToActivity extends YarnActivity {
 
     private void initUI(){
         searchButton = findViewById(R.id.searchButton);
+        loadingSymbol = new LoadingSymbol(this);
 
         scrollViewElements = findViewById(R.id.elements);
         scrollViewElements.removeAllViews();
@@ -66,6 +76,7 @@ public class WhereToActivity extends YarnActivity {
         initTypes();
         clearElements();
     }
+
 
     private void initCheckBoxes() {
         /*Initializes the Check Boxes*/
@@ -149,7 +160,7 @@ public class WhereToActivity extends YarnActivity {
 
                 addYarnPlaces(placeMaps);
                 if (nextPageToken != null) finder.getPlacesNextPage(nextPageToken);
-                else if (checkReady()) searchButton.setEnabled(true);
+                else if (checkReady()) showResults();
             }
 
             @Override
@@ -157,7 +168,7 @@ public class WhereToActivity extends YarnActivity {
                 /*This is called when the Nearby Place Finder doesn't find any places */
                 if (checkReady()){
                     Toast.makeText(activity,message,Toast.LENGTH_LONG).show();
-                    searchButton.setEnabled(true);
+                    showResults();
                 }
             }
         };
@@ -167,25 +178,28 @@ public class WhereToActivity extends YarnActivity {
         /*Initializes the Nearby By Place Finder*/
 
         cafeFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_web_API_key), (int)localUser.searchRadius, finderCallback);
 
         barFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_web_API_key), (int)localUser.searchRadius, finderCallback);
 
         resturantFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_web_API_key), (int)localUser.searchRadius, finderCallback);
 
         nightClubFinder = new NearbyPlaceFinder(
-                getResources().getString(R.string.Yarn_API_Key), (int)localUser.searchRadius, finderCallback);
+                getResources().getString(R.string.Yarn_web_API_key), (int)localUser.searchRadius, finderCallback);
     }
 
     private void initTypes(){
 
-        for(String type: localUser.types){
-            if(type.equals(PlaceType.CAFE)) cafeCheckBox.setChecked(true);
-            if(type.equals(PlaceType.RESTAURANT)) restaurantCheckBox.setChecked(true);
-            if(type.equals(PlaceType.BAR)) barCheckBox.setChecked(true);
-            if(type.equals(PlaceType.NIGHT_CLUB)) nightClubCheckBox.setChecked(true);
+        String[] userTypes = localUser.types;
+
+        for(int i = 0; i < userTypes.length; i++){
+
+            if(userTypes[i].equals(PlaceType.CAFE)) cafeCheckBox.setChecked(true);
+            else if(userTypes[i].equals(PlaceType.RESTAURANT)) restaurantCheckBox.setChecked(true);
+            else if(userTypes[i].equals(PlaceType.BAR)) barCheckBox.setChecked(true);
+            else if(userTypes[i].equals(PlaceType.NIGHT_CLUB)) nightClubCheckBox.setChecked(true);
         }
     }
 
@@ -199,7 +213,7 @@ public class WhereToActivity extends YarnActivity {
 
         initFinders();
 
-        searchButton.setEnabled(false);
+        showLoading();
 
         if(cafeCheckBox.isChecked()){
             cafeFinder.getNearbyPlaces(PlaceType.CAFE);
@@ -243,13 +257,14 @@ public class WhereToActivity extends YarnActivity {
 
     private void updateUserTypes(){
 
-        ArrayList<String> types = localUser.types;
-        types.clear();
+        String[] newUserTypes = new String[4];
 
-        if(cafeCheckBox.isChecked()) types.add(PlaceType.CAFE);
-        if(barCheckBox.isChecked()) types.add(PlaceType.BAR);
-        if(restaurantCheckBox.isChecked()) types.add(PlaceType.RESTAURANT);
-        if(nightClubCheckBox.isChecked()) types.add(PlaceType.NIGHT_CLUB);
+        if(cafeCheckBox.isChecked()) newUserTypes[0] = PlaceType.CAFE;
+        if(barCheckBox.isChecked()) newUserTypes[1] = PlaceType.BAR;
+        if(restaurantCheckBox.isChecked()) newUserTypes[2] = PlaceType.RESTAURANT;
+        if(nightClubCheckBox.isChecked()) newUserTypes[3] = PlaceType.NIGHT_CLUB;
+
+        localUser.types =  newUserTypes;
     }
 
     private boolean removePlace(String placeID){
@@ -286,5 +301,18 @@ public class WhereToActivity extends YarnActivity {
         return false;
     }
 
+    private void showLoading(){
+        searchButton.setClickable(false);
+        searchButton.setEnabled(false);
+        scrollViewElements.setVisibility(View.INVISIBLE);
+        loadingSymbol.start();
+    }
+
+    private void showResults(){
+        searchButton.setClickable(true);
+        searchButton.setEnabled(true);
+        scrollViewElements.setVisibility(View.VISIBLE);
+        loadingSymbol.stop();
+    }
     //endregion
 }

@@ -13,18 +13,21 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.finders.NearbyChatFinder;
 import com.example.liammc.yarn.finders.SearchPlaceFinder;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.interfaces.ReadyListener;
-import com.example.liammc.yarn.userInput.CameraController;
-import com.example.liammc.yarn.userInput.RadiusBar;
-import com.example.liammc.yarn.userInput.SearchRadius;
+import com.example.liammc.yarn.userInterface.CameraController;
+import com.example.liammc.yarn.userInterface.LoadingSymbol;
+import com.example.liammc.yarn.userInterface.RadiusBar;
+import com.example.liammc.yarn.userInterface.SearchRadius;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -62,12 +65,11 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
     //User Interaction
     YarnPlace touchedYarnPlace;
 
-    //User Input
+    //UI
     public SearchRadius searchRadius;
     CameraController cameraController;
     RadiusBar radiusBar;
-
-    //TODO fix refreash and focus on user buttons
+    LoadingSymbol loadingSymbol;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,10 +118,14 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
         initUpNearByChatFinder();
         initUpSearchPlaceFinder();
 
-        //Initialize User Input
-        cameraController =  new CameraController(mMap,radiusBar);
+        //Initialize UI
         searchRadius = new SearchRadius(mMap,nearbyChatFinder);
-        radiusBar =  new RadiusBar(this,cameraController,searchRadius);
+        radiusBar =  new RadiusBar(this,searchRadius);
+        cameraController =  new CameraController(mMap);
+        loadingSymbol =  new LoadingSymbol(this);
+
+        radiusBar.init(cameraController);
+        cameraController.init(radiusBar);
 
         //Initialize the Map UI
         initMapUI();
@@ -367,21 +373,34 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
     public void onRefreshButtonPressed(View view) {
         /*This method is run when the firebaseUser presses the refresh button*/
 
-        if(localUser.lastLocation != null)
-        {
-            searchRadius.update(localUser.searchRadius,localUser.lastLatLng);
-
-            //Get the chats with the selected types
-            nearbyChatFinder.getNearbyChats(localUser.types);
-            nearbyChatFinder.initNearbyChatsListener(localUser.types);
-            Log.d(TAG,"Getting near by chats");
+        if(localUser.lastLocation == null){
+            localUser.getUserLocation(this, new FusedLocationProviderClient(this)
+                    , new LocalUser.locationReceivedListener() {
+                @Override
+                public void onLocationReceived(LatLng latLng) {
+                    refreashButtonResult();
+                }
+            });
         }
+        else refreashButtonResult();
     }
 
     public void onFocusOnUserPressed(View view) {
         /*Focus the camera on the firebaseUser*/
 
-        cameraController.focusOnUser(this);
+        final MapsActivity mapsActivity = this;
+
+        if(localUser.lastLatLng == null){
+            localUser.getUserLocation(this, new FusedLocationProviderClient(this)
+                    , new LocalUser.locationReceivedListener() {
+                        @Override
+                        public void onLocationReceived(LatLng latLng) {
+                            cameraController.focusOnUser(latLng);
+                        }
+                    });
+        }
+        else cameraController.focusOnUser(localUser.lastLatLng);
+
     }
 
     public void onChatPlannerPressed(View view) {
@@ -505,6 +524,8 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
         final YarnPlace yarnPlace = new YarnPlace(placeMap);
         yarnPlace.init(this,geocoder);
 
+        loadingSymbol.start();
+
         yarnPlace.setReadyListener(new ReadyListener() {
             @Override
             public void onReady() {
@@ -529,6 +550,8 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
                     touchedYarnPlace = yarnPlace;
                     cameraController.focusOnYarnPlace(yarnPlace);
                 }
+
+                loadingSymbol.stop();
             }
         });
 
@@ -620,6 +643,14 @@ public class MapsActivity extends YarnActivity implements OnMapReadyCallback {
         }
     }
 
+    private void refreashButtonResult(){
+        searchRadius.update(localUser.searchRadius,localUser.lastLatLng);
+
+        //Get the chats with the selected types
+        nearbyChatFinder.getNearbyChats(localUser.types);
+        nearbyChatFinder.initNearbyChatsListener(localUser.types);
+        Log.d(TAG,"Getting near by chats");
+    }
     //endregion
 
 }

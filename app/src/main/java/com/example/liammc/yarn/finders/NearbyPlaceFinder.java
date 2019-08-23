@@ -71,21 +71,23 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
     protected void onPostExecute(String s){
         /*This is want runs after the task has been completed*/
 
-        //get the type from the returned string
-        String type =  extractType(s);
+        if(!isCancelled()){
+            //get the type from the returned string
+            String type =  extractType(s);
 
-        //Parse the returned string into a readable format
-        PlaceDataParser parser = new PlaceDataParser();
-        List<HashMap<String, String>> nearbyPlaceList = parser.parse(s,type);
+            //Parse the returned string into a readable format
+            PlaceDataParser parser = new PlaceDataParser();
+            List<HashMap<String, String>> nearbyPlaceList = parser.parse(s,type);
 
-        //Return the result to the listener
-        if(nearbyPlaceList != null) {
-            done = true;
-            listener.onFoundPlaces(this,nextPageToken,nearbyPlaceList);
-        }
-        else{
-            done = true;
-            listener.onNoPlacesFound("No places were found");
+            //Return the result to the listener
+            if(nearbyPlaceList != null) {
+                done = true;
+                listener.onFoundPlaces(this,nextPageToken,nearbyPlaceList);
+            }
+            else{
+                done = true;
+                listener.onNoPlacesFound("No places were found");
+            }
         }
     }
     //endregion
@@ -100,16 +102,26 @@ public  class NearbyPlaceFinder extends AsyncTask<Object, String, String> {
 
     public void getPlacesNextPage(String nextPageToken) {
         /*Gets the nearby places on the next page of the results */
-        if(getStatus() == Status.RUNNING) cancel(true);
-        execute(buildNextPageTransfer(nextPageToken));
-        done = false;
+        if(getStatus() == Status.RUNNING){
+            cancel(true);
+            done = true;
+        }
+        else{
+            execute(buildNextPageTransfer(nextPageToken));
+            done = false;
+        }
     }
 
     public void getNearbyPlaces(String type) {
         /*Gets the nearby places*/
-        if(getStatus() == Status.RUNNING) cancel(true);
-        execute(buildTransfer(type));
-        done = false;
+        if(getStatus() == Status.RUNNING){
+            cancel(true);
+            done = true;
+        }
+        else {
+            execute(buildTransfer(type));
+            done = false;
+        }
     }
 
     //endregion

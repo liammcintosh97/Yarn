@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE =1;
     private SharedPreferences prefs = null;
 
+    //TODO internet check
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         /*Runs when the activity is created*/

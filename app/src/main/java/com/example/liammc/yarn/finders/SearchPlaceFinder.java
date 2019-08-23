@@ -45,8 +45,6 @@ public class SearchPlaceFinder{
     Button searchButton;
     CardView searchBar;
 
-    //TODO empty search breaks app
-
     List<Place.Field> placeFields;
     String country;
     TypeFilter typeFilter =  TypeFilter.ESTABLISHMENT;
@@ -104,6 +102,7 @@ public class SearchPlaceFinder{
         autocompleteSupportFragment.setPlaceFields(placeFields);
         autocompleteSupportFragment.setCountry(country);
         autocompleteSupportFragment.setTypeFilter(typeFilter);
+
 
         initSelectionListener();
     }

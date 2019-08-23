@@ -52,7 +52,7 @@ public class NearbyChatFinder {
     //region Init
     /*This region contains all the initializations methods required by the Nearby Chat Finder*/
 
-    public void initNearbyChatsListener(final ArrayList<String> types){
+    public void initNearbyChatsListener(final String[] types){
         /*Initializes the Nearby Chat Listener. This method listens to changes in the database on
         * an admin area level eg(Victoria). If there are any children added,changed,removed,moved
         * or canceled the application will adjust to changes*/
@@ -100,7 +100,7 @@ public class NearbyChatFinder {
 
     //region Public Methods
 
-    public void getNearbyChats(ArrayList<String> types) {
+    public void getNearbyChats(String[] types) {
         /*Gets the nearby chats to the firebaseUser*/
 
         requestNearbyChats(types).addOnCompleteListener(new OnCompleteListener<String>() {
@@ -185,7 +185,7 @@ public class NearbyChatFinder {
         return placeMaps;
     }
 
-    private void parseFoundChat(DataSnapshot dataSnapshot,final ArrayList<String> types){
+    private void parseFoundChat(DataSnapshot dataSnapshot,final String[] types){
         /*Takes the data snapshot and returns a place map to the firebaseUser if it is within their radius*/
 
         DataSnapshot placeInfo = dataSnapshot.child(YarnPlace.PLACE_INFO_REF);
@@ -230,7 +230,7 @@ public class NearbyChatFinder {
         }
     }
 
-    private Task<String> requestNearbyChats(ArrayList<String> types) {
+    private Task<String> requestNearbyChats(String[] types) {
         /*Calls the Firebase cloud function for getting nearby chats*/
 
         Log.d(TAG,"Getting nearby chats");
@@ -249,19 +249,19 @@ public class NearbyChatFinder {
                 });
     }
 
-    private boolean checkTypeEquality(String placeType, ArrayList<String> types) {
+    private boolean checkTypeEquality(String placeType, String[] types) {
         /*Checks if one of the types in the list matches the passed type*/
 
-        for(int i = 0; i < types.size(); i++)
+        for(int i = 0; i < types.length; i++)
         {
-            if(types.get(i).equals(placeType)){
+            if(types[i].equals(placeType)){
                 return true;
             }
         }
         return false;
     }
 
-    private Map<String, Object> buildParameters(ArrayList<String> types){
+    private Map<String, Object> buildParameters(String[] types){
         /*Builds and returns parameters used in the Nearby Chats request*/
 
         Map<String, Object> parameters = new HashMap<>();

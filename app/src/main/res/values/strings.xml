@@ -4,6 +4,7 @@
 
     <string name="app_name">Yarn</string>
     <string name="Yarn_API_Key">AIzaSyA4CZWebxZaLBnYw0RDK066EPY943eoIAw</string>
+    <string name="Yarn_web_API_key">AIzaSyA83e-Bk3w9jTCci81w44NC74EJ3Mun6PY</string>
     <string name="facebook_app_id">212630036311409</string>
     <string name="fb_login_protocol_scheme">fb212630036311409</string>
     <string name="com.twitter.sdk.android.CONSUMER_KEY" translatable="false" tools:ignore="UnusedResources">ppv4du1RiVrMYRBz9X9h4Xwok</string>

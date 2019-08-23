@@ -46,6 +46,7 @@ public class InfoWindow extends YarnWindow {
 
     //TODO make infowindow go behind other UI elements
     //TODO make infowindow clip behind screen
+    //TODO remove google maps button
 
     public InfoWindow(MapsActivity _mapsActivity, ViewGroup _parent, YarnPlace _yarnPlace){
         super(_mapsActivity,_parent,layoutID,0.6,0.5);

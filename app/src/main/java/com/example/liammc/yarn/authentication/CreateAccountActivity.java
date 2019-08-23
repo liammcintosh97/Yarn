@@ -38,6 +38,11 @@ public class CreateAccountActivity extends YarnActivity {
     private String[] genderOptions = new String[]{"Male", "Female", "Rather not say"};
 
     //TODO create date picker dialog
+    //TODO implement an account complete check after signing in
+    //TODO implement appointment picker dialog
+    // (http://www.dappsforpc.site/download-time-slot-picker-for-android-for-pc-windows-and-mac/com.github.irshulx.slotpicker.html)
+    //TODO app crashes when user doesn't enter details and presses create
+    //TODO disclaimer about profile picture
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

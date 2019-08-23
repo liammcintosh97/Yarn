@@ -2,7 +2,7 @@
 <resources>
     <color name="color_white">#F3F3F3</color>
     <color name="color_red">#B71656</color>
-    <color name="color_transparent_background">#40311405</color>
+    <color name="color_transparent_background">#80000000</color>
 
     <color name="color_primary_1">#1697B7</color>
     <color name="color_primary_2">#30C3CD</color>

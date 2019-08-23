@@ -1,4 +1,4 @@
-package com.example.liammc.yarn.userInput;
+package com.example.liammc.yarn.userInterface;
 
 import android.widget.SeekBar;
 
@@ -16,23 +16,22 @@ public class RadiusBar {
     MapsActivity mapsActivity;
     LocalUser localUser;
 
-    public RadiusBar(MapsActivity _mapsActivity,CameraController _cam,SearchRadius _search){
+    public RadiusBar(MapsActivity _mapsActivity,SearchRadius _search){
         this.mapsActivity = _mapsActivity;
-        this.cameraController = _cam;
         this.searchRadius = _search;
         this.localUser = LocalUser.getInstance();
 
-        this.Init();
     }
 
     //region Init
 
-    private void Init(){
+    public void init(CameraController _cam){
         radiusBar = mapsActivity.findViewById(R.id.radiusBar);
 
         radiusBar.setMax(LocalUser.SEARCH_RADIUS_MAX);
         radiusBar.setProgress(LocalUser.SEARCH_RADIUS_DEFAULT);
 
+        cameraController = _cam;
         cameraController.moveToLatLng(localUser.lastLatLng,(
                 int)calculateCameraZoom());
 
