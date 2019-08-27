@@ -12,6 +12,8 @@ import com.example.liammc.yarn.finders.NearbyChatFinder;
 import com.example.liammc.yarn.networking.JoinedDownloader;
 import com.example.liammc.yarn.notifications.Notifier;
 import com.example.liammc.yarn.notifications.TimeChangeReceiver;
+import com.example.liammc.yarn.yarnPlace.ChatCreator;
+import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.R;
@@ -19,6 +21,7 @@ import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.interfaces.ReadyListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -53,17 +56,19 @@ public class InitializationActivity extends YarnActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initilization);
 
-        //TODO stop user from going back
-        //TODO set time out for data downloading
-
         //Initialize the required objects and the Local firebaseUser
         init();
         initLocalUser();
     }
 
+    @Override
+    public void onBackPressed() {
+        //Stops the user from going back
+    }
+
     //region Init
 
-    private void init(){
+    public void init(){
         joinedDownloader = new JoinedDownloader();
         progressMessage =  findViewById(R.id.progressMessage);
     }
@@ -80,7 +85,7 @@ public class InitializationActivity extends YarnActivity {
         localUser.initTypes();
 
         localUser.initUserLocation(this);
-        localUser.getUserLocation(this,locationProviderClient,null);
+        localUser.getUserLocation(this, locationProviderClient, null);
 
         //Initialize the Local User's Ready Listener
         initLocalUserReadyListener();
@@ -88,7 +93,7 @@ public class InitializationActivity extends YarnActivity {
 
     private void initLocalUserReadyListener(){
 
-        progressMessage.setText("Setting up firebaseUser");
+        updateProgressMessage("Setting up User");
 
         //Set the ready listener
         localUser.setReadyListener(new ReadyListener() {
@@ -212,19 +217,53 @@ public class InitializationActivity extends YarnActivity {
 
     //endregion
 
+    //region Public Methods
+
+    public void reinitialize(){
+        //Reset the initialization process if the internet listener
+        // has detected a recent connection
+
+        try{
+
+            Log.d(TAG,"Reinitializing");
+            if(!isFinishing()){
+                init();
+                initLocalUser();
+            }
+        }catch(Exception e){
+            Log.e(TAG,e.getMessage());
+        }
+    }
+
+    //endregion
+
     //region Private Methods
+
+    private void updateProgressMessage(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    progressMessage.setText(message);
+                } catch (Exception ex) {
+                    // Here we are logging the exception to see why it happened.
+                    Log.e(TAG, ex.toString());
+                }
+            }
+        });
+    }
 
     private void downloadJoinedYarnPlaces(){
         //Downloads all the Yarn Places with joined chats
         final Activity activity =  this;
-        progressMessage.setText("Getting needed data");
+        updateProgressMessage("Getting needed data");
 
         joinedDownloader.getJoinedYarnPlaces(activity,geocoder,new ReadyListener() {
             @Override
             public void onReady() {
                 /*This runs once the joined Downloader is ready and has downloaded all of it's data.
                 * Then the application must get all the chat data with the nearby Chat Finder*/
-                progressMessage.setText("Getting nearby Chats");
+                updateProgressMessage("Getting nearby Chats");
 
 
                 initNearbyChatFinder();

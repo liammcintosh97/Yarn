@@ -11,6 +11,8 @@ import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.core.ChatActivity;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.Recorder;
+import com.example.liammc.yarn.core.YarnActivity;
+import com.example.liammc.yarn.networking.InternetListener;
 import com.example.liammc.yarn.utility.DateTools;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
@@ -24,7 +26,8 @@ public class TimeChangeReceiver {
      */
 
     private final String TAG = "TimeChangeReceiver";
-    private Activity activity;
+    private YarnActivity activity;
+    InternetListener internetListener;
 
     long secondsInMilli = 1000;
     long minutesInMilli = secondsInMilli * 60;
@@ -43,8 +46,9 @@ public class TimeChangeReceiver {
 
     public BroadcastReceiver receiver;
 
-    public TimeChangeReceiver(Activity _activity){
+    public TimeChangeReceiver(YarnActivity _activity){
         this.activity = _activity;
+        this.internetListener =  activity.internetListener;
         this.initReceiver();
     }
 
@@ -66,7 +70,9 @@ public class TimeChangeReceiver {
                     timeTick(context);
                 }
 
-
+                if(!internetListener.isConnected()){
+                    internetListener.internetDialog.alert(activity.getSupportFragmentManager(),TAG);
+                }
             }
         };
     }

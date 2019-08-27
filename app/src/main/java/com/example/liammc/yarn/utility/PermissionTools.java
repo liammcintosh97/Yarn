@@ -19,7 +19,9 @@ public final class PermissionTools
                         Manifest.permission.WRITE_EXTERNAL_STORAGE ,
                         Manifest.permission.CAMERA,
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_WIFI_STATE,
+                        Manifest.permission.ACCESS_NETWORK_STATE,
                 };
 
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
@@ -31,4 +33,24 @@ public final class PermissionTools
             ActivityCompat.requestPermissions(activity, permissionRequests, PERMISSION_REQUEST_CODE);
         }
     }
+
+    public static boolean requestLocationPermissions(Activity activity, int PERMISSION_REQUEST_CODE){
+        /*Requests the permissions required for location Services*/
+
+        String[] permissionRequests = new String[]
+                {
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                };
+
+        if ( ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(activity, permissionRequests, PERMISSION_REQUEST_CODE);
+            return false;
+        }
+        return true;
+    }
 }
+

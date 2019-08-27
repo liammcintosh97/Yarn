@@ -48,7 +48,7 @@ public class AccountActivity extends YarnActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         /*Runs when an Activity returns a result*/
 
         //Checks if the result is from a camera
@@ -63,6 +63,8 @@ public class AccountActivity extends YarnActivity {
                         new BitmapDrawable(Resources.getSystem(),profilePictureBitmap));
             }
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     //region init

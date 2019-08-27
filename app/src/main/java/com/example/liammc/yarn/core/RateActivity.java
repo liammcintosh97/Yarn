@@ -57,13 +57,15 @@ public class RateActivity extends YarnActivity {
 
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if(resultCode != RESULT_OK) return;
 
         if (requestCode == ReporterWindow.REPORT_REQUEST_CODE) {
             reporterWindow.dismiss();
         }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     //region Init

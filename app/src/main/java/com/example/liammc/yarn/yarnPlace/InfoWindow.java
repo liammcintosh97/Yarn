@@ -39,14 +39,12 @@ public class InfoWindow extends YarnWindow {
     private static final int layoutID = R.layout.window_place_info;
     private TextView placeNameTitle;
     private ImageView placePicture;
-    private Button googleMapsButton;
     private Button createChatButton;
     public ScrollView chatScrollView;
     public LinearLayout chatScrollViewElements;
 
     //TODO make infowindow go behind other UI elements
     //TODO make infowindow clip behind screen
-    //TODO remove google maps button
 
     public InfoWindow(MapsActivity _mapsActivity, ViewGroup _parent, YarnPlace _yarnPlace){
         super(_mapsActivity,_parent,layoutID,0.6,0.5);
@@ -74,17 +72,9 @@ public class InfoWindow extends YarnWindow {
 
         placeNameTitle = getContentView().findViewById(R.id.placeTilte);
         placePicture = getContentView().findViewById(R.id.placePicture);
-        googleMapsButton = getContentView().findViewById(R.id.googleMapsButton);
         createChatButton = getContentView().findViewById(R.id.createChatButton);
         chatScrollView = getContentView().findViewById(R.id.chatScrollView);
         chatScrollViewElements = chatScrollView.findViewById(R.id.elements);
-
-        googleMapsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OnGoogleMapsPressed();
-            }
-        });
         createChatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -107,17 +97,6 @@ public class InfoWindow extends YarnWindow {
          * to another window which allows them to create a chat*/
 
         chatCreator.show(Gravity.CENTER);
-    }
-
-    private void OnGoogleMapsPressed() {
-        /*This method runs when he firebaseUser clicks on the google maps button. It takes them to the
-        google maps application on their phone with the place looked up
-         */
-
-        String map = "http://maps.google.co.in/maps?q=" + yarnPlace.address.toString();
-
-        Intent mapsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(map));
-        mapsActivity.startActivity(mapsIntent);
     }
 
     //endregion

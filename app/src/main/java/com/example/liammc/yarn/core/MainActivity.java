@@ -10,15 +10,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
-import com.example.liammc.yarn.authentication.Authenticator;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
-import com.example.liammc.yarn.notifications.Notifier;
+import com.example.liammc.yarn.networking.InternetListener;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -32,11 +30,12 @@ public class MainActivity extends AppCompatActivity {
     opens the app. It introduces the firebaseUser to a log in and sign in button
      */
 
+    private final String TAG = "Main Activity";
     private static final String CHANNEL_ID = "mainActivity";
     private static final int PERMISSION_REQUEST_CODE =1;
     private SharedPreferences prefs = null;
-
-    //TODO internet check
+    private boolean connected =  false;
+    private InternetListener internetListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +46,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         PermissionTools.requestPermissions(this, PERMISSION_REQUEST_CODE);
 
-        prefs = getSharedPreferences("com.example.liammc.yarn", MODE_PRIVATE);
+        internetListener =  new InternetListener(this);
 
-        //debugSignIn();
+        prefs = getSharedPreferences("com.example.liammc.yarn", MODE_PRIVATE);
 
         //Got to Initialization if the firebaseUser is signed in
         if(isSignedIn()) GoToInitialization();
@@ -65,19 +64,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     //region Buttons Methods
 
     public void OnSignInPressed(View view) {
         /*Runs when the firebaseUser presses the sign In button. It takes the firebaseUser to the Sign In Activity*/
+
         Intent myIntent = new Intent(getBaseContext(),   SignInActivity.class);
         startActivity(myIntent);
     }
 
     public void OnSignUpPressed(View view) {
         /*Runs when the firebaseUser presses the sign In button. It takes the firebaseUser to the Sign Up Activity*/
+
         Intent myIntent = new Intent(getBaseContext(),   SignUpActivity.class);
         startActivity(myIntent);
     }
+
     //endregion
 
     //region Public Methods
@@ -97,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
     //region Private Methods
+
 
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/

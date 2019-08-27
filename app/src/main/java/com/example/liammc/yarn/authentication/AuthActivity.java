@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.networking.InternetListener;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -50,6 +51,8 @@ public class AuthActivity extends AppCompatActivity {
     protected ImageButton googlebutton;
     protected ImageButton facebookButton;
 
+    private InternetListener internetListener;
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -80,6 +83,8 @@ public class AuthActivity extends AppCompatActivity {
     //region init
     protected void initAuthenticators(){
         /*Initializes the authenticators*/
+
+        internetListener = new InternetListener(this);
 
         mAuth = FirebaseAuth.getInstance();
         mCurrentUser = mAuth.getCurrentUser();

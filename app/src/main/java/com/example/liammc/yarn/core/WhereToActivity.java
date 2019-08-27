@@ -1,37 +1,27 @@
 package com.example.liammc.yarn.core;
 
 import android.app.Activity;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.WhereToElement;
-import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.finders.NearbyPlaceFinder;
 import com.example.liammc.yarn.interfaces.NearbyPlaceCallback;
-import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
 import com.example.liammc.yarn.userInterface.LoadingSymbol;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 public class WhereToActivity extends YarnActivity {
 
-    ArrayList<WhereToElement> elements = new ArrayList<>();
+    WhereToElement[] elements = null;
 
     //Finders
     NearbyPlaceCallback finderCallback;
@@ -49,8 +39,6 @@ public class WhereToActivity extends YarnActivity {
     CheckBox nightClubCheckBox;
     LoadingSymbol loadingSymbol;
 
-    //TODO list places by closest order
-    //TODO check for duplicates
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -235,24 +223,55 @@ public class WhereToActivity extends YarnActivity {
 
     private void addYarnPlaces(List<HashMap<String, String>> placeMaps){
 
-        for(HashMap<String,String> map : placeMaps){
+        elements = new WhereToElement[placeMaps.size()];
+
+        for(int i = 0; i < placeMaps.size(); i++){
+
+            HashMap<String,String> map =  placeMaps.get(i);
 
             if(!exists(map)) {
                 WhereToElement element = new WhereToElement(this, map);
-                elements.add(element);
-                scrollViewElements.addView(element.elementView);
+                elements[i] =  element;
             }
         }
+
+        sort();
+        addViews();
     }
 
     private boolean exists(HashMap<String,String> placeMap){
 
-        if(elements == null || elements.size() == 0)return false;
+        if(elements == null || elements.length == 0)return false;
 
         for(WhereToElement e : elements){
-            if(e.placeMap.get("id").equals(placeMap.get("id"))) return true;
+            if(e != null &&
+                    e.placeMap.get("id").equals(placeMap.get("id"))) return true;
         }
         return false;
+    }
+
+    private void sort(){
+
+        for (int i = 0; i < elements.length; i++) {
+
+            for (int j = i + 1; j < elements.length; j++) {
+
+                if (elements[i].distance > elements[j].distance) {
+
+                    WhereToElement temp = elements[i];
+                    elements[i] = elements[j];
+                    elements[j] = temp;
+
+                }
+            }
+        }
+    }
+
+    private void addViews(){
+        for(WhereToElement e : elements){
+            scrollViewElements.removeView(e.elementView);
+            scrollViewElements.addView(e.elementView);
+        }
     }
 
     private void updateUserTypes(){
@@ -271,10 +290,12 @@ public class WhereToActivity extends YarnActivity {
 
         WhereToElement elementToRemove = null;
 
-        for(WhereToElement e : elements){
-            if(e.placeMap.get("id").equals(placeID)){
-                elementToRemove = e;
-                elements.remove(e);
+        for(int i = 0; i < elements.length; i++){
+
+            if(elements[i].placeMap.get("id").equals(placeID)){
+
+                elementToRemove = elements[i];
+                elements[i] = null;
                 break;
             }
         }
@@ -287,7 +308,7 @@ public class WhereToActivity extends YarnActivity {
     }
 
     private void clearElements(){
-        elements.clear();
+        elements = null;
         scrollViewElements.removeAllViews();
     }
 

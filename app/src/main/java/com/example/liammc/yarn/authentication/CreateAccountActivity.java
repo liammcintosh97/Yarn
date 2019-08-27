@@ -39,9 +39,6 @@ public class CreateAccountActivity extends YarnActivity {
 
     //TODO create date picker dialog
     //TODO implement an account complete check after signing in
-    //TODO implement appointment picker dialog
-    // (http://www.dappsforpc.site/download-time-slot-picker-for-android-for-pc-windows-and-mac/com.github.irshulx.slotpicker.html)
-    //TODO app crashes when user doesn't enter details and presses create
     //TODO disclaimer about profile picture
 
     @Override
@@ -52,7 +49,8 @@ public class CreateAccountActivity extends YarnActivity {
         initUI();
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         /*Runs when an activity runs and returns a result*/
 
         //Check if the returned result is from the camera activity
@@ -70,6 +68,8 @@ public class CreateAccountActivity extends YarnActivity {
                 Toast.makeText(this, "Couldn't get profile picture", Toast.LENGTH_SHORT).show();
             }
         }
+
+        super.onActivityResult(requestCode,resultCode,data);
     }
 
     //region Private Methods

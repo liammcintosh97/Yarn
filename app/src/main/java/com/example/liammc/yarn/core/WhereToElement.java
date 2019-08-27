@@ -1,4 +1,4 @@
-package com.example.liammc.yarn;
+package com.example.liammc.yarn.core;
 
 import android.content.Intent;
 import android.location.Address;
@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.WhereToActivity;
@@ -35,6 +36,8 @@ public class WhereToElement {
     private TextView distanceTextView;
     private TextView chatsTextView;
     private Button goToButton;
+
+    public long distance;
 
     public WhereToElement(WhereToActivity _whereToActivity, HashMap<String,String> _placeMap){
 
@@ -77,7 +80,8 @@ public class WhereToElement {
 
     public void update(){
         placeNameTextView.setText(placeMap.get("name"));
-        String dis = getDistance() + "m";
+        distance = getDistance();
+        String dis = distance + "m";
         distanceTextView.setText(dis);
 
         getChatCount();
@@ -135,8 +139,11 @@ public class WhereToElement {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                String chatCount = String.valueOf(dataSnapshot.getChildrenCount());
-                chatsTextView.setText(chatCount);
+                long chatCount = dataSnapshot.getChildrenCount() -1;
+
+                if(chatCount < 0 ) chatCount = 0;
+
+                chatsTextView.setText(String.valueOf(chatCount));
             }
 
             @Override

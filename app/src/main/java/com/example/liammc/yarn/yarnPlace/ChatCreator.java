@@ -37,6 +37,9 @@ public class ChatCreator extends YarnWindow {
     //TODO stop users from creating chats in the past
     //TODO limit users to selecting meet time ever hour or half past
     //TODO limit user to selecting duration from a set list
+    //TODO implement appointment picker dialog
+    // (http://www.dappsforpc.site/download-time-slot-picker-for-android-for-pc-windows-and-mac/com.github.irshulx.slotpicker.html)
+    //TODO app crashes when user doesn't enter details and presses create
 
     //UI
     TextView placeName;

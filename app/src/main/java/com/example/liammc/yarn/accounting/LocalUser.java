@@ -8,7 +8,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.example.liammc.yarn.core.MapsActivity;
@@ -16,16 +15,13 @@ import com.example.liammc.yarn.utility.AddressTools;
 import com.example.liammc.yarn.utility.PermissionTools;
 import com.example.liammc.yarn.yarnPlace.PlaceType;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class LocalUser extends YarnUser implements LocationSource, LocationListener {
@@ -236,7 +232,6 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
                     // Got last known location. In some rare situations this can be null.
                     lastLocation =  location;
 
-                    //TODO case for when location cant be received
                     if (lastLocation != null) {
                         // Logic to handle location object
                         LatLng latLng = new LatLng(lastLocation.getLatitude(),
@@ -244,9 +239,10 @@ public class LocalUser extends YarnUser implements LocationSource, LocationListe
 
                         //Pass it to the listeners to handle the results
                         if(listener != null) listener.onLocationReceived(latLng);
-                        onLocationChanged(location);
+                        onLocationChanged(lastLocation);
                     }else {
                         //Getting the location was unsuccessful so log the error
+                        if(listener != null) listener.onLocationReceived(null);
                         Log.e(TAG, "Current location is null");
                     }
                 }
