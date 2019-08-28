@@ -45,7 +45,7 @@ public class SignInActivity extends AuthActivity {
         mAuthenticator.login(this, email, password, new AuthListener() {
             @Override
             public void onAuth() {
-                mAuthenticator.goToInitialization(a);
+                mAuthenticator.goToInitialization(mAuth,a);
             }
 
             @Override

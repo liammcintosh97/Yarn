@@ -80,6 +80,7 @@ public class Chat
     public Boolean chatActive = null;
 
     //TODO Chat Activity not behaving correctly (See email from Jarred)
+    //TODO properly remove chat from realtime database backend
 
     //region Constructors
 

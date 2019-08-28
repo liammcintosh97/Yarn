@@ -24,7 +24,7 @@ import com.example.liammc.yarn.userInterface.LoadingSymbol;
 import com.example.liammc.yarn.userInterface.RadiusBar;
 import com.example.liammc.yarn.userInterface.SearchRadius;
 import com.example.liammc.yarn.utility.PermissionTools;
-import com.example.liammc.yarn.yarnPlace.ChatCreator;
+import com.example.liammc.yarn.chats.ChatCreator;
 import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.google.android.gms.location.FusedLocationProviderClient;

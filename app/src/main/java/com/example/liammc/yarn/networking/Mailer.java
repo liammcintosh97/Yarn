@@ -11,8 +11,6 @@ public class Mailer {
     private String subject;
     private Intent emailIntent;
 
-    //TODO internal mailing system
-
     public Mailer(String _subject){
         this.subject = _subject;
     }

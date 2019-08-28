@@ -11,6 +11,7 @@
     <string name="com.twitter.sdk.android.CONSUMER_SECRET" translatable="false" tools:ignore="UnusedResources">LPMxYOfZpqsdJEtFbbYluMDuN5vc52nhFKtIBiQh1UnU2pLXwa </string>
 
     // Buttons
+    <string name="ok_button">OK</string>
     <string name="cancel_button">Cancel</string>
     <string name="submit_button">Submit</string>
     <string name="close_button">Close</string>
@@ -119,6 +120,13 @@
     <!--endregion-->
 
     <!--region Windows-->
+
+    //Profile Picture Clarification
+    <string name="pictureClarification_message">Your profile picture needs \n
+                                                to be a clear photo of  \n
+                                                yourself so that other \n
+                                                users can identify \n
+                                                you when you meet up \n</string>
 
     //Chat Planner
     <string name="chatPlanner_title">Chat Planner</string>

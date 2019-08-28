@@ -106,7 +106,7 @@ class FacebookAuth extends Authenticator {
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
                             if(isNew) goToTermsAcceptance(activity);
-                            else goToInitialization(activity);
+                            else goToInitialization(mAuth,activity);
 
 
                         } else {

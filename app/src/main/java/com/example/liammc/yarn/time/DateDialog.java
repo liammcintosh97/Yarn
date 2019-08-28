@@ -20,7 +20,7 @@ public class DateDialog extends DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the current date as the default date in the picker
         final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
+        int year = c.get(Calendar.YEAR) - 18;
         int month = c.get(Calendar.MONTH);
         int day = c.get(Calendar.DAY_OF_MONTH);
 
@@ -38,6 +38,7 @@ public class DateDialog extends DialogFragment
         month = _month;
         day = _day;
     }
+
     //endregion
 
 }

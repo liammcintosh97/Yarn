@@ -98,11 +98,11 @@ public class PhoneAuth extends Authenticator {
     }
 
     @Override
-    public void goToInitialization(Activity activity) {
+    public void goToInitialization(FirebaseAuth auth,Activity activity) {
         /*This overriding method goes to account Setup but also dismisses the Phone Authentication
         window*/
         window.dismiss();
-        super.goToInitialization(activity);
+        super.goToInitialization(auth,activity);
     }
 
     //endregion

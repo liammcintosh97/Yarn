@@ -74,8 +74,8 @@ public class RateActivity extends YarnActivity {
         chat =  recorder.getRecordedChat(getIntent().getStringExtra("chatID"));
         otherUser =  chat.getOtherUser();
 
-        reporterWindow =  new ReporterWindow(this,(ViewGroup)findViewById(R.id.mainLayout)
-                ,otherUser,0.75,0.75);
+        reporterWindow =  new ReporterWindow(this,(ViewGroup)findViewById(R.id.mainLayout),
+                localUser,otherUser,0.75,0.75);
 
         socialPoster =  new SocialPoster(this);
     }

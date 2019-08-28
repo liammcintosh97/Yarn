@@ -254,8 +254,7 @@ public class LocalUserUpdater extends UserUpdater {
         /*Updates the firebaseUser's term acceptance*/
 
         //Write to the User database firebaseUser name
-        //TODO change terms Acceptance name
-        localUser.userDatabaseReference.child("TermsAcceptance").setValue(acceptance)
+        localUser.userDatabaseReference.child("termsAcceptance").setValue(acceptance)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {

@@ -11,17 +11,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.networking.Mailer;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 
+import java.util.UUID;
+
 public class ReporterWindow extends YarnWindow {
     /*The reporter window is used to report other users after a chat is completed*/
 
     private final String TAG = "ReporterWindow";
-    private final YarnUser user;
+    private final YarnUser reportedUser;
+    private final YarnUser localUser;
     public final static int REPORT_REQUEST_CODE = 0;
 
 
@@ -31,10 +35,12 @@ public class ReporterWindow extends YarnWindow {
     private Button submitButton;
     private Button cancelButton;
 
-    public ReporterWindow(Activity _activity, ViewGroup _parent, YarnUser _user,double widthM
-            ,double heightM){
+    public ReporterWindow(Activity _activity, ViewGroup _parent, LocalUser _localUser
+            ,YarnUser _reportedUser, double widthM
+            , double heightM){
         super(_activity,_parent,layoutID,widthM,heightM);
-        this.user =  _user;
+        this.reportedUser =  _reportedUser;
+        this.localUser = _localUser;
 
         this.initUI(_activity);
     }
@@ -75,10 +81,11 @@ public class ReporterWindow extends YarnWindow {
         the mailer class. It also flags the user
          */
 
-        Mailer mailer =  new Mailer("Yarn User Report - " + user.userID);
+        Mailer mailer =  new Mailer("Yarn User Report - " + localUser.userID + " - "
+                + reportedUser.userID + " - " + UUID.randomUUID().toString());
         mailer.send(activity,messageEditText.getText().toString(),REPORT_REQUEST_CODE);
 
-        flagUser(user);
+        flagUser(reportedUser);
     }
 
     private void onCancelSubmit(){

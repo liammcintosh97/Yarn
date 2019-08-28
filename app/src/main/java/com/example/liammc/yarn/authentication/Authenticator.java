@@ -14,6 +14,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class Authenticator {
     /*The Authenticator is used to log in the firebaseUser and sign them up through Firebase*/
@@ -92,6 +98,35 @@ public class Authenticator {
                 });
     }
 
+    public  void goToInitialization(FirebaseAuth auth,final Activity activity){
+        //Takes the firebaseUser to the Initialization activity
+
+        FirebaseUser currentUser =  auth.getCurrentUser();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("Users")
+                .child(currentUser.getUid());
+
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                //There is not enough data to proceed so go back to the account creator
+                if(dataSnapshot.getChildrenCount() < 5){
+                    Intent myIntent = new Intent(activity.getBaseContext(), TermsActivity.class);
+                    activity.startActivity(myIntent);
+                }
+                else{
+                    Intent myIntent = new Intent(activity.getBaseContext(), InitializationActivity.class);
+                    activity.startActivity(myIntent);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     //endregion
 
     //region Protected Methods
@@ -108,7 +143,7 @@ public class Authenticator {
 
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
                             if(isNew) goToTermsAcceptance(activity);
-                            else goToInitialization(activity);
+                            else goToInitialization(mAuth,activity);
 
                         } else {
                             // If sign in fails, display a message to the firebaseUser.
@@ -121,19 +156,13 @@ public class Authenticator {
                 });
     }
 
-    protected void goToTermsAcceptance(Activity activity) {
+    protected void goToTermsAcceptance(final Activity activity) {
         //Takes the firebaseUser to the Account Set Up activity
 
         Intent myIntent = new Intent(activity.getBaseContext(),   TermsActivity.class);
         activity.startActivity(myIntent);
     }
 
-    protected  void goToInitialization(Activity activity){
-        //Takes the firebaseUser to the Initialization activity
-
-        Intent myIntent = new Intent(activity.getBaseContext(), InitializationActivity.class);
-        activity.startActivity(myIntent);
-    }
 
     //endregion
 }

@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.example.liammc.yarn.R;
+import com.example.liammc.yarn.accounting.LocalUser;
+import com.example.liammc.yarn.accounting.YarnUser;
 import com.example.liammc.yarn.core.YarnWindow;
 import com.example.liammc.yarn.networking.Mailer;
 
@@ -25,10 +27,12 @@ public class SupportWindow extends YarnWindow {
     Button cancelButton;
 
 
-    public SupportWindow(Activity _activity, ViewGroup _parent,double widthM, double heightM){
+    public SupportWindow(Activity _activity, ViewGroup _parent,double widthM, double heightM,
+                         LocalUser _localUser){
         super(_activity,_parent,layoutID,widthM,heightM);
 
-        this.mailer =  new Mailer("Yarn Support Case " + UUID.randomUUID().toString());
+        this.mailer =  new Mailer("Yarn Support Case - " + _localUser.userID + " - "
+                + UUID.randomUUID().toString());
         this.initUI(_activity);
     }
 

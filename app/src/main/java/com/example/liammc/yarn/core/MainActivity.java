@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
+import com.example.liammc.yarn.authentication.Authenticator;
 import com.example.liammc.yarn.authentication.SignInActivity;
 import com.example.liammc.yarn.authentication.SignUpActivity;
 import com.example.liammc.yarn.networking.InternetListener;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences prefs = null;
     private boolean connected =  false;
     private InternetListener internetListener;
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
+    private Authenticator authenticator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences("com.example.liammc.yarn", MODE_PRIVATE);
 
         //Got to Initialization if the firebaseUser is signed in
-        if(isSignedIn()) GoToInitialization();
+        if(isSignedIn()) authenticator.goToInitialization(mAuth,this);
     }
 
     @Override
@@ -105,7 +109,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean isSignedIn() {
         /*Returns whether the firebaseUser is signed in or not*/
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        mAuth = FirebaseAuth.getInstance();
+        authenticator = new Authenticator(mAuth);
+        user = mAuth.getCurrentUser();
 
         return user!= null;
     }

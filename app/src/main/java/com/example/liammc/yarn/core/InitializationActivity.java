@@ -2,32 +2,20 @@ package com.example.liammc.yarn.core;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.location.Geocoder;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
 import com.example.liammc.yarn.finders.NearbyChatFinder;
 import com.example.liammc.yarn.networking.JoinedDownloader;
-import com.example.liammc.yarn.notifications.Notifier;
-import com.example.liammc.yarn.notifications.TimeChangeReceiver;
-import com.example.liammc.yarn.yarnPlace.ChatCreator;
-import com.example.liammc.yarn.yarnPlace.InfoWindow;
 import com.example.liammc.yarn.yarnPlace.YarnPlace;
 import com.example.liammc.yarn.interfaces.FinderCallback;
 import com.example.liammc.yarn.R;
-import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.interfaces.ReadyListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
 public class InitializationActivity extends YarnActivity {
     /*This Activity is used for initializes application systems and downloading needed data. This

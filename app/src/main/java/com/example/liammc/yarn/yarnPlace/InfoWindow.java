@@ -1,8 +1,6 @@
 package com.example.liammc.yarn.yarnPlace;
 
-import android.content.Intent;
 import android.graphics.Point;
-import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +13,7 @@ import android.widget.TextView;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.chats.Chat;
+import com.example.liammc.yarn.chats.ChatCreator;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.YarnWindow;
 import com.google.android.gms.maps.GoogleMap;

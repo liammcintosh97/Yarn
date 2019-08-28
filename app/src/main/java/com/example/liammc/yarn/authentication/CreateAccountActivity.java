@@ -1,11 +1,15 @@
 package com.example.liammc.yarn.authentication;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -16,8 +20,10 @@ import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.accounting.IntroActivity;
 import com.example.liammc.yarn.accounting.LocalUser;
 import com.example.liammc.yarn.accounting.TermsActivity;
+import com.example.liammc.yarn.chats.ProfilePictureWindow;
 import com.example.liammc.yarn.core.InitializationActivity;
 import com.example.liammc.yarn.core.YarnActivity;
+import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.utility.CompatibilityTools;
 import com.example.liammc.yarn.utility.DateTools;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,18 +34,15 @@ import java.util.Calendar;
 public class CreateAccountActivity extends YarnActivity {
     /*This activity is used when the firebaseUser creates an Account*/
 
-    private static final int CAMERA_PIC_REQUEST = 1;
+    public static final int CAMERA_PIC_REQUEST = 1;
 
+    private ProfilePictureWindow profilePictureWindow;
     private Bitmap profilePictureBitmap;
     private EditText userNameInput;
     private Spinner genderSpinner;
-    private DatePicker birthDateInput;
+    private DateDialog birthDateDialog;
 
     private String[] genderOptions = new String[]{"Male", "Female", "Rather not say"};
-
-    //TODO create date picker dialog
-    //TODO implement an account complete check after signing in
-    //TODO disclaimer about profile picture
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,8 @@ public class CreateAccountActivity extends YarnActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         /*Runs when an activity runs and returns a result*/
+
+        if(profilePictureWindow.isShowing()) profilePictureWindow.dismiss();
 
         //Check if the returned result is from the camera activity
         if (requestCode == CAMERA_PIC_REQUEST && resultCode == RESULT_OK)
@@ -79,7 +84,9 @@ public class CreateAccountActivity extends YarnActivity {
         //initialize UI
         userNameInput = findViewById(R.id.userNameInput);
         genderSpinner  = findViewById(R.id.genderSpinner);
-        birthDateInput =  findViewById(R.id.birthDatePicker);
+        birthDateDialog = new DateDialog();
+        profilePictureWindow = new ProfilePictureWindow(this,(ViewGroup)findViewById(R.id.main)
+                ,0.75,0.75);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, genderOptions);
@@ -92,13 +99,17 @@ public class CreateAccountActivity extends YarnActivity {
 
     //region Button Methods
 
+    public void onBirthDateDialogPressed(View view){
+        birthDateDialog.show(getSupportFragmentManager(),"birthDatePicker");
+    }
+
     public void onCreateAccountButtonPress(View view) {
         /*Updates the User's Information*/
 
         String userName = userNameInput.getText().toString();
 
-        int birthYear = birthDateInput.getYear();
-        String birthDate = DateTools.parse(birthDateInput.getDayOfMonth(),birthDateInput.getMonth()
+        int birthYear = birthDateDialog.year;
+        String birthDate = DateTools.parse(birthDateDialog.day,birthDateDialog.month
                                             ,birthYear);
         String gender =  genderSpinner.getSelectedItem().toString();
 
@@ -133,9 +144,7 @@ public class CreateAccountActivity extends YarnActivity {
     }
 
     public void onProfilePictureButtonPress(View view) {
-        /*Take the firebaseUser to the external camera activity to return a profile picture*/
-        Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-        startActivityForResult(intent,CAMERA_PIC_REQUEST);
+        profilePictureWindow.show(Gravity.CENTER);
     }
 
     //endregion

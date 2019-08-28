@@ -203,7 +203,7 @@ public class YarnUser {
         Location is Users/[userID]/TermsAcceptance*/
 
         userDatabaseReference
-                .child("TermsAcceptance").addValueEventListener(new ValueEventListener() {
+                .child("termsAcceptance").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 /*Runs when the data at this location changes. Also runs the first time the listener

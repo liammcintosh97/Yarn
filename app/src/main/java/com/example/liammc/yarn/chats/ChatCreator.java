@@ -1,4 +1,4 @@
-package com.example.liammc.yarn.yarnPlace;
+package com.example.liammc.yarn.chats;
 
 import android.util.Log;
 
@@ -15,6 +15,7 @@ import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;
 import com.example.liammc.yarn.utility.DateTools;
+import com.example.liammc.yarn.yarnPlace.YarnPlace;
 
 import java.util.HashMap;
 import java.util.Locale;

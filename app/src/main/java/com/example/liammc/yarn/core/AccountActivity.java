@@ -86,7 +86,7 @@ public class AccountActivity extends YarnActivity {
 
         passwordUpdater =  new PasswordUpdater(this,main,0.75,0.75);
         emailUpdator =  new EmailUpdator(this,main,0.75,0.75);
-        supportWindow =  new SupportWindow(this,main,0.75,0.75);
+        supportWindow =  new SupportWindow(this,main,0.75,0.75,localUser);
 
         initRatingBar();
         setEditable(false);
