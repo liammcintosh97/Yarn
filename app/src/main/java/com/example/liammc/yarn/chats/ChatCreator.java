@@ -4,13 +4,16 @@ import android.util.Log;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.liammc.yarn.chats.Chat;
 import com.example.liammc.yarn.R;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.YarnWindow;
+import com.example.liammc.yarn.time.AppointmentPicker;
 import com.example.liammc.yarn.time.DateDialog;
 import com.example.liammc.yarn.time.DurationDialog;
 import com.example.liammc.yarn.time.TimeDialog;
@@ -27,26 +30,19 @@ public class ChatCreator extends YarnWindow {
 
     private final String TAG = "ChatCreator";
     private final MapsActivity mapsActivity;
+    private final long minuteMilli = 60000;
 
-    public TimeDialog timePicker;
-    public DateDialog datepicker;
-    public DurationDialog durationPicker;
+    public AppointmentPicker appointmentPicker;
+    public Spinner durationSpinner;
 
     String localUserID;
     private YarnPlace yarnPlace;
 
-    //TODO stop users from creating chats in the past
-    //TODO limit users to selecting meet time ever hour or half past
-    //TODO limit user to selecting duration from a set list
-    //TODO implement appointment picker dialog
-    // (http://www.dappsforpc.site/download-time-slot-picker-for-android-for-pc-windows-and-mac/com.github.irshulx.slotpicker.html)
-    //TODO app crashes when user doesn't enter details and presses create
+    //TODO stop users from creating chats in the past and outside of business hours
+    //TODO date is being formatted incorrectly. Shows as a month before
 
     //UI
     TextView placeName;
-    Button dateButton;
-    Button timeButton;
-    Button durationButton;
     Button createChatButton;
 
     //Chat details
@@ -76,34 +72,20 @@ public class ChatCreator extends YarnWindow {
     private void initUIReferences(){
         /*This method gets the UI references from the layout*/
 
+        appointmentPicker =  getContentView().findViewById(R.id.appointmentPicker);
         placeName = getContentView().findViewById(R.id.placeName);
-        dateButton = getContentView().findViewById(R.id.dateButton);
-        timeButton = getContentView().findViewById(R.id.timeButton);
-        durationButton = getContentView().findViewById(R.id.durationButton);
         createChatButton = getContentView().findViewById(R.id.createChatButton);
+        durationSpinner =  getContentView().findViewById(R.id.durationSpinner);
+
+        String[] durations = {"15 mins","30 mins", "60 mins"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                mapsActivity, android.R.layout.simple_spinner_item, durations);
+
+        durationSpinner.setAdapter(adapter);
     }
 
     private void initButtons(){
         /*This method links the button's clicks to their respective methods*/
-
-        dateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onPickDatePressed();
-            }
-        });
-        timeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onPickTimePressed();
-            }
-        });
-        durationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onPickDurationPressed();
-            }
-        });
         createChatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,62 +99,28 @@ public class ChatCreator extends YarnWindow {
     //region Button Methods
     /*This region contains all the button methods for the Chat Creator*/
 
-    private void onPickTimePressed() {
-        /*This method launches the time picker*/
-
-        timePicker = new TimeDialog();
-        timePicker.show(mapsActivity.getSupportFragmentManager(), "timePicker");
-    }
-
-    private void onPickDatePressed() {
-        /*This method launches the date picker*/
-
-        datepicker = new DateDialog();
-        datepicker.show(mapsActivity.getSupportFragmentManager(),"datePicker");
-    }
-
-    private void onPickDurationPressed() {
-        /*This method launches the duration picker*/
-
-        durationPicker = new DurationDialog();
-        durationPicker.show(mapsActivity.getFragmentManager(),"durationPicker");
-    }
 
     private void onCreateChatPressed() {
         /*This method confirms the input and creates a chat from it*/
 
-        int year = datepicker.year;
-        int intMonth = datepicker.month + 1;
-        int intDay = datepicker.day;
-        int hour = timePicker.hour;
-        int minute = timePicker.minute;
+        String durationSelection = (String)durationSpinner.getSelectedItem();
+
+        if(!appointmentPicker.validSelection() || durationSelection == null){
+            printError("Please enter all details");
+            return;
+        }
 
         //Format duration
-        String duration = DateTools.millisToDurationString(Locale.getDefault()
-                ,durationPicker.milliSeconds);
+        if(durationSelection == null) return;
 
-        //Format day
-        String day;
-        if(intDay < 10) {
-            day = "0" + intDay;
-        }
-        else day = String.valueOf(intDay);
-
-        //Format month
-        String month;
-        if(intMonth < 10) {
-            month = "0" + intMonth;
-        }else month = String.valueOf(intMonth);
-
-        //Format date
-        String date = day + "-" + month + "-" + year;
-
-        //Format time
-        String time = hour + ":" + minute;
+        long dl = (Long.valueOf(durationSelection.substring(0,2))) * minuteMilli;
+        String formattedDuration = DateTools.millisToDurationString(Locale.getDefault()
+                ,dl);
 
         yarnPlace.yarnPlaceUpdater.removeChildListener();
 
-        HashMap<String,String> chatMap = Chat.buildChatMap(localUserID,date,time,duration);
+        HashMap<String,String> chatMap = Chat.buildChatMap(localUserID,appointmentPicker.selectedDate
+                ,appointmentPicker.selectedTime,formattedDuration);
 
         new Chat(yarnPlace, chatMap, new Chat.ChatReadyListener(){
             @Override
@@ -207,6 +155,14 @@ public class ChatCreator extends YarnWindow {
         updateUI(chatPlaceName);
 
         super.show(gravity);
+    }
+
+    //endregion
+
+    //region Private Methods
+
+    private void printError(String errorMessage){
+        Toast.makeText(mapsActivity,errorMessage,Toast.LENGTH_LONG).show();
     }
 
     //endregion

@@ -10,6 +10,26 @@
     <string name="com.twitter.sdk.android.CONSUMER_KEY" translatable="false" tools:ignore="UnusedResources">ppv4du1RiVrMYRBz9X9h4Xwok</string>
     <string name="com.twitter.sdk.android.CONSUMER_SECRET" translatable="false" tools:ignore="UnusedResources">LPMxYOfZpqsdJEtFbbYluMDuN5vc52nhFKtIBiQh1UnU2pLXwa </string>
 
+    //Time and Date
+    <string name="date_default">00/00/00</string>
+    <string name="time_default">00:00AM</string>
+    <string name="dateTime_default">00/00/00 00:00AM</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="time_one">1:00</string>
+    <string name="time_two">2:00</string>
+    <string name="time_three">3:00</string>
+    <string name="time_four">4:00</string>
+    <string name="time_five">5:00</string>
+    <string name="time_six">6:00</string>
+    <string name="time_seven">7:00</string>
+    <string name="time_eight">8:00</string>
+    <string name="time_nine">9:00</string>
+    <string name="time_ten">10:00</string>
+    <string name="time_eleven">11:00</string>
+    <string name="time_twelve">12:00</string>
+
+
     // Buttons
     <string name="ok_button">OK</string>
     <string name="cancel_button">Cancel</string>
@@ -38,9 +58,7 @@
 
     // Chat Info
     <string name="date">Date</string>
-    <string name="date_default">00/00/00</string>
     <string name="time">Time</string>
-    <string name="time_default">00:00AM</string>
     <string name="chats">Chats</string>
     <string name="cafes">Cafes</string>
     <string name="bars">Bars</string>
@@ -144,7 +162,6 @@
 
     //Yarn Place Info
     <string name="infoWindow_joinChat_button">Join</string>
-    <string name="infoWindow_dateTime">00/00/00 00:00AM</string>
     <string name="infoWindow_googleMaps_Button">Google Maps</string>
     <string name="infoWindow_contentDiscription">Place Photo</string>
 

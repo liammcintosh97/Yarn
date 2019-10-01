@@ -80,6 +80,7 @@ public class YarnPlace {
     PlacesClient placesClient;
 
     //TODO system for removing marks from map
+    //TODO check if place is open
 
     //Misc
     private boolean yarnPlaceUpdaterReady = false;

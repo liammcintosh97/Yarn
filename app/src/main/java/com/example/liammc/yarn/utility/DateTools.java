@@ -20,7 +20,7 @@ public final class DateTools
         * gets the milli time*/
 
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy",Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyy",Locale.getDefault());
             Date date = sdf.parse(dateString);
 
             return date.getTime();
@@ -63,12 +63,12 @@ public final class DateTools
         }
     }
 
-    public static Date stringTohMM(String dateString) {
+    public static Date stringTohmma(String dateString) {
         /*Converts a date string into a date object. It first parses the string into a SimpleDateFormat
          * to see if its a valid date then returns the date object*/
 
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("h:MM",Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a",Locale.getDefault());
             Date date = sdf.parse(dateString);
 
             return date;

@@ -1,6 +1,5 @@
 package com.example.liammc.yarn.notifications;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +7,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 import com.example.liammc.yarn.chats.Chat;
+import com.example.liammc.yarn.chats.ChatCreator;
 import com.example.liammc.yarn.core.ChatActivity;
 import com.example.liammc.yarn.core.MapsActivity;
 import com.example.liammc.yarn.core.Recorder;
@@ -114,8 +114,17 @@ public class TimeChangeReceiver {
 
             if(touchedYarnPlace != null){
                 InfoWindow window = touchedYarnPlace.infoWindow;
-                if(window.isShowing())window.updateInfoWindow();
+                if(window != null && window.isShowing()){
+                    window.updateInfoWindow();
+
+                    ChatCreator creator = window.chatCreator;
+                    if(creator != null && creator.isShowing()){
+                        creator.appointmentPicker.updateAppointmentTimes();
+                    }
+                }
             }
+
+
         }
 
         for(int i  = 0 ; i < chatList.size(); i++) {
